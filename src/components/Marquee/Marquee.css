@@ -1,0 +1,30 @@
+.marquee-wrap {
+  overflow: hidden;
+  background: var(--red);
+  padding: 0.55rem 0;
+}
+
+.marquee-track {
+  display: flex;
+  gap: 3rem;
+  white-space: nowrap;
+  animation: marqueeScroll 28s linear infinite;
+}
+
+.marquee-item {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.22em;
+  color: rgba(0, 0, 0, 0.55);
+  flex-shrink: 0;
+}
+
+.dot {
+  color: rgba(0, 0, 0, 0.3);
+  margin: 0 0.5rem;
+}
+
+@keyframes marqueeScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}

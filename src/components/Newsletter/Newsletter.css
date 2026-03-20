@@ -1,0 +1,107 @@
+#newsletter {
+  margin: 0 6vw 8rem;
+  padding: 5rem 4rem;
+  background: linear-gradient(135deg, #110000, #0d0d0d 60%);
+  border: 1px solid rgba(255, 34, 51, 0.18);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3rem;
+  flex-wrap: wrap;
+}
+
+#newsletter::before {
+  content: '';
+  position: absolute;
+  right: -100px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255, 34, 51, 0.12), transparent 70%);
+  pointer-events: none;
+}
+
+.newsletter-heading {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  letter-spacing: 0.05em;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.newsletter-sub {
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+.newsletter-text {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 260px;
+}
+
+.newsletter-form-wrap {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 320px;
+}
+
+.newsletter-form {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.newsletter-input {
+  flex: 1 1 220px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1rem;
+  padding: 0.85rem 1.2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  outline: none;
+  transition: border-color 0.25s;
+}
+
+.newsletter-input:focus {
+  border-color: var(--red);
+}
+
+.newsletter-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.newsletter-btn {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  padding: 0.85rem 2rem;
+  background: var(--red);
+  color: #fff;
+  border: none;
+  cursor: none;
+  text-transform: uppercase;
+  transition: background 0.25s, box-shadow 0.25s;
+}
+
+.newsletter-btn:hover {
+  background: #ff4455;
+  box-shadow: 0 0 30px rgba(255, 34, 51, 0.4);
+}
+
+.newsletter-disclaimer {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 0.7rem;
+}
+
+@media (max-width: 680px) {
+  #newsletter {
+    flex-direction: column;
+    padding: 3rem 2rem;
+  }
+}
