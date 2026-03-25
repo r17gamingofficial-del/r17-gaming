@@ -9,13 +9,6 @@ export default function Footer() {
           <p className="footer-desc">
             The world's premier competitive gaming platform. Home to millions of warriors, hundreds of tournaments, and the most intense esports action on the planet.
           </p>
-          <div className="footer-socials">
-            <a href="#" className="social-btn" aria-label="X / Twitter">𝕏</a>
-            <a href="#" className="social-btn" aria-label="Discord">⬡</a>
-            <a href="#" className="social-btn" aria-label="YouTube">▶</a>
-            <a href="#" className="social-btn" aria-label="Twitch">▷</a>
-            <a href="#" className="social-btn" aria-label="Instagram">◈</a>
-          </div>
         </div>
 
         <div>

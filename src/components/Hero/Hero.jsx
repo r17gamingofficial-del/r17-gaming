@@ -4,6 +4,7 @@ import "./Hero.css";
 export default function Hero() {
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
+  const videoContainerRef = useRef(null);
 
   useEffect(() => {
     const wrap = wrapRef.current;
@@ -57,41 +58,53 @@ export default function Hero() {
     };
   }, []);
 
+  // YouTube API integration
+  useEffect(() => {
+    // Load YouTube IFrame API
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName("script")[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    window.onYouTubeIframeAPIReady = () => {
+      new window.YT.Player("youtube-player", {
+        videoId: "EZMYvAWbyLo",
+        playerVars: {
+          autoplay: 1,
+          loop: 1,
+          mute: 1,
+          controls: 0,
+          showinfo: 0,
+          modestbranding: 1,
+          rel: 0,
+          playlist: "EZMYvAWbyLo",
+        },
+        events: {
+          onReady: (event) => {
+            event.target.playVideo();
+          },
+        },
+      });
+    };
+
+    return () => {
+      delete window.onYouTubeIframeAPIReady;
+    };
+  }, []);
+
   return (
     <section id="hero">
-      {/* YouTube video background */}
-      <div className="hero-video-bg">
-        <iframe
-          src="https://www.youtube.com/watch?v=s3pDMUWlA6I"
-          allow="autoplay; encrypted-media"
-          allowFullScreen
-          title="Hero Background"
-        />
+      {/* YouTube video background with API */}
+      <div className="hero-video-bg" ref={videoContainerRef}>
+        <div id="youtube-player"></div>
+        <div className="video-overlay"></div>
       </div>
 
-      <div className="hero-bg">
-        <div className="hero-bg-grid"></div>
-        <div className="hero-bg-glow g1"></div>
-        <div className="hero-bg-glow g2"></div>
-        <div className="hero-bg-glow g3"></div>
-        <div className="hero-particles" ref={wrapRef}>
-          <canvas
-            ref={canvasRef}
-            style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-            }}
-          />
-        </div>
-      </div>
 
       <div className="hero-overlay"></div>
       <div className="scanlines"></div>
 
       <div className="hero-content">
-        {/* <div className="hero-badge">Season 6 · Now Live</div> */}
         <h1 className="hero-title">
           <span className="glitch" data-text="DOMINATE">
             DOMINATE
@@ -103,14 +116,6 @@ export default function Hero() {
           Elite competitive gaming. Forge your legacy. Rise through the ranks
           and claim glory in the world's most intense tournaments.
         </p>
-        {/* <div className="hero-buttons">
-          <a href="#games" className="btn-primary">
-            Enter the Arena
-          </a>
-          <a href="#tournaments" className="btn-ghost">
-            View Tournaments
-          </a>
-        </div> */}
       </div>
 
       <div className="hero-stats">

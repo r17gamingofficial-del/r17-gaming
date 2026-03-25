@@ -5,7 +5,6 @@ import {
   FaInstagram,
   FaTwitch,
   FaYoutube,
-  FaTiktok,
 } from "react-icons/fa";
 
 const reviews = [
@@ -90,12 +89,6 @@ const socialLinks = [
     icon: FaYoutube,
     color: "#FF0000",
   },
-  {
-    platform: "TikTok",
-    url: "https://tiktok.com/@r17.gaming",
-    icon: FaTiktok,
-    color: "#000000",
-  },
 ];
 
 export default function Community() {
@@ -104,6 +97,27 @@ export default function Community() {
       <div className="reveal">
         <div className="section-label">Community</div>
         <h2 className="section-title">WHAT PLAYERS SAY</h2>
+        {/* Social Links Section */}
+        <div className="social-section reveal">
+          <div className="social-links">
+            {socialLinks.map((social) => {
+              const Icon = social.icon;
+              return (
+                <a
+                  key={social.platform}
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="social-icon-link"
+                  aria-label={social.platform}
+                  style={{ "--social-color": social.color }}
+                >
+                  <Icon className="social-icon-svg" />
+                </a>
+              );
+            })}
+          </div>
+        </div>
         <p className="section-sub">
           Join millions of warriors who've already entered the arena.
         </p>
@@ -123,28 +137,6 @@ export default function Community() {
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Social Links Section */}
-      <div className="social-section reveal">
-        <div className="social-links">
-          {socialLinks.map((social) => {
-            const Icon = social.icon;
-            return (
-              <a
-                key={social.platform}
-                href={social.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="social-icon-link"
-                aria-label={social.platform}
-                style={{ "--social-color": social.color }}
-              >
-                <Icon className="social-icon-svg" />
-              </a>
-            );
-          })}
-        </div>
       </div>
     </section>
   );
