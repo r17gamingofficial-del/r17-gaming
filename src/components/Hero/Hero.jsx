@@ -107,7 +107,7 @@ export default function Hero() {
       <div className="hero-content">
         <h1 className="hero-title">
           <span className="glitch" data-text="DOMINATE">
-            DOMINATE
+            DOMINATE1
           </span>
           <br />
           THE <span className="accent">ARENA</span>
