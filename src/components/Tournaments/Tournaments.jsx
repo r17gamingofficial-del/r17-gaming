@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import "./Tournaments.css";
 
 const tournaments = [
@@ -11,6 +11,10 @@ const tournaments = [
     status: "live",
     statusLabel: "● Live Now",
     prize: "$500,000",
+    videoUrl:
+      "https://www.youtube.com/embed/Pte7C8wjp1w?autoplay=1&mute=1&loop=1&playlist=Pte7C8wjp1w&controls=0&modestbranding=1&rel=0",
+    thumbnail:
+      "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&h=400&fit=crop",
     gallery: [
       "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&h=400&fit=crop",
       "https://images.unsplash.com/photo-1547394765-185e1e68f34e?w=600&h=400&fit=crop",
@@ -27,6 +31,10 @@ const tournaments = [
     status: "soon",
     statusLabel: "Soon",
     prize: "$250,000",
+    videoUrl:
+      "https://www.youtube.com/embed/Pte7C8wjp1w?autoplay=1&mute=1&loop=1&playlist=Pte7C8wjp1w&controls=0&modestbranding=1&rel=0",
+    thumbnail:
+      "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&h=400&fit=crop",
     gallery: [
       "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&h=400&fit=crop",
       "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&h=400&fit=crop",
@@ -43,6 +51,10 @@ const tournaments = [
     status: "open",
     statusLabel: "Open",
     prize: "$120,000",
+    videoUrl:
+      "https://www.youtube.com/embed/Pte7C8wjp1w?autoplay=1&mute=1&loop=1&playlist=Pte7C8wjp1w&controls=0&modestbranding=1&rel=0",
+    thumbnail:
+      "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=600&h=400&fit=crop",
     gallery: [
       "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=600&h=400&fit=crop",
       "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&h=400&fit=crop",
@@ -59,6 +71,10 @@ const tournaments = [
     status: "open",
     statusLabel: "Open",
     prize: "$180,000",
+    videoUrl:
+      "https://www.youtube.com/embed/Pte7C8wjp1w?autoplay=1&mute=1&loop=1&playlist=Pte7C8wjp1w&controls=0&modestbranding=1&rel=0",
+    thumbnail:
+      "https://images.unsplash.com/photo-1560253023-3ec5d502959f?w=600&h=400&fit=crop",
     gallery: [
       "https://images.unsplash.com/photo-1560253023-3ec5d502959f?w=600&h=400&fit=crop",
       "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&h=400&fit=crop",
@@ -75,6 +91,10 @@ const tournaments = [
     status: "open",
     statusLabel: "Open",
     prize: "$10,000",
+    videoUrl:
+      "https://www.youtube.com/embed/Pte7C8wjp1w?autoplay=1&mute=1&loop=1&playlist=Pte7C8wjp1w&controls=0&modestbranding=1&rel=0",
+    thumbnail:
+      "https://images.unsplash.com/photo-1547394765-185e1e68f34e?w=600&h=400&fit=crop",
     gallery: [
       "https://images.unsplash.com/photo-1547394765-185e1e68f34e?w=600&h=400&fit=crop",
       "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&h=400&fit=crop",
@@ -89,6 +109,8 @@ export default function Tournaments() {
   const [selectedRegion, setSelectedRegion] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedTournament, setSelectedTournament] = useState(tournaments[0]);
+  const [hoveredCard, setHoveredCard] = useState(null);
+  const videoRefs = useRef({});
 
   // Get unique regions for filter
   const regions = ["all", ...new Set(tournaments.map((t) => t.region))];
@@ -110,6 +132,21 @@ export default function Tournaments() {
     setSelectedTournament(tournament);
   };
 
+  // Handle video autoplay on hover for cards
+  const handleVideoHover = (tournamentId, isHovering) => {
+    const video = videoRefs.current[tournamentId];
+    if (video) {
+      if (isHovering) {
+        video.play().catch((error) => {
+          console.log("Video autoplay failed:", error);
+        });
+      } else {
+        video.pause();
+        video.currentTime = 0;
+      }
+    }
+  };
+
   return (
     <section id="tournaments" className="tournaments-section">
       <div className="reveal">
@@ -121,22 +158,94 @@ export default function Tournaments() {
       </div>
 
       <div className="tournaments-container">
-        {/* Left Side - Photo Gallery */}
+        {/* Left Side - Gallery Section */}
         <div className="tournaments-gallery reveal">
-          <div className="gallery-header">
-            <h3 className="gallery-title">{selectedTournament.name}</h3>
+          {/* Tournament Card */}
+          <div className="gallery-tournament-card">
+            <div className="card-image">
+              <img
+                src={selectedTournament.thumbnail}
+                alt={selectedTournament.name}
+              />
+              <div
+                className={`status-badge card-status status-${selectedTournament.status}`}
+              >
+                {selectedTournament.statusLabel}
+              </div>
+              <div className="prize-badge">{selectedTournament.prize}</div>
+            </div>
+            <div className="card-content">
+              <div className="card-header">
+                <h3 className="card-title">{selectedTournament.name}</h3>
+              </div>
+              <div className="card-details">
+                <div className="detail-item">
+                  <span className="detail-icon">📅</span>
+                  <span className="detail-text">{selectedTournament.date}</span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-text">
+                    {selectedTournament.region}
+                  </span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-icon">👥</span>
+                  <span className="detail-text">
+                    {selectedTournament.teams}
+                  </span>
+                </div>
+              </div>
+              <button
+                className="register-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log("Register for:", selectedTournament.name);
+                }}
+              >
+                Register Now →
+              </button>
+            </div>
           </div>
 
-          <div className="gallery-vertical-container">
-            <div className="gallery-vertical-scroll">
+          {/* Video Section */}
+          <div className="video-section">
+            <h4 className="section-heading">🎬 Tournament Trailer</h4>
+            <div className="video-container">
+              {selectedTournament.videoUrl &&
+              (selectedTournament.videoUrl.includes("youtube.com") ||
+                selectedTournament.videoUrl.includes("youtu.be")) ? (
+                <iframe
+                  className="tournament-video"
+                  src={selectedTournament.videoUrl}
+                  title={`${selectedTournament.name} Trailer`}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              ) : (
+                <video
+                  key={selectedTournament.rank}
+                  className="tournament-video"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  controls
+                >
+                  <source src={selectedTournament.videoUrl} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              )}
+            </div>
+          </div>
+
+          {/* Photos Gallery */}
+          <div className="photos-section">
+            <h4 className="section-heading">📸 Tournament Highlights</h4>
+            <div className="photos-grid">
               {selectedTournament.gallery.map((img, index) => (
-                <div key={index} className="gallery-vertical-item-wrapper">
-                  <div className="gallery-vertical-item">
-                    <img
-                      src={img}
-                      alt={`${selectedTournament.name} - Image ${index + 1}`}
-                    />
-                  </div>
+                <div key={index} className="photo-item">
+                  <img src={img} alt={`Highlight ${index + 1}`} />
                 </div>
               ))}
             </div>

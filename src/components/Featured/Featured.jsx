@@ -1,36 +1,95 @@
-import './Featured.css'
+import { useAppContext } from "../../Context/AppContext";
+import "./Featured.css";
 
-export default function Featured() {
+export default function Featured({ selectedGame }) {
+  const { games } = useAppContext();
+
+  // Default to first game if no game selected
+  const defaultGame = games && games.length > 0 ? games[0] : null;
+  const game = selectedGame || defaultGame;
+
+  if (!game) {
+    return (
+      <div id="featured" className="reveal">
+        <div className="featured-content">
+          <div className="section-label">Editor's Pick · Season 6</div>
+          <h3 className="featured-title">COMING SOON</h3>
+          <p className="featured-desc">
+            New games are being added. Check back soon!
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div id="featured" className="reveal">
       <div className="featured-content">
         <div className="section-label">Editor's Pick · Season 6</div>
-        <h3 className="featured-title">SHADOW<br />REALM X</h3>
+        <h3 className="featured-title">
+          {game.featuredTitle || game.name.toUpperCase()}
+        </h3>
+
+        {/* Score Section */}
         <div className="featured-score">
-          <div className="score-num">9.8</div>
-          <div className="score-label">CRITIC<br />SCORE</div>
+          <div className="score-num">{game.featuredScore || "9.5"}</div>
+          <div className="score-label">
+            CRITIC
+            <br />
+            SCORE
+          </div>
         </div>
+
+        {/* Meta Information */}
         <div className="featured-meta">
-          <span>🎮 Tactical FPS</span>
-          <span>👥 5v5</span>
-          <span>🏆 $500K Prize Pool</span>
-          <span>🌍 Global Servers</span>
+          {game.featuredMeta ? (
+            game.featuredMeta.map((item, index) => (
+              <span key={index}>{item}</span>
+            ))
+          ) : (
+            <>
+              <span>🎮 {game.genre || game.category}</span>
+              <span>👥 Competitive</span>
+              <span>🏆 Prize Pool</span>
+              <span>🌍 Global Servers</span>
+            </>
+          )}
         </div>
+
+        {/* Tags */}
         <div className="featured-tags">
-          <span className="f-tag">Season 6 Live</span>
-          <span className="f-tag">128-Tick Servers</span>
-          <span className="f-tag">Anti-Cheat</span>
-          <span className="f-tag">Ranked Mode</span>
-          <span className="f-tag">Free to Play</span>
+          {game.featuredTags ? (
+            game.featuredTags.map((tag, index) => (
+              <span key={index} className="f-tag">
+                {tag}
+              </span>
+            ))
+          ) : (
+            <>
+              <span className="f-tag">Featured Game</span>
+              <span className="f-tag">Top Rated</span>
+              <span className="f-tag">Free to Play</span>
+            </>
+          )}
         </div>
+
+        {/* Description */}
         <p className="featured-desc">
-          The next evolution of tactical shooters is here. Season 6 introduces the Void Map — a subterranean battleground with dynamic lighting — alongside 12 new agents, a complete weapons overhaul, and a rebuilt ranking system that rewards skill, not grind. Over 1.4 million active players. Zero pay-to-win.
+          {game.featuredDesc ||
+            game.description ||
+            "Experience the ultimate gaming adventure with this top-rated title. Join millions of players worldwide and compete in intense matches, climb the ranks, and claim your glory!"}
         </p>
+
+        {/* Action Buttons */}
         <div className="featured-actions">
-          <a href="#" className="btn-primary">Play Now — Free</a>
-          <a href="#" className="btn-ghost">Watch Trailer</a>
+          <a href="#" className="btn-primary">
+            {game.featuredButtonText || "Play Now — Free"}
+          </a>
+          <a href="#" className="btn-ghost">
+            Watch Trailer
+          </a>
         </div>
       </div>
     </div>
-  )
+  );
 }

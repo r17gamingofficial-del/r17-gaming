@@ -1,16 +1,30 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useAppContext } from "../../Context/AppContext";
 import "./AdminPanel.css";
 
 export default function AdminPanel() {
+  const {
+    tournaments,
+    games,
+    leaderboard,
+    addTournament,
+    updateTournament,
+    deleteTournament,
+    addGame,
+    updateGame,
+    deleteGame,
+    addLeaderboardEntry,
+    updateLeaderboardEntry,
+    deleteLeaderboardEntry,
+  } = useAppContext();
+
   const [activeTab, setActiveTab] = useState("tournaments");
-  const [tournaments, setTournaments] = useState([]);
-  const [games, setGames] = useState([]);
-  const [leaderboard, setLeaderboard] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [message, setMessage] = useState({ text: "", type: "" });
 
-  // Form states for tournaments
+  // Form states
   const [tournamentForm, setTournamentForm] = useState({
     name: "",
     date: "",
@@ -19,21 +33,34 @@ export default function AdminPanel() {
     prize: "",
     status: "open",
     image: "",
-    gallery: [],
+    gallery: "",
   });
 
-  // Form states for games
+  // Enhanced Game Form with all featured fields
   const [gameForm, setGameForm] = useState({
     name: "",
     category: "",
     players: "",
     image: "",
     description: "",
+    // Featured section fields
+    art: "",
+    tag: "NEW",
+    tagClass: "",
+    platforms: "",
+    genre: "",
+    stars: "★★★★☆",
+    rating: "4.5 / 5 · 10K reviews",
+    featuredTitle: "",
+    featuredScore: "9.5",
+    featuredMeta: "",
+    featuredTags: "",
+    featuredDesc: "",
+    featuredButtonText: "Play Now — Free",
+    videoUrl: "",
   });
 
-  // Form states for leaderboard
   const [leaderboardForm, setLeaderboardForm] = useState({
-    rank: "",
     playerName: "",
     country: "",
     score: "",
@@ -41,172 +68,201 @@ export default function AdminPanel() {
     game: "",
   });
 
-  // Load data from localStorage on mount
-  useEffect(() => {
-    const savedTournaments = localStorage.getItem("admin_tournaments");
-    const savedGames = localStorage.getItem("admin_games");
-    const savedLeaderboard = localStorage.getItem("admin_leaderboard");
-
-    if (savedTournaments) setTournaments(JSON.parse(savedTournaments));
-    if (savedGames) setGames(JSON.parse(savedGames));
-    if (savedLeaderboard) setLeaderboard(JSON.parse(savedLeaderboard));
-  }, []);
-
-  // Save data to localStorage
-  const saveData = () => {
-    localStorage.setItem("admin_tournaments", JSON.stringify(tournaments));
-    localStorage.setItem("admin_games", JSON.stringify(games));
-    localStorage.setItem("admin_leaderboard", JSON.stringify(leaderboard));
+  const showMessage = (text, type = "success") => {
+    setMessage({ text, type });
+    setTimeout(() => setMessage({ text: "", type: "" }), 3000);
   };
 
-  // Tournament CRUD Operations
-  const addTournament = () => {
-    if (!tournamentForm.name) return;
+  const handleAddTournament = () => {
+    if (!tournamentForm.name) {
+      showMessage("Please fill in tournament name", "error");
+      return;
+    }
 
-    const newTournament = {
-      id: Date.now(),
-      rank: String(tournaments.length + 1).padStart(2, "0"),
-      ...tournamentForm,
-      gallery: tournamentForm.gallery.length
-        ? tournamentForm.gallery.split(",").map((url) => url.trim())
+    const success = addTournament(tournamentForm);
+    if (success) {
+      showMessage("Tournament added successfully!");
+      setTournamentForm({
+        name: "",
+        date: "",
+        region: "",
+        teams: "",
+        prize: "",
+        status: "open",
+        image: "",
+        gallery: "",
+      });
+      setShowForm(false);
+    } else {
+      showMessage("Error adding tournament", "error");
+    }
+  };
+
+  const handleUpdateTournament = () => {
+    const success = updateTournament(editingItem.id, tournamentForm);
+    if (success) {
+      showMessage("Tournament updated successfully!");
+      setEditingItem(null);
+      setTournamentForm({
+        name: "",
+        date: "",
+        region: "",
+        teams: "",
+        prize: "",
+        status: "open",
+        image: "",
+        gallery: "",
+      });
+      setShowForm(false);
+    } else {
+      showMessage("Error updating tournament", "error");
+    }
+  };
+
+  const handleAddGame = () => {
+    if (!gameForm.name) {
+      showMessage("Please fill in game name", "error");
+      return;
+    }
+
+    // Process arrays from comma-separated strings
+    const processedGame = {
+      ...gameForm,
+      platforms: gameForm.platforms
+        ? gameForm.platforms.split(",").map((p) => p.trim())
+        : [],
+      featuredMeta: gameForm.featuredMeta
+        ? gameForm.featuredMeta.split(",").map((m) => m.trim())
+        : [],
+      featuredTags: gameForm.featuredTags
+        ? gameForm.featuredTags.split(",").map((t) => t.trim())
         : [],
     };
 
-    setTournaments([...tournaments, newTournament]);
-    setTournamentForm({
-      name: "",
-      date: "",
-      region: "",
-      teams: "",
-      prize: "",
-      status: "open",
-      image: "",
-      gallery: [],
-    });
-    setShowForm(false);
-    saveData();
-  };
-
-  const updateTournament = () => {
-    const updatedTournaments = tournaments.map((t) =>
-      t.id === editingItem.id ? { ...editingItem, ...tournamentForm } : t,
-    );
-    setTournaments(updatedTournaments);
-    setEditingItem(null);
-    setTournamentForm({
-      name: "",
-      date: "",
-      region: "",
-      teams: "",
-      prize: "",
-      status: "open",
-      image: "",
-      gallery: [],
-    });
-    setShowForm(false);
-    saveData();
-  };
-
-  const deleteTournament = (id) => {
-    if (window.confirm("Are you sure you want to delete this tournament?")) {
-      const updatedTournaments = tournaments.filter((t) => t.id !== id);
-      setTournaments(updatedTournaments);
-      saveData();
+    const success = addGame(processedGame);
+    if (success) {
+      showMessage("Game added successfully!");
+      setGameForm({
+        name: "",
+        category: "",
+        players: "",
+        image: "",
+        description: "",
+        art: "",
+        tag: "NEW",
+        tagClass: "",
+        platforms: "",
+        genre: "",
+        stars: "★★★★☆",
+        rating: "4.5 / 5 · 10K reviews",
+        featuredTitle: "",
+        featuredScore: "9.5",
+        featuredMeta: "",
+        featuredTags: "",
+        featuredDesc: "",
+        featuredButtonText: "Play Now — Free",
+        videoUrl: "",
+      });
+      setShowForm(false);
+    } else {
+      showMessage("Error adding game", "error");
     }
   };
 
-  // Game CRUD Operations
-  const addGame = () => {
-    if (!gameForm.name) return;
-
-    const newGame = {
-      id: Date.now(),
+  const handleUpdateGame = () => {
+    // Process arrays from comma-separated strings
+    const processedGame = {
       ...gameForm,
+      platforms: gameForm.platforms
+        ? gameForm.platforms.split(",").map((p) => p.trim())
+        : [],
+      featuredMeta: gameForm.featuredMeta
+        ? gameForm.featuredMeta.split(",").map((m) => m.trim())
+        : [],
+      featuredTags: gameForm.featuredTags
+        ? gameForm.featuredTags.split(",").map((t) => t.trim())
+        : [],
     };
 
-    setGames([...games, newGame]);
-    setGameForm({
-      name: "",
-      category: "",
-      players: "",
-      image: "",
-      description: "",
-    });
-    setShowForm(false);
-    saveData();
-  };
-
-  const updateGame = () => {
-    const updatedGames = games.map((g) =>
-      g.id === editingItem.id ? { ...editingItem, ...gameForm } : g,
-    );
-    setGames(updatedGames);
-    setEditingItem(null);
-    setGameForm({
-      name: "",
-      category: "",
-      players: "",
-      image: "",
-      description: "",
-    });
-    setShowForm(false);
-    saveData();
-  };
-
-  const deleteGame = (id) => {
-    if (window.confirm("Are you sure you want to delete this game?")) {
-      const updatedGames = games.filter((g) => g.id !== id);
-      setGames(updatedGames);
-      saveData();
+    const success = updateGame(editingItem.id, processedGame);
+    if (success) {
+      showMessage("Game updated successfully!");
+      setEditingItem(null);
+      setGameForm({
+        name: "",
+        category: "",
+        players: "",
+        image: "",
+        description: "",
+        art: "",
+        tag: "NEW",
+        tagClass: "",
+        platforms: "",
+        genre: "",
+        stars: "★★★★☆",
+        rating: "4.5 / 5 · 10K reviews",
+        featuredTitle: "",
+        featuredScore: "9.5",
+        featuredMeta: "",
+        featuredTags: "",
+        featuredDesc: "",
+        featuredButtonText: "Play Now — Free",
+        videoUrl: "",
+      });
+      setShowForm(false);
+    } else {
+      showMessage("Error updating game", "error");
     }
   };
 
-  // Leaderboard CRUD Operations
-  const addLeaderboardEntry = () => {
-    if (!leaderboardForm.playerName) return;
+  const handleAddLeaderboardEntry = () => {
+    if (!leaderboardForm.playerName) {
+      showMessage("Please fill in player name", "error");
+      return;
+    }
 
-    const newEntry = {
-      id: Date.now(),
-      rank: String(leaderboard.length + 1).padStart(2, "0"),
-      ...leaderboardForm,
-    };
-
-    setLeaderboard([...leaderboard, newEntry]);
-    setLeaderboardForm({
-      rank: "",
-      playerName: "",
-      country: "",
-      score: "",
-      kd: "",
-      game: "",
-    });
-    setShowForm(false);
-    saveData();
+    const success = addLeaderboardEntry(leaderboardForm);
+    if (success) {
+      showMessage("Leaderboard entry added successfully!");
+      setLeaderboardForm({
+        playerName: "",
+        country: "",
+        score: "",
+        kd: "",
+        game: "",
+      });
+      setShowForm(false);
+    } else {
+      showMessage("Error adding leaderboard entry", "error");
+    }
   };
 
-  const updateLeaderboardEntry = () => {
-    const updatedLeaderboard = leaderboard.map((l) =>
-      l.id === editingItem.id ? { ...editingItem, ...leaderboardForm } : l,
-    );
-    setLeaderboard(updatedLeaderboard);
-    setEditingItem(null);
-    setLeaderboardForm({
-      rank: "",
-      playerName: "",
-      country: "",
-      score: "",
-      kd: "",
-      game: "",
-    });
-    setShowForm(false);
-    saveData();
+  const handleUpdateLeaderboardEntry = () => {
+    const success = updateLeaderboardEntry(editingItem.id, leaderboardForm);
+    if (success) {
+      showMessage("Leaderboard entry updated successfully!");
+      setEditingItem(null);
+      setLeaderboardForm({
+        playerName: "",
+        country: "",
+        score: "",
+        kd: "",
+        game: "",
+      });
+      setShowForm(false);
+    } else {
+      showMessage("Error updating leaderboard entry", "error");
+    }
   };
 
-  const deleteLeaderboardEntry = (id) => {
-    if (window.confirm("Are you sure you want to delete this player?")) {
-      const updatedLeaderboard = leaderboard.filter((l) => l.id !== id);
-      setLeaderboard(updatedLeaderboard);
-      saveData();
+  const handleDelete = (id, type, deleteFunction) => {
+    if (window.confirm(`Are you sure you want to delete this ${type}?`)) {
+      const success = deleteFunction(id);
+      if (success) {
+        showMessage(`${type} deleted successfully!`);
+      } else {
+        showMessage(`Error deleting ${type}`, "error");
+      }
     }
   };
 
@@ -223,19 +279,48 @@ export default function AdminPanel() {
         prize: item.prize,
         status: item.status,
         image: item.image || "",
-        gallery: item.gallery ? item.gallery.join(", ") : "",
+        gallery: item.gallery
+          ? Array.isArray(item.gallery)
+            ? item.gallery.join(", ")
+            : item.gallery
+          : "",
       });
     } else if (type === "games") {
       setGameForm({
-        name: item.name,
-        category: item.category,
-        players: item.players,
-        image: item.image,
-        description: item.description,
+        name: item.name || "",
+        category: item.category || "",
+        players: item.players || "",
+        image: item.image || "",
+        description: item.description || "",
+        art: item.art || "",
+        tag: item.tag || "NEW",
+        tagClass: item.tagClass || "",
+        platforms: item.platforms
+          ? Array.isArray(item.platforms)
+            ? item.platforms.join(", ")
+            : item.platforms
+          : "",
+        genre: item.genre || "",
+        stars: item.stars || "★★★★☆",
+        rating: item.rating || "4.5 / 5 · 10K reviews",
+        featuredTitle: item.featuredTitle || "",
+        featuredScore: item.featuredScore || "9.5",
+        featuredMeta: item.featuredMeta
+          ? Array.isArray(item.featuredMeta)
+            ? item.featuredMeta.join(", ")
+            : item.featuredMeta
+          : "",
+        featuredTags: item.featuredTags
+          ? Array.isArray(item.featuredTags)
+            ? item.featuredTags.join(", ")
+            : item.featuredTags
+          : "",
+        featuredDesc: item.featuredDesc || "",
+        featuredButtonText: item.featuredButtonText || "Play Now — Free",
+        videoUrl: item.videoUrl || "",
       });
     } else if (type === "leaderboard") {
       setLeaderboardForm({
-        rank: item.rank,
         playerName: item.playerName,
         country: item.country,
         score: item.score,
@@ -262,6 +347,9 @@ export default function AdminPanel() {
       <div className="admin-header">
         <h1>🎮 Admin Dashboard</h1>
         <p>Manage tournaments, games, and leaderboards</p>
+        {message.text && (
+          <div className={`message ${message.type}`}>{message.text}</div>
+        )}
       </div>
 
       <div className="admin-tabs">
@@ -273,7 +361,7 @@ export default function AdminPanel() {
             setSearchTerm("");
           }}
         >
-          🏆 Tournaments
+          🏆 Tournaments ({tournaments.length})
         </button>
         <button
           className={`tab-btn ${activeTab === "games" ? "active" : ""}`}
@@ -283,7 +371,7 @@ export default function AdminPanel() {
             setSearchTerm("");
           }}
         >
-          🎮 Games
+          🎮 Games ({games.length})
         </button>
         <button
           className={`tab-btn ${activeTab === "leaderboard" ? "active" : ""}`}
@@ -293,7 +381,7 @@ export default function AdminPanel() {
             setSearchTerm("");
           }}
         >
-          📊 Leaderboard
+          📊 Leaderboard ({leaderboard.length})
         </button>
       </div>
 
@@ -325,7 +413,9 @@ export default function AdminPanel() {
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    editingItem ? updateTournament() : addTournament();
+                    editingItem
+                      ? handleUpdateTournament()
+                      : handleAddTournament();
                   }}
                 >
                   <input
@@ -354,7 +444,7 @@ export default function AdminPanel() {
                   />
                   <input
                     type="text"
-                    placeholder="Region"
+                    placeholder="Region (e.g., 🌍 Global)"
                     value={tournamentForm.region}
                     onChange={(e) =>
                       setTournamentForm({
@@ -401,17 +491,6 @@ export default function AdminPanel() {
                     <option value="soon">Soon</option>
                     <option value="open">Open</option>
                   </select>
-                  <input
-                    type="text"
-                    placeholder="Image URL"
-                    value={tournamentForm.image}
-                    onChange={(e) =>
-                      setTournamentForm({
-                        ...tournamentForm,
-                        image: e.target.value,
-                      })
-                    }
-                  />
                   <textarea
                     placeholder="Gallery Images (comma-separated URLs)"
                     value={tournamentForm.gallery}
@@ -445,17 +524,28 @@ export default function AdminPanel() {
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    editingItem ? updateGame() : addGame();
+                    editingItem ? handleUpdateGame() : handleAddGame();
                   }}
                 >
+                  <h4 style={{ color: "#ff6b6b", marginBottom: "0.5rem" }}>
+                    Basic Information
+                  </h4>
                   <input
                     type="text"
-                    placeholder="Game Name"
+                    placeholder="Game Name *"
                     value={gameForm.name}
                     onChange={(e) =>
                       setGameForm({ ...gameForm, name: e.target.value })
                     }
                     required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Game Art (2 letters, e.g., SR)"
+                    value={gameForm.art}
+                    onChange={(e) =>
+                      setGameForm({ ...gameForm, art: e.target.value })
+                    }
                   />
                   <input
                     type="text"
@@ -477,10 +567,10 @@ export default function AdminPanel() {
                   />
                   <input
                     type="text"
-                    placeholder="Image URL"
-                    value={gameForm.image}
+                    placeholder="Genre (e.g., Tactical FPS, Battle Royale)"
+                    value={gameForm.genre}
                     onChange={(e) =>
-                      setGameForm({ ...gameForm, image: e.target.value })
+                      setGameForm({ ...gameForm, genre: e.target.value })
                     }
                   />
                   <textarea
@@ -489,8 +579,127 @@ export default function AdminPanel() {
                     onChange={(e) =>
                       setGameForm({ ...gameForm, description: e.target.value })
                     }
+                    rows="2"
+                    required
+                  />
+
+                  {/* <h4 style={{ color: "#ff6b6b", margin: "1rem 0 0.5rem" }}>
+                    Game Card Styling
+                  </h4>
+                  <input
+                    type="text"
+                    placeholder="Tag (e.g., HOT, NEW, FREE, PRO)"
+                    value={gameForm.tag}
+                    onChange={(e) =>
+                      setGameForm({ ...gameForm, tag: e.target.value })
+                    }
+                  />
+                  <select
+                    value={gameForm.tagClass}
+                    onChange={(e) =>
+                      setGameForm({ ...gameForm, tagClass: e.target.value })
+                    }
+                  >
+                    <option value="">Default Tag Style</option>
+                    <option value="gold-tag">Gold Tag (HOT)</option>
+                    <option value="blue-tag">Blue Tag (NEW)</option>
+                    <option value="green-tag">Green Tag (FREE)</option>
+                    <option value="purple-tag">Purple Tag (PRO)</option>
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="Platforms (comma-separated, e.g., PC, PS5, XSX, Mobile)"
+                    value={gameForm.platforms}
+                    onChange={(e) =>
+                      setGameForm({ ...gameForm, platforms: e.target.value })
+                    }
+                  />
+                  <input
+                    type="text"
+                    placeholder="Stars (e.g., ★★★★★, ★★★★☆)"
+                    value={gameForm.stars}
+                    onChange={(e) =>
+                      setGameForm({ ...gameForm, stars: e.target.value })
+                    }
+                  />
+                  <input
+                    type="text"
+                    placeholder="Rating (e.g., 4.9 / 5 · 120K reviews)"
+                    value={gameForm.rating}
+                    onChange={(e) =>
+                      setGameForm({ ...gameForm, rating: e.target.value })
+                    }
+                  />
+
+                  <h4 style={{ color: "#ff6b6b", margin: "1rem 0 0.5rem" }}>
+                    Featured Section (Editor's Pick)
+                  </h4>
+                  <input
+                    type="text"
+                    placeholder="Featured Title (e.g., SHADOW REALM X)"
+                    value={gameForm.featuredTitle}
+                    onChange={(e) =>
+                      setGameForm({
+                        ...gameForm,
+                        featuredTitle: e.target.value,
+                      })
+                    }
+                  />
+                  <input
+                    type="text"
+                    placeholder="Featured Score (e.g., 9.8)"
+                    value={gameForm.featuredScore}
+                    onChange={(e) =>
+                      setGameForm({
+                        ...gameForm,
+                        featuredScore: e.target.value,
+                      })
+                    }
+                  />
+                  <input
+                    type="text"
+                    placeholder="Featured Meta (comma-separated, e.g., 🎮 Tactical FPS, 👥 5v5, 🏆 $500K Prize Pool)"
+                    value={gameForm.featuredMeta}
+                    onChange={(e) =>
+                      setGameForm({ ...gameForm, featuredMeta: e.target.value })
+                    }
+                  />
+                  <input
+                    type="text"
+                    placeholder="Featured Tags (comma-separated, e.g., Season 6 Live, 128-Tick Servers, Anti-Cheat)"
+                    value={gameForm.featuredTags}
+                    onChange={(e) =>
+                      setGameForm({ ...gameForm, featuredTags: e.target.value })
+                    }
+                  />
+                  <textarea
+                    placeholder="Featured Description"
+                    value={gameForm.featuredDesc}
+                    onChange={(e) =>
+                      setGameForm({ ...gameForm, featuredDesc: e.target.value })
+                    }
                     rows="3"
                   />
+                  <input
+                    type="text"
+                    placeholder="Featured Button Text (e.g., Play Now — Free)"
+                    value={gameForm.featuredButtonText}
+                    onChange={(e) =>
+                      setGameForm({
+                        ...gameForm,
+                        featuredButtonText: e.target.value,
+                      })
+                    }
+                  />
+                  <input
+                    type="text"
+                    placeholder="Video URL (YouTube embed, e.g., https://www.youtube.com/embed/VIDEO_ID?autoplay=1&mute=1&loop=1)"
+                    value={gameForm.videoUrl}
+                    onChange={(e) =>
+                      setGameForm({ ...gameForm, videoUrl: e.target.value })
+                    }
+                  /> */}
+
                   <div className="form-actions">
                     <button type="submit" className="btn-save">
                       Save
@@ -514,8 +723,8 @@ export default function AdminPanel() {
                   onSubmit={(e) => {
                     e.preventDefault();
                     editingItem
-                      ? updateLeaderboardEntry()
-                      : addLeaderboardEntry();
+                      ? handleUpdateLeaderboardEntry()
+                      : handleAddLeaderboardEntry();
                   }}
                 >
                   <input
@@ -619,36 +828,50 @@ export default function AdminPanel() {
                 </tr>
               </thead>
               <tbody>
-                {filteredTournaments.map((tournament) => (
-                  <tr key={tournament.id}>
-                    <td>{tournament.rank}</td>
-                    <td>{tournament.name}</td>
-                    <td>{tournament.date}</td>
-                    <td>{tournament.region}</td>
-                    <td>{tournament.prize}</td>
-                    <td>
-                      <span
-                        className={`status-badge status-${tournament.status}`}
-                      >
-                        {tournament.status}
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        className="btn-edit"
-                        onClick={() => handleEdit(tournament, "tournaments")}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="btn-delete"
-                        onClick={() => deleteTournament(tournament.id)}
-                      >
-                        Delete
-                      </button>
+                {filteredTournaments.length > 0 ? (
+                  filteredTournaments.map((tournament) => (
+                    <tr key={tournament.id}>
+                      <td>{tournament.rank}</td>
+                      <td>{tournament.name}</td>
+                      <td>{tournament.date}</td>
+                      <td>{tournament.region}</td>
+                      <td>{tournament.prize}</td>
+                      <td>
+                        <span
+                          className={`status-badge status-${tournament.status}`}
+                        >
+                          {tournament.status}
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          className="btn-edit"
+                          onClick={() => handleEdit(tournament, "tournaments")}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn-delete"
+                          onClick={() =>
+                            handleDelete(
+                              tournament.id,
+                              "tournament",
+                              deleteTournament,
+                            )
+                          }
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="no-data">
+                      No tournaments found
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
@@ -661,34 +884,48 @@ export default function AdminPanel() {
                 <tr>
                   <th>Game Name</th>
                   <th>Category</th>
+                  <th>Genre</th>
                   <th>Active Players</th>
-                  <th>Description</th>
+                  <th>Platforms</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredGames.map((game) => (
-                  <tr key={game.id}>
-                    <td>{game.name}</td>
-                    <td>{game.category}</td>
-                    <td>{game.players}</td>
-                    <td>{game.description}</td>
-                    <td>
-                      <button
-                        className="btn-edit"
-                        onClick={() => handleEdit(game, "games")}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="btn-delete"
-                        onClick={() => deleteGame(game.id)}
-                      >
-                        Delete
-                      </button>
+                {filteredGames.length > 0 ? (
+                  filteredGames.map((game) => (
+                    <tr key={game.id}>
+                      <td>{game.name}</td>
+                      <td>{game.category}</td>
+                      <td>{game.genre || game.category}</td>
+                      <td>{game.players}</td>
+                      <td>
+                        {game.platforms ? game.platforms.join(", ") : "-"}
+                      </td>
+                      <td>
+                        <button
+                          className="btn-edit"
+                          onClick={() => handleEdit(game, "games")}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn-delete"
+                          onClick={() =>
+                            handleDelete(game.id, "game", deleteGame)
+                          }
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" className="no-data">
+                      No games found
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
@@ -709,30 +946,44 @@ export default function AdminPanel() {
                 </tr>
               </thead>
               <tbody>
-                {filteredLeaderboard.map((entry) => (
-                  <tr key={entry.id}>
-                    <td>{entry.rank}</td>
-                    <td>{entry.playerName}</td>
-                    <td>{entry.country}</td>
-                    <td>{entry.score}</td>
-                    <td>{entry.kd}</td>
-                    <td>{entry.game}</td>
-                    <td>
-                      <button
-                        className="btn-edit"
-                        onClick={() => handleEdit(entry, "leaderboard")}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="btn-delete"
-                        onClick={() => deleteLeaderboardEntry(entry.id)}
-                      >
-                        Delete
-                      </button>
+                {filteredLeaderboard.length > 0 ? (
+                  filteredLeaderboard.map((entry) => (
+                    <tr key={entry.id}>
+                      <td>{entry.rank}</td>
+                      <td>{entry.playerName}</td>
+                      <td>{entry.country}</td>
+                      <td>{entry.score}</td>
+                      <td>{entry.kd}</td>
+                      <td>{entry.game}</td>
+                      <td>
+                        <button
+                          className="btn-edit"
+                          onClick={() => handleEdit(entry, "leaderboard")}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn-delete"
+                          onClick={() =>
+                            handleDelete(
+                              entry.id,
+                              "player",
+                              deleteLeaderboardEntry,
+                            )
+                          }
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="no-data">
+                      No leaderboard entries found
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>

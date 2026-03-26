@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AppProvider, useAppContext } from "./Context/AppContext.jsx";
 import Cursor from "./components/Cursor/Cursor.jsx";
 import Navbar from "./components/Navbar/Navbar.jsx";
 import Hero from "./components/Hero/Hero.jsx";
@@ -19,17 +15,19 @@ import Newsletter from "./components/Newsletter/Newsletter.jsx";
 import Footer from "./components/Footer/Footer.jsx";
 import AdminPanel from "./components/Admin/AdminPanel.jsx";
 
-function App() {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [adminPassword, setAdminPassword] = useState("");
+// Create a separate component that uses the context
+function HomePage() {
+  const [selectedGame, setSelectedGame] = useState(null);
+  const { games } = useAppContext();
 
-  const handleAdminLogin = (password) => {
-    // Change this to your desired password
-    if (password === "admin123") {
-      setIsAdmin(true);
-      return true;
+  useEffect(() => {
+    if (games && games.length > 0 && !selectedGame) {
+      setSelectedGame(games[0]);
     }
-    return false;
+  }, [games, selectedGame]);
+
+  const handleGameSelect = (game) => {
+    setSelectedGame(game);
   };
 
   useEffect(() => {
@@ -46,42 +44,24 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <>
-              <Cursor />
-              <Navbar />
-              <Hero />
-              <Marquee />
-              <Games />
-              <Featured />
-              <HowItWorks />
-              <Tournaments />
-              <Leaderboard />
-              <Community />
-              <Newsletter />
-              <Footer />
-            </>
-          }
-        />
-        <Route
-          path="/admin"
-          element={
-            <>
-              <Cursor />
-              isAdmin ? <AdminPanel /> :{" "}
-              <AdminLogin onLogin={handleAdminLogin} />
-            </>
-          }
-        />
-      </Routes>
-    </Router>
+    <>
+      <Cursor />
+      <Navbar />
+      <Hero />
+      <Marquee />
+      <Games onGameSelect={handleGameSelect} selectedGame={selectedGame} />
+      <Featured selectedGame={selectedGame} />
+      <HowItWorks />
+      <Tournaments />
+      <Leaderboard />
+      <Community />
+      <Newsletter />
+      <Footer />
+    </>
   );
 }
 
+// Admin Login Component
 function AdminLogin({ onLogin }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -96,21 +76,101 @@ function AdminLogin({ onLogin }) {
   };
 
   return (
-    <div className="admin-login">
-      <div className="login-container">
-        <h2>Admin Login</h2>
-        <form onSubmit={handleSubmit}>
-          <input
-            type="password"
-            placeholder="Enter admin password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          {error && <div className="error-message">{error}</div>}
-          <button type="submit">Login</button>
+    <div className="admin-login-container">
+      <div className="admin-login-background">
+        <div className="bg-gradient"></div>
+        <div className="bg-particles"></div>
+      </div>
+
+      <div className="admin-login-card">
+        <div className="login-header">
+          <div className="login-icon">🎮</div>
+          <h1 className="login-title">Admin Access</h1>
+          <p className="login-subtitle">
+            Enter credentials to access dashboard
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="login-form">
+          <div className="input-group">
+            <label className="input-label">
+              <span className="label-icon">🔑</span>
+              Admin Password
+            </label>
+            <div className="password-input-wrapper">
+              <input
+                type="password"
+                placeholder="Enter your admin password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="password-input"
+                autoFocus
+              />
+              <span className="input-shine"></span>
+            </div>
+          </div>
+
+          {error && (
+            <div className="error-message">
+              <span className="error-icon">⚠️</span>
+              {error}
+            </div>
+          )}
+
+          <button type="submit" className="login-button">
+            <span className="button-text">Access Dashboard</span>
+            <span className="button-icon">→</span>
+          </button>
         </form>
+
+        <div className="login-footer">
+          <div className="security-badge">
+            <span className="shield-icon">🛡️</span>
+            Secure Area
+          </div>
+          <div className="version-badge">v1.0.0</div>
+        </div>
+      </div>
+
+      <div className="admin-login-decoration">
+        <div className="decoration-line"></div>
+        <div className="decoration-line"></div>
+        <div className="decoration-line"></div>
       </div>
     </div>
+  );
+}
+
+// Admin Route Component
+function AdminRoute() {
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const handleAdminLogin = (password) => {
+    if (password === "admin123") {
+      setIsAdmin(true);
+      return true;
+    }
+    return false;
+  };
+
+  return (
+    <>
+      <Cursor />
+      {isAdmin ? <AdminPanel /> : <AdminLogin onLogin={handleAdminLogin} />}
+    </>
+  );
+}
+
+function App() {
+  return (
+    <AppProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/admin" element={<AdminRoute />} />
+        </Routes>
+      </Router>
+    </AppProvider>
   );
 }
 
