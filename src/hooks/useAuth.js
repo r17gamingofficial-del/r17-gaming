@@ -32,20 +32,20 @@ export function useAuth() {
   const register = useCallback(async (email, password, name = "") => {
     setLoading(true);
     try {
-      const cred = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password,
-      );
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
       const uid = cred.user.uid;
-
-      // Store user profile data in Firestore
+  
       await setDoc(doc(db, "users", uid), {
         uid,
         email: cred.user.email || email,
         name: name || "",
         createdAt: serverTimestamp(),
       });
+    } catch (error) {
+      console.error("Firebase Error:", error); // 👈 ADD THIS
+  
+      // Throw readable error
+      throw new Error(error.message);
     } finally {
       setLoading(false);
     }
