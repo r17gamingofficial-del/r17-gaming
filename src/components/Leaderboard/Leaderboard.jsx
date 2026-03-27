@@ -1,118 +1,6 @@
 import { useState } from "react";
 import "./Leaderboard.css";
-
-const players = [
-  {
-    rank: "01",
-    rankClass: "gold",
-    av: "av1",
-    letter: "Z",
-    name: "ZephyrX",
-    country: "🇰🇷 South Korea",
-    score: "98,420",
-    kd: "4.8",
-    game: "Shadow Realm",
-  },
-  {
-    rank: "02",
-    rankClass: "silver",
-    av: "av2",
-    letter: "N",
-    name: "NovaBurst",
-    country: "🇸🇪 Sweden",
-    score: "94,105",
-    kd: "4.3",
-    game: "Cyber Siege",
-  },
-  {
-    rank: "03",
-    rankClass: "bronze",
-    av: "av3",
-    letter: "R",
-    name: "R17_Ghost",
-    country: "🇧🇷 Brazil",
-    score: "91,882",
-    kd: "4.1",
-    game: "Neon Strike",
-  },
-  {
-    rank: "04",
-    rankClass: "",
-    av: "av4",
-    letter: "S",
-    name: "StrikeFury",
-    country: "🇺🇸 USA",
-    score: "89,340",
-    kd: "3.9",
-    game: "Iron Legion",
-  },
-  {
-    rank: "05",
-    rankClass: "",
-    av: "av5",
-    letter: "V",
-    name: "VoidHunter",
-    country: "🇩🇪 Germany",
-    score: "86,720",
-    kd: "3.7",
-    game: "Void Protocol",
-  },
-  {
-    rank: "06",
-    rankClass: "",
-    av: "av6",
-    letter: "P",
-    name: "PhantomAce",
-    country: "🇯🇵 Japan",
-    score: "84,100",
-    kd: "3.5",
-    game: "Phantom Arena",
-  },
-  {
-    rank: "07",
-    rankClass: "",
-    av: "av1",
-    letter: "M",
-    name: "MysticWolf",
-    country: "🇨🇳 China",
-    score: "82,450",
-    kd: "3.4",
-    game: "Shadow Realm",
-  },
-  {
-    rank: "08",
-    rankClass: "",
-    av: "av2",
-    letter: "E",
-    name: "Eclipse",
-    country: "🇫🇷 France",
-    score: "79,890",
-    kd: "3.2",
-    game: "Cyber Siege",
-  },
-  {
-    rank: "09",
-    rankClass: "",
-    av: "av3",
-    letter: "K",
-    name: "Kraken",
-    country: "🇨🇦 Canada",
-    score: "77,320",
-    kd: "3.0",
-    game: "Neon Strike",
-  },
-  {
-    rank: "10",
-    rankClass: "",
-    av: "av4",
-    letter: "D",
-    name: "DarkMatter",
-    country: "🇬🇧 UK",
-    score: "74,560",
-    kd: "2.9",
-    game: "Iron Legion",
-  },
-];
+import { useAppContext } from "../../Context/AppContext.jsx";
 
 const bars = [
   { label: "Shadow Realm", width: "92%", delay: "0.1s", val: "1.4M" },
@@ -124,6 +12,7 @@ const bars = [
 ];
 
 export default function Leaderboard() {
+  const { leaderboard: players, loading } = useAppContext();
   const [searchGame, setSearchGame] = useState("");
   const [selectedGame, setSelectedGame] = useState("all");
 
@@ -134,7 +23,7 @@ export default function Leaderboard() {
   const filteredPlayers = players.filter((player) => {
     const matchesSearch =
       player.game.toLowerCase().includes(searchGame.toLowerCase()) ||
-      player.name.toLowerCase().includes(searchGame.toLowerCase());
+      player.playerName.toLowerCase().includes(searchGame.toLowerCase());
     const matchesGame = selectedGame === "all" || player.game === selectedGame;
     return matchesSearch && matchesGame;
   });
@@ -203,13 +92,15 @@ export default function Leaderboard() {
               <tbody>
                 {filteredPlayers.length > 0 ? (
                   filteredPlayers.map((p) => (
-                    <tr key={p.rank} className="lb-player-row">
-                      <td className={`lb-rank ${p.rankClass}`}>{p.rank}</td>
+                    <tr key={p.id || p.rank} className="lb-player-row">
+                      <td className="lb-rank">{p.rank}</td>
                       <td>
                         <div className="lb-player">
-                          <div className={`lb-avatar ${p.av}`}>{p.letter}</div>
+                          <div className="lb-avatar av1">
+                            {(p.playerName || "?").slice(0, 1).toUpperCase()}
+                          </div>
                           <div>
-                            <div className="lb-name">{p.name}</div>
+                            <div className="lb-name">{p.playerName}</div>
                             <div className="lb-country">{p.country}</div>
                           </div>
                         </div>
@@ -227,7 +118,9 @@ export default function Leaderboard() {
                       <div className="lb-no-results-content">
                         <span>🎮</span>
                         <p>
-                          No players found for "{searchGame || selectedGame}"
+                          {loading
+                            ? "Loading leaderboard..."
+                            : `No players found for "${searchGame || selectedGame}"`}
                         </p>
                         <button
                           onClick={() => {

@@ -1,4 +1,18 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
+import {
+  addGame as addGameInDb,
+  addLeaderboardEntry as addLeaderboardEntryInDb,
+  addTournament as addTournamentInDb,
+  deleteGame as deleteGameInDb,
+  deleteLeaderboardEntry as deleteLeaderboardEntryInDb,
+  deleteTournament as deleteTournamentInDb,
+  getGames,
+  getLeaderboard,
+  getTournaments,
+  updateGame as updateGameInDb,
+  updateLeaderboardEntry as updateLeaderboardEntryInDb,
+  updateTournament as updateTournamentInDb,
+} from "../Firebase/fireStoreService.js";
 
 const AppContext = createContext();
 
@@ -21,17 +35,13 @@ export const AppProvider = ({ children }) => {
     loadData();
   }, []);
 
-  const loadData = () => {
+  const loadData = async () => {
     try {
-      // Load from localStorage
-      const savedTournaments = localStorage.getItem("app_tournaments");
-      const savedGames = localStorage.getItem("app_games");
-      const savedLeaderboard = localStorage.getItem("app_leaderboard");
+      setLoading(true);
 
       // Default tournaments data with gallery arrays
       const defaultTournaments = [
         {
-          id: 1,
           rank: "01",
           name: "World Championship Series — Shadow Realm",
           date: "🗓 Dec 15–20, 2025",
@@ -40,6 +50,10 @@ export const AppProvider = ({ children }) => {
           status: "live",
           statusLabel: "● Live Now",
           prize: "$500,000",
+          thumbnail:
+            "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&h=400&fit=crop",
+          videoUrl:
+            "https://www.youtube.com/embed/Pte7C8wjp1w?autoplay=1&mute=1&loop=1&playlist=Pte7C8wjp1w&controls=0&modestbranding=1&rel=0",
           gallery: [
             "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&h=400&fit=crop",
             "https://images.unsplash.com/photo-1547394765-185e1e68f34e?w=600&h=400&fit=crop",
@@ -47,7 +61,6 @@ export const AppProvider = ({ children }) => {
           ],
         },
         {
-          id: 2,
           rank: "02",
           name: "Neon Strike Pro League — Season 6 Playoffs",
           date: "🗓 Jan 5–12, 2026",
@@ -56,6 +69,10 @@ export const AppProvider = ({ children }) => {
           status: "soon",
           statusLabel: "Soon",
           prize: "$250,000",
+          thumbnail:
+            "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&h=400&fit=crop",
+          videoUrl:
+            "https://www.youtube.com/embed/Pte7C8wjp1w?autoplay=1&mute=1&loop=1&playlist=Pte7C8wjp1w&controls=0&modestbranding=1&rel=0",
           gallery: [
             "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&h=400&fit=crop",
             "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&h=400&fit=crop",
@@ -63,7 +80,6 @@ export const AppProvider = ({ children }) => {
           ],
         },
         {
-          id: 3,
           rank: "03",
           name: "Cyber Siege Invitational Cup — EU Finals",
           date: "🗓 Jan 18–19, 2026",
@@ -72,6 +88,10 @@ export const AppProvider = ({ children }) => {
           status: "open",
           statusLabel: "Open",
           prize: "$120,000",
+          thumbnail:
+            "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=600&h=400&fit=crop",
+          videoUrl:
+            "https://www.youtube.com/embed/Pte7C8wjp1w?autoplay=1&mute=1&loop=1&playlist=Pte7C8wjp1w&controls=0&modestbranding=1&rel=0",
           gallery: [
             "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=600&h=400&fit=crop",
             "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&h=400&fit=crop",
@@ -82,7 +102,6 @@ export const AppProvider = ({ children }) => {
 
       const defaultGames = [
         {
-          id: 1,
           name: "Shadow Realm",
           category: "FPS",
           genre: "FPS",
@@ -99,7 +118,6 @@ export const AppProvider = ({ children }) => {
           rating: "4.8 / 5 · 15K reviews",
         },
         {
-          id: 2,
           name: "Cyber Siege",
           category: "MOBA",
           genre: "MOBA",
@@ -116,7 +134,6 @@ export const AppProvider = ({ children }) => {
           rating: "4.5 / 5 · 8.2K reviews",
         },
         {
-          id: 3,
           name: "Neon Strike",
           category: "Battle Royale",
           genre: "Battle Royale",
@@ -135,7 +152,6 @@ export const AppProvider = ({ children }) => {
 
       const defaultLeaderboard = [
         {
-          id: 1,
           rank: "01",
           playerName: "ZephyrX",
           country: "🇰🇷 South Korea",
@@ -144,7 +160,6 @@ export const AppProvider = ({ children }) => {
           game: "Shadow Realm",
         },
         {
-          id: 2,
           rank: "02",
           playerName: "NovaBurst",
           country: "🇸🇪 Sweden",
@@ -153,7 +168,6 @@ export const AppProvider = ({ children }) => {
           game: "Cyber Siege",
         },
         {
-          id: 3,
           rank: "03",
           playerName: "R17_Ghost",
           country: "🇧🇷 Brazil",
@@ -163,48 +177,38 @@ export const AppProvider = ({ children }) => {
         },
       ];
 
-      // Set tournaments from localStorage or default
-      if (savedTournaments) {
-        const parsedTournaments = JSON.parse(savedTournaments);
-        setTournaments(parsedTournaments);
-        console.log(
-          "Loaded tournaments from localStorage:",
-          parsedTournaments.length,
-        );
-      } else {
-        setTournaments(defaultTournaments);
-        localStorage.setItem(
-          "app_tournaments",
-          JSON.stringify(defaultTournaments),
-        );
-        console.log("Loaded default tournaments:", defaultTournaments.length);
+      const [dbTournaments, dbGames, dbLeaderboard] = await Promise.all([
+        getTournaments(),
+        getGames(),
+        getLeaderboard(),
+      ]);
+
+      if (!dbTournaments?.length) {
+        for (const t of defaultTournaments) {
+          // Firestore service will compute rank/statusLabel/createdAt
+          // Keep gallery as array
+          await addTournamentInDb(t);
+        }
       }
 
-      // Set games from localStorage or default
-      if (savedGames) {
-        const parsedGames = JSON.parse(savedGames);
-        setGames(parsedGames);
-        console.log("Loaded games from localStorage:", parsedGames.length);
-      } else {
-        setGames(defaultGames);
-        localStorage.setItem("app_games", JSON.stringify(defaultGames));
+      if (!dbGames?.length) {
+        for (const g of defaultGames) {
+          await addGameInDb(g);
+        }
       }
 
-      // Set leaderboard from localStorage or default
-      if (savedLeaderboard) {
-        const parsedLeaderboard = JSON.parse(savedLeaderboard);
-        setLeaderboard(parsedLeaderboard);
-        console.log(
-          "Loaded leaderboard from localStorage:",
-          parsedLeaderboard.length,
-        );
-      } else {
-        setLeaderboard(defaultLeaderboard);
-        localStorage.setItem(
-          "app_leaderboard",
-          JSON.stringify(defaultLeaderboard),
-        );
+      if (!dbLeaderboard?.length) {
+        for (const l of defaultLeaderboard) {
+          await addLeaderboardEntryInDb(l);
+        }
       }
+
+      const [finalTournaments, finalGames, finalLeaderboard] =
+        await Promise.all([getTournaments(), getGames(), getLeaderboard()]);
+
+      setTournaments(finalTournaments);
+      setGames(finalGames);
+      setLeaderboard(finalLeaderboard);
 
       setLoading(false);
     } catch (error) {
@@ -214,66 +218,23 @@ export const AppProvider = ({ children }) => {
   };
 
   // Tournament CRUD Operations
-  const addTournament = (tournament) => {
+  const addTournament = async (tournament) => {
     try {
-      // Get current tournaments from state
-      const currentTournaments = [...tournaments];
-
-      const newTournament = {
-        id: Date.now(),
-        rank: String(currentTournaments.length + 1).padStart(2, "0"),
-        statusLabel:
-          tournament.status === "live"
-            ? "● Live Now"
-            : tournament.status === "soon"
-              ? "Soon"
-              : "Open",
-        gallery: tournament.gallery
-          ? typeof tournament.gallery === "string"
-            ? tournament.gallery
-                .split(",")
-                .map((url) => url.trim())
-                .filter((url) => url)
-            : tournament.gallery
-          : [],
-        ...tournament,
-      };
-
-      // Add to existing tournaments
-      const updatedTournaments = [...currentTournaments, newTournament];
-
-      // Update state
-      setTournaments(updatedTournaments);
-
-      // Save to localStorage
-      localStorage.setItem(
-        "app_tournaments",
-        JSON.stringify(updatedTournaments),
-      );
-
-      console.log("Tournament added successfully!");
-      console.log("Previous count:", currentTournaments.length);
-      console.log("New count:", updatedTournaments.length);
-      console.log("All tournaments:", updatedTournaments);
-
-      return true;
+      const created = await addTournamentInDb(tournament);
+      setTournaments((prev) => [...prev, created].sort((a, b) => a.rank.localeCompare(b.rank)));
+      return created;
     } catch (error) {
       console.error("Error adding tournament:", error);
-      return false;
+      return null;
     }
   };
 
-  const updateTournament = (id, updatedData) => {
+  const updateTournament = async (id, updatedData) => {
     try {
-      const updatedTournaments = tournaments.map((t) =>
-        t.id === id ? { ...t, ...updatedData } : t,
+      await updateTournamentInDb(id, updatedData);
+      setTournaments((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, ...updatedData } : t)),
       );
-      setTournaments(updatedTournaments);
-      localStorage.setItem(
-        "app_tournaments",
-        JSON.stringify(updatedTournaments),
-      );
-      console.log("Tournament updated:", id);
       return true;
     } catch (error) {
       console.error("Error updating tournament:", error);
@@ -281,20 +242,11 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const deleteTournament = (id) => {
+  const deleteTournament = async (id) => {
     try {
-      const updatedTournaments = tournaments.filter((t) => t.id !== id);
-      // Re-rank the tournaments
-      const rerankedTournaments = updatedTournaments.map((t, index) => ({
-        ...t,
-        rank: String(index + 1).padStart(2, "0"),
-      }));
-      setTournaments(rerankedTournaments);
-      localStorage.setItem(
-        "app_tournaments",
-        JSON.stringify(rerankedTournaments),
-      );
-      console.log("Tournament deleted:", id);
+      await deleteTournamentInDb(id);
+      const refreshed = await getTournaments();
+      setTournaments(refreshed);
       return true;
     } catch (error) {
       console.error("Error deleting tournament:", error);
@@ -303,28 +255,21 @@ export const AppProvider = ({ children }) => {
   };
 
   // Game CRUD Operations
-  const addGame = (game) => {
+  const addGame = async (game) => {
     try {
-      const currentGames = [...games];
-      const newGame = { id: Date.now(), ...game };
-      const updatedGames = [...currentGames, newGame];
-      setGames(updatedGames);
-      localStorage.setItem("app_games", JSON.stringify(updatedGames));
-      console.log("Game added successfully!");
-      return true;
+      const created = await addGameInDb(game);
+      setGames((prev) => [...prev, created]);
+      return created;
     } catch (error) {
       console.error("Error adding game:", error);
-      return false;
+      return null;
     }
   };
 
-  const updateGame = (id, updatedData) => {
+  const updateGame = async (id, updatedData) => {
     try {
-      const updatedGames = games.map((g) =>
-        g.id === id ? { ...g, ...updatedData } : g,
-      );
-      setGames(updatedGames);
-      localStorage.setItem("app_games", JSON.stringify(updatedGames));
+      await updateGameInDb(id, updatedData);
+      setGames((prev) => prev.map((g) => (g.id === id ? { ...g, ...updatedData } : g)));
       return true;
     } catch (error) {
       console.error("Error updating game:", error);
@@ -332,11 +277,10 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const deleteGame = (id) => {
+  const deleteGame = async (id) => {
     try {
-      const updatedGames = games.filter((g) => g.id !== id);
-      setGames(updatedGames);
-      localStorage.setItem("app_games", JSON.stringify(updatedGames));
+      await deleteGameInDb(id);
+      setGames((prev) => prev.filter((g) => g.id !== id));
       return true;
     } catch (error) {
       console.error("Error deleting game:", error);
@@ -345,37 +289,22 @@ export const AppProvider = ({ children }) => {
   };
 
   // Leaderboard CRUD Operations
-  const addLeaderboardEntry = (entry) => {
+  const addLeaderboardEntry = async (entry) => {
     try {
-      const currentLeaderboard = [...leaderboard];
-      const newEntry = {
-        id: Date.now(),
-        rank: String(currentLeaderboard.length + 1).padStart(2, "0"),
-        ...entry,
-      };
-      const updatedLeaderboard = [...currentLeaderboard, newEntry];
-      setLeaderboard(updatedLeaderboard);
-      localStorage.setItem(
-        "app_leaderboard",
-        JSON.stringify(updatedLeaderboard),
-      );
-      console.log("Leaderboard entry added successfully!");
-      return true;
+      const created = await addLeaderboardEntryInDb(entry);
+      setLeaderboard((prev) => [...prev, created].sort((a, b) => a.rank.localeCompare(b.rank)));
+      return created;
     } catch (error) {
       console.error("Error adding leaderboard entry:", error);
-      return false;
+      return null;
     }
   };
 
-  const updateLeaderboardEntry = (id, updatedData) => {
+  const updateLeaderboardEntry = async (id, updatedData) => {
     try {
-      const updatedLeaderboard = leaderboard.map((l) =>
-        l.id === id ? { ...l, ...updatedData } : l,
-      );
-      setLeaderboard(updatedLeaderboard);
-      localStorage.setItem(
-        "app_leaderboard",
-        JSON.stringify(updatedLeaderboard),
+      await updateLeaderboardEntryInDb(id, updatedData);
+      setLeaderboard((prev) =>
+        prev.map((l) => (l.id === id ? { ...l, ...updatedData } : l)),
       );
       return true;
     } catch (error) {
@@ -384,19 +313,11 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const deleteLeaderboardEntry = (id) => {
+  const deleteLeaderboardEntry = async (id) => {
     try {
-      const updatedLeaderboard = leaderboard.filter((l) => l.id !== id);
-      // Re-rank the leaderboard
-      const rerankedLeaderboard = updatedLeaderboard.map((l, index) => ({
-        ...l,
-        rank: String(index + 1).padStart(2, "0"),
-      }));
-      setLeaderboard(rerankedLeaderboard);
-      localStorage.setItem(
-        "app_leaderboard",
-        JSON.stringify(rerankedLeaderboard),
-      );
+      await deleteLeaderboardEntryInDb(id);
+      const refreshed = await getLeaderboard();
+      setLeaderboard(refreshed);
       return true;
     } catch (error) {
       console.error("Error deleting leaderboard entry:", error);

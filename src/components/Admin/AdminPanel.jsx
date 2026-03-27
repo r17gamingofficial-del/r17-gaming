@@ -32,7 +32,8 @@ export default function AdminPanel() {
     teams: "",
     prize: "",
     status: "open",
-    image: "",
+    thumbnail: "",
+    videoUrl: "",
     gallery: "",
   });
 
@@ -74,14 +75,62 @@ export default function AdminPanel() {
     setTimeout(() => setMessage({ text: "", type: "" }), 3000);
   };
 
-  const handleAddTournament = () => {
+  const extractYouTubeId = (url) => {
+    if (!url || typeof url !== "string") return null;
+    const trimmed = url.trim();
+    if (!trimmed) return null;
+
+    // Already an embed link
+    const embedMatch = trimmed.match(/youtube\.com\/embed\/([^?&/]+)/i);
+    if (embedMatch?.[1]) return embedMatch[1];
+
+    // youtu.be/<id>
+    const shortMatch = trimmed.match(/youtu\.be\/([^?&/]+)/i);
+    if (shortMatch?.[1]) return shortMatch[1];
+
+    // youtube.com/watch?v=<id> (including m.youtube.com)
+    const watchMatch = trimmed.match(/[?&]v=([^?&/]+)/i);
+    if (watchMatch?.[1]) return watchMatch[1];
+
+    // youtube.com/shorts/<id>
+    const shortsMatch = trimmed.match(/youtube\.com\/shorts\/([^?&/]+)/i);
+    if (shortsMatch?.[1]) return shortsMatch[1];
+
+    return null;
+  };
+
+  const normalizeTournamentPayload = (form) => {
+    const gallery =
+      typeof form.gallery === "string"
+        ? form.gallery
+            .split(",")
+            .map((u) => u.trim())
+            .filter(Boolean)
+        : Array.isArray(form.gallery)
+          ? form.gallery
+          : [];
+
+    const videoId = extractYouTubeId(form.videoUrl);
+    const videoUrl = videoId
+      ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0`
+      : (form.videoUrl || "").trim();
+
+    return {
+      ...form,
+      gallery,
+      videoUrl,
+      thumbnail: (form.thumbnail || "").trim(),
+    };
+  };
+
+  const handleAddTournament = async () => {
     if (!tournamentForm.name) {
       showMessage("Please fill in tournament name", "error");
       return;
     }
 
-    const success = addTournament(tournamentForm);
-    if (success) {
+    const created = await addTournament(normalizeTournamentPayload(tournamentForm));
+    if (created) {
       showMessage("Tournament added successfully!");
       setTournamentForm({
         name: "",
@@ -90,7 +139,8 @@ export default function AdminPanel() {
         teams: "",
         prize: "",
         status: "open",
-        image: "",
+        thumbnail: "",
+        videoUrl: "",
         gallery: "",
       });
       setShowForm(false);
@@ -99,8 +149,11 @@ export default function AdminPanel() {
     }
   };
 
-  const handleUpdateTournament = () => {
-    const success = updateTournament(editingItem.id, tournamentForm);
+  const handleUpdateTournament = async () => {
+    const success = await updateTournament(
+      editingItem.id,
+      normalizeTournamentPayload(tournamentForm),
+    );
     if (success) {
       showMessage("Tournament updated successfully!");
       setEditingItem(null);
@@ -111,7 +164,8 @@ export default function AdminPanel() {
         teams: "",
         prize: "",
         status: "open",
-        image: "",
+        thumbnail: "",
+        videoUrl: "",
         gallery: "",
       });
       setShowForm(false);
@@ -120,7 +174,7 @@ export default function AdminPanel() {
     }
   };
 
-  const handleAddGame = () => {
+  const handleAddGame = async () => {
     if (!gameForm.name) {
       showMessage("Please fill in game name", "error");
       return;
@@ -144,8 +198,8 @@ export default function AdminPanel() {
       featuredTags,
     };
 
-    const success = addGame(processedGame);
-    if (success) {
+    const created = await addGame(processedGame);
+    if (created) {
       showMessage("Game added successfully!");
       setGameForm({
         name: "",
@@ -175,7 +229,7 @@ export default function AdminPanel() {
     }
   };
 
-  const handleUpdateGame = () => {
+  const handleUpdateGame = async () => {
     // Process arrays from comma-separated strings
     const platforms = gameForm.platforms?.trim()
       ? gameForm.platforms.split(",").map((p) => p.trim())
@@ -194,7 +248,7 @@ export default function AdminPanel() {
       featuredTags,
     };
 
-    const success = updateGame(editingItem.id, processedGame);
+    const success = await updateGame(editingItem.id, processedGame);
     if (success) {
       showMessage("Game updated successfully!");
       setEditingItem(null);
@@ -226,14 +280,14 @@ export default function AdminPanel() {
     }
   };
 
-  const handleAddLeaderboardEntry = () => {
+  const handleAddLeaderboardEntry = async () => {
     if (!leaderboardForm.playerName) {
       showMessage("Please fill in player name", "error");
       return;
     }
 
-    const success = addLeaderboardEntry(leaderboardForm);
-    if (success) {
+    const created = await addLeaderboardEntry(leaderboardForm);
+    if (created) {
       showMessage("Leaderboard entry added successfully!");
       setLeaderboardForm({
         playerName: "",
@@ -248,8 +302,8 @@ export default function AdminPanel() {
     }
   };
 
-  const handleUpdateLeaderboardEntry = () => {
-    const success = updateLeaderboardEntry(editingItem.id, leaderboardForm);
+  const handleUpdateLeaderboardEntry = async () => {
+    const success = await updateLeaderboardEntry(editingItem.id, leaderboardForm);
     if (success) {
       showMessage("Leaderboard entry updated successfully!");
       setEditingItem(null);
@@ -266,9 +320,9 @@ export default function AdminPanel() {
     }
   };
 
-  const handleDelete = (id, type, deleteFunction) => {
+  const handleDelete = async (id, type, deleteFunction) => {
     if (window.confirm(`Are you sure you want to delete this ${type}?`)) {
-      const success = deleteFunction(id);
+      const success = await deleteFunction(id);
       if (success) {
         showMessage(`${type} deleted successfully!`);
       } else {
@@ -289,7 +343,8 @@ export default function AdminPanel() {
         teams: item.teams,
         prize: item.prize,
         status: item.status,
-        image: item.image || "",
+        thumbnail: item.thumbnail || item.image || "",
+        videoUrl: item.videoUrl || "",
         gallery: item.gallery
           ? Array.isArray(item.gallery)
             ? item.gallery.join(", ")
@@ -423,11 +478,13 @@ export default function AdminPanel() {
 
               {activeTab === "tournaments" && (
                 <form
-                  onSubmit={(e) => {
+                  onSubmit={async (e) => {
                     e.preventDefault();
-                    editingItem
-                      ? handleUpdateTournament()
-                      : handleAddTournament();
+                    if (editingItem) {
+                      await handleUpdateTournament();
+                      return;
+                    }
+                    await handleAddTournament();
                   }}
                 >
                   <input
@@ -503,8 +560,33 @@ export default function AdminPanel() {
                     <option value="soon">Soon</option>
                     <option value="open">Open</option>
                   </select>
+                  <h4 style={{ color: "#ff6b6b", margin: "1rem 0 0.5rem" }}>
+                    Media
+                  </h4>
+                  <input
+                    type="text"
+                    placeholder="Card Image URL (used in main tournament card)"
+                    value={tournamentForm.thumbnail}
+                    onChange={(e) =>
+                      setTournamentForm({
+                        ...tournamentForm,
+                        thumbnail: e.target.value,
+                      })
+                    }
+                  />
+                  <input
+                    type="text"
+                    placeholder="Video URL (YouTube embed link recommended)"
+                    value={tournamentForm.videoUrl}
+                    onChange={(e) =>
+                      setTournamentForm({
+                        ...tournamentForm,
+                        videoUrl: e.target.value,
+                      })
+                    }
+                  />
                   <textarea
-                    placeholder="Gallery Images (comma-separated URLs)"
+                    placeholder="Tournament Highlights (comma-separated image URLs)"
                     value={tournamentForm.gallery}
                     onChange={(e) =>
                       setTournamentForm({
@@ -534,9 +616,13 @@ export default function AdminPanel() {
 
               {activeTab === "games" && (
                 <form
-                  onSubmit={(e) => {
+                  onSubmit={async (e) => {
                     e.preventDefault();
-                    editingItem ? handleUpdateGame() : handleAddGame();
+                    if (editingItem) {
+                      await handleUpdateGame();
+                      return;
+                    }
+                    await handleAddGame();
                   }}
                 >
                   <h4 style={{ color: "#ff6b6b", marginBottom: "0.5rem" }}>
@@ -740,11 +826,13 @@ export default function AdminPanel() {
 
               {activeTab === "leaderboard" && (
                 <form
-                  onSubmit={(e) => {
+                  onSubmit={async (e) => {
                     e.preventDefault();
-                    editingItem
-                      ? handleUpdateLeaderboardEntry()
-                      : handleAddLeaderboardEntry();
+                    if (editingItem) {
+                      await handleUpdateLeaderboardEntry();
+                      return;
+                    }
+                    await handleAddLeaderboardEntry();
                   }}
                 >
                   <input
