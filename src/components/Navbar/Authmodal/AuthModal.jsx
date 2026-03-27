@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-// import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../../../hooks/useAuth";
 import "./AuthModal.css";
 
 const AuthModal = ({ isOpen, onClose, mode, onModeChange }) => {
@@ -10,7 +10,7 @@ const AuthModal = ({ isOpen, onClose, mode, onModeChange }) => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const modalRef = useRef(null);
-  // const { login, register, loading } = useAuth();
+  const { login, register, loading } = useAuth();
 
   // Handle escape key press
   useEffect(() => {
@@ -71,8 +71,8 @@ const AuthModal = ({ isOpen, onClose, mode, onModeChange }) => {
         return;
       }
       try {
-        await register(email, password);
-        setSuccess("Registration successful! Welcome to R17 Gaming.");
+        await register(email, password, name);
+        setSuccess("Registration successful!");
         setTimeout(() => onClose(), 1500);
       } catch (err) {
         setError("Registration failed. Email may already be in use.");
@@ -80,7 +80,7 @@ const AuthModal = ({ isOpen, onClose, mode, onModeChange }) => {
     } else {
       try {
         await login(email, password);
-        setSuccess("Login successful! Welcome back.");
+        setSuccess("Login successful!");
         setTimeout(() => onClose(), 1500);
       } catch (err) {
         setError("Invalid email or password");
@@ -98,8 +98,8 @@ const AuthModal = ({ isOpen, onClose, mode, onModeChange }) => {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Animated Background Elements */}
-        <div className="modal-bg-gradient"></div>
-        <div className="modal-particles"></div>
+        <div className="modal-bg-gradient" />
+        <div className="modal-particles" />
 
         {/* Close Button */}
         <button className="modal-close" onClick={onClose}>
@@ -112,17 +112,37 @@ const AuthModal = ({ isOpen, onClose, mode, onModeChange }) => {
           </svg>
         </button>
 
+        {/* Top decorative plus */}
+        <div className="auth-plus" aria-hidden="true">
+          <span>+</span>
+        </div>
+
         {/* Header with Gaming Style */}
         <div className="modal-header">
-          <div className="header-glow"></div>
-          <h2 className="modal-title">
-            {mode === "login" ? "WELCOME BACK" : "JOIN THE ARENA"}
-          </h2>
-          <p className="modal-subtitle">
-            {mode === "login"
-              ? "Enter the arena and continue your legacy"
-              : "Create your account and start your journey"}
-          </p>
+          <div className="header-glow" />
+          {mode === "login" ? (
+            <>
+              <h2 className="modal-title">
+                WELCOME
+                <br />
+                BACK
+              </h2>
+              <p className="modal-subtitle">
+                Enter the arena and continue your legacy
+              </p>
+            </>
+          ) : (
+            <>
+              <h2 className="modal-title">
+                JOIN
+                <br />
+                THE ARENA
+              </h2>
+              <p className="modal-subtitle">
+                Create your account and start your journey
+              </p>
+            </>
+          )}
         </div>
 
         {/* Status Messages - Compact */}
@@ -162,49 +182,52 @@ const AuthModal = ({ isOpen, onClose, mode, onModeChange }) => {
         {/* Form - Compact Layout */}
         <form onSubmit={handleSubmit} className="auth-form">
           {mode === "register" && (
-            <div className="form-group compact">
+            <div className="form-group">
               <label htmlFor="name">
-                <svg
-                  className="input-icon"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                >
+                <svg className="input-icon" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                  <circle
+                    cx="12"
+                    cy="7"
+                    r="4"
+                    stroke="currentColor"
                     strokeWidth="2"
                   />
-                  <circle cx="12" cy="7" r="4" strokeWidth="2" />
                 </svg>
-                Name
+                NAME
               </label>
               <input
                 type="text"
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Full name"
+                placeholder="Your name"
                 required
-                className="form-input compact"
+                className="form-input"
               />
             </div>
           )}
 
-          <div className="form-group compact">
+          <div className="form-group">
             <label htmlFor="email">
-              <svg
-                className="input-icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-              >
+              <svg className="input-icon" viewBox="0 0 24 24" fill="none">
                 <path
                   d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                  stroke="currentColor"
                   strokeWidth="2"
                 />
-                <path d="M22 6l-10 7L2 6" strokeWidth="2" />
+                <path
+                  d="M22 6l-10 7L2 6"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
               </svg>
-              Email
+              EMAIL
             </label>
             <input
               type="email"
@@ -213,18 +236,13 @@ const AuthModal = ({ isOpen, onClose, mode, onModeChange }) => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Your email"
               required
-              className="form-input compact"
+              className="form-input"
             />
           </div>
 
-          <div className="form-group compact">
+          <div className="form-group">
             <label htmlFor="password">
-              <svg
-                className="input-icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-              >
+              <svg className="input-icon" viewBox="0 0 24 24" fill="none">
                 <rect
                   x="3"
                   y="11"
@@ -232,11 +250,17 @@ const AuthModal = ({ isOpen, onClose, mode, onModeChange }) => {
                   height="11"
                   rx="2"
                   ry="2"
+                  stroke="currentColor"
                   strokeWidth="2"
                 />
-                <path d="M7 11V7a5 5 0 0110 0v4" strokeWidth="2" />
+                <path
+                  d="M7 11V7a5 5 0 0110 0v4"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
               </svg>
-              Password
+              PASSWORD
             </label>
             <input
               type="password"
@@ -245,19 +269,14 @@ const AuthModal = ({ isOpen, onClose, mode, onModeChange }) => {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Your password"
               required
-              className="form-input compact"
+              className="form-input"
             />
           </div>
 
           {mode === "register" && (
-            <div className="form-group compact">
+            <div className="form-group">
               <label htmlFor="confirmPassword">
-                <svg
-                  className="input-icon"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                >
+                <svg className="input-icon" viewBox="0 0 24 24" fill="none">
                   <rect
                     x="3"
                     y="11"
@@ -265,11 +284,17 @@ const AuthModal = ({ isOpen, onClose, mode, onModeChange }) => {
                     height="11"
                     rx="2"
                     ry="2"
+                    stroke="currentColor"
                     strokeWidth="2"
                   />
-                  <path d="M7 11V7a5 5 0 0110 0v4" strokeWidth="2" />
+                  <path
+                    d="M7 11V7a5 5 0 0110 0v4"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
                 </svg>
-                Confirm
+                CONFIRM
               </label>
               <input
                 type="password"
@@ -278,7 +303,7 @@ const AuthModal = ({ isOpen, onClose, mode, onModeChange }) => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm password"
                 required
-                className="form-input compact"
+                className="form-input"
               />
             </div>
           )}
@@ -324,6 +349,7 @@ const AuthModal = ({ isOpen, onClose, mode, onModeChange }) => {
               : "Already have an account? "}
             <button
               className="switch-btn"
+              type="button"
               onClick={() =>
                 onModeChange(mode === "login" ? "register" : "login")
               }

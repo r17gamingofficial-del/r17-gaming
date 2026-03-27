@@ -85,25 +85,51 @@ export const AppProvider = ({ children }) => {
           id: 1,
           name: "Shadow Realm",
           category: "FPS",
+          genre: "FPS",
           players: "4.2M",
-          image: "",
-          description: "Intense tactical shooter",
+          description:
+            "Intense tactical shooter with realistic graphics and competitive multiplayer",
+          thumbnail:
+            "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1200&h=600&fit=crop",
+          videoUrl: "https://www.youtube.com/watch?v=Hj8WL4DQb18", // This will be converted to embed
+          platforms: ["PC", "PS5", "XSX"],
+          tag: "HOT",
+          tagClass: "gold-tag",
+          stars: "★★★★★",
+          rating: "4.8 / 5 · 15K reviews",
         },
         {
           id: 2,
           name: "Cyber Siege",
           category: "MOBA",
+          genre: "MOBA",
           players: "2.8M",
-          image: "",
-          description: "Strategy-based combat",
+          thumbnail:
+            "https://images.unsplash.com/photo-1547394765-185e1e68f34e?w=1200&h=600&fit=crop",
+          videoUrl: "https://www.youtube.com/watch?v=Hj8WL4DQb18",
+          description:
+            "Strategy-based combat with unique heroes and intense team battles",
+          platforms: ["PC", "Switch", "Mobile"],
+          tag: "NEW",
+          tagClass: "green-tag",
+          stars: "★★★★☆",
+          rating: "4.5 / 5 · 8.2K reviews",
         },
         {
           id: 3,
           name: "Neon Strike",
           category: "Battle Royale",
+          genre: "Battle Royale",
           players: "3.1M",
-          image: "",
-          description: "Fast-paced action",
+          thumbnail:
+            "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1200&h=600&fit=crop",
+          videoUrl: "https://www.youtube.com/watch?v=example3",
+          description: "Fast-paced action in a futuristic neon-drenched arena",
+          platforms: ["PC", "PS5", "XSX", "Mobile"],
+          tag: "TRENDING",
+          tagClass: "blue-tag",
+          stars: "★★★★☆",
+          rating: "4.3 / 5 · 12K reviews",
         },
       ];
 

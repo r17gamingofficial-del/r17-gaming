@@ -4,7 +4,18 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.95);
+  background:
+    radial-gradient(
+      circle at 20% 10%,
+      rgba(255, 34, 51, 0.18) 0%,
+      transparent 38%
+    ),
+    radial-gradient(
+      circle at 70% 30%,
+      rgba(255, 107, 107, 0.12) 0%,
+      transparent 45%
+    ),
+    rgba(0, 0, 0, 0.92);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   display: flex;
@@ -13,19 +24,26 @@
   z-index: 999999;
   padding: 1rem;
   animation: fadeIn 0.3s ease;
+  cursor: default;
 }
 
 .auth-modal {
   position: relative;
   width: 100%;
-  max-width: 400px;
-  background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
-  border: 1px solid rgba(255, 34, 51, 0.3);
+  max-width: 430px;
+  background:
+    radial-gradient(
+      circle at 30% 15%,
+      rgba(255, 34, 51, 0.18) 0%,
+      transparent 42%
+    ),
+    linear-gradient(180deg, rgba(28, 0, 6, 0.95) 0%, rgba(0, 0, 0, 0.92) 100%);
+  border: 1px solid rgba(255, 34, 51, 0.32);
   border-radius: 24px;
   padding: 2rem;
   box-shadow:
     0 30px 60px rgba(0, 0, 0, 0.8),
-    0 0 50px rgba(255, 34, 51, 0.3);
+    0 0 70px rgba(255, 34, 51, 0.2);
   animation: slideUp 0.4s ease;
   z-index: 1000000;
   /* No overflow, no scroll */
@@ -60,30 +78,14 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image:
-    radial-gradient(
-      2px 2px at 10px 10px,
-      rgba(255, 34, 51, 0.2),
-      rgba(0, 0, 0, 0)
-    ),
-    radial-gradient(
-      2px 2px at 20px 40px,
-      rgba(255, 215, 0, 0.2),
-      rgba(0, 0, 0, 0)
-    ),
-    radial-gradient(
-      2px 2px at 90px 20px,
-      rgba(255, 34, 51, 0.2),
-      rgba(0, 0, 0, 0)
-    ),
-    radial-gradient(
-      2px 2px at 160px 80px,
-      rgba(255, 215, 0, 0.2),
-      rgba(0, 0, 0, 0)
-    );
+  background-image: radial-gradient(
+    circle at 20% 20%,
+    rgba(255, 34, 51, 0.22),
+    rgba(0, 0, 0, 0) 60%
+  );
   background-size: 200px 200px;
   animation: particleFloat 20s linear infinite;
-  opacity: 0.5;
+  opacity: 0.35;
   z-index: 0;
   pointer-events: none;
 }
@@ -91,13 +93,13 @@
 /* Close Button */
 .modal-close {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: 32px;
-  height: 32px;
+  top: 1.05rem;
+  right: 1.05rem;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 34, 51, 0.3);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 34, 51, 0.35);
   color: white;
   cursor: pointer;
   display: flex;
@@ -113,14 +115,14 @@
 }
 
 .modal-close:hover {
-  background: #ff2233;
+  background: rgba(255, 34, 51, 0.18);
   transform: rotate(90deg);
 }
 
 /* Header */
 .modal-header {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.2rem;
   position: relative;
   z-index: 2;
   padding-right: 2rem;
@@ -140,20 +142,44 @@
 }
 
 .modal-title {
-  font-size: 1.8rem;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 2.05rem;
   font-weight: 900;
   color: white;
-  margin: 0 0 0.25rem;
+  margin: 0;
   letter-spacing: 2px;
-  text-shadow: 0 0 30px rgba(255, 34, 51, 0.5);
-  line-height: 1.2;
+  text-shadow: 0 0 28px rgba(255, 34, 51, 0.45);
+  line-height: 1.02;
 }
 
 .modal-subtitle {
-  color: #8e8e8e;
-  font-size: 0.85rem;
-  margin: 0;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.82rem;
+  margin: 0.4rem auto 0;
   line-height: 1.4;
+  max-width: 260px;
+}
+
+.auth-plus {
+  position: absolute;
+  top: 3.25rem;
+  left: 2.2rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 34, 51, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  color: rgba(255, 34, 51, 0.85);
+  background: rgba(255, 34, 51, 0.04);
+}
+
+.auth-plus span {
+  font-weight: 800;
+  font-size: 1.15rem;
+  line-height: 1;
 }
 
 /* Messages - Compact */
@@ -207,12 +233,12 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  color: #8e8e8e;
-  font-size: 0.8rem;
-  font-weight: 500;
-  margin-bottom: 0.25rem;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.28em;
 }
 
 .input-icon {
@@ -223,12 +249,12 @@
 
 .form-input {
   width: 100%;
-  padding: 0.75rem;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 34, 51, 0.3);
-  border-radius: 8px;
+  padding: 0.88rem 1rem;
+  background: rgba(0, 0, 0, 0.42);
+  border: 1px solid rgba(255, 34, 51, 0.28);
+  border-radius: 12px;
   color: white;
-  font-size: 0.9rem;
+  font-size: 0.94rem;
   transition: all 0.3s ease;
 }
 
@@ -244,21 +270,21 @@
 }
 
 .form-input::placeholder {
-  color: rgba(142, 142, 142, 0.4);
-  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.23);
+  font-size: 0.92rem;
 }
 
 /* Forgot Password */
 .forgot-password {
   text-align: right;
-  margin-bottom: 1rem;
+  margin-bottom: 1.2rem;
 }
 
 .forgot-link {
   background: none;
   border: none;
-  color: #8e8e8e;
-  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.33);
+  font-size: 0.78rem;
   cursor: pointer;
   transition: color 0.3s ease;
   text-decoration: underline;
@@ -273,13 +299,15 @@
 /* Submit Button */
 .submit-btn {
   width: 100%;
-  padding: 0.875rem;
-  background: linear-gradient(135deg, #ff2233, #aa0011);
+  height: 56px;
+  padding: 0 1rem;
+  background: linear-gradient(180deg, #ff2233, #aa0011);
   border: none;
-  border-radius: 8px;
+  border-radius: 16px;
   color: white;
   font-weight: 700;
   font-size: 0.95rem;
+  font-family: "Orbitron", sans-serif;
   letter-spacing: 1.5px;
   text-transform: uppercase;
   cursor: pointer;
@@ -366,7 +394,7 @@
 }
 
 .modal-footer p {
-  color: #8e8e8e;
+  color: rgba(255, 255, 255, 0.42);
   font-size: 0.85rem;
   margin: 0;
 }
@@ -389,8 +417,8 @@
 /* Corner Decorations */
 .modal-corner {
   position: absolute;
-  width: 30px;
-  height: 30px;
+  width: 38px;
+  height: 38px;
   border: 2px solid #ff2233;
   opacity: 0.3;
   z-index: 1;

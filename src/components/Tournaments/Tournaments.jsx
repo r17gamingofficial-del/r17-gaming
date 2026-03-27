@@ -164,11 +164,19 @@ export default function Tournaments() {
           <div className="gallery-tournament-card">
             <div className="card-image">
               <img
-                src={selectedTournament.thumbnail}
+                src={
+                  selectedTournament.thumbnail ||
+                  selectedTournament.image ||
+                  "https://via.placeholder.com/600x400?text=No+Image"
+                }
                 alt={selectedTournament.name}
+                onError={(e) => {
+                  e.target.src =
+                    "https://via.placeholder.com/600x400?text=No+Image";
+                }}
               />
               <div
-                className={`status-badge card-status status-${selectedTournament.status}`}
+                className={`card-status status-${selectedTournament.status}`}
               >
                 {selectedTournament.statusLabel}
               </div>

@@ -42,6 +42,7 @@ export default function AdminPanel() {
     category: "",
     players: "",
     image: "",
+    thumbnail: "",
     description: "",
     // Featured section fields
     art: "",
@@ -126,17 +127,21 @@ export default function AdminPanel() {
     }
 
     // Process arrays from comma-separated strings
+    const platforms = gameForm.platforms?.trim()
+      ? gameForm.platforms.split(",").map((p) => p.trim())
+      : null;
+    const featuredMeta = gameForm.featuredMeta?.trim()
+      ? gameForm.featuredMeta.split(",").map((m) => m.trim())
+      : null;
+    const featuredTags = gameForm.featuredTags?.trim()
+      ? gameForm.featuredTags.split(",").map((t) => t.trim())
+      : null;
+
     const processedGame = {
       ...gameForm,
-      platforms: gameForm.platforms
-        ? gameForm.platforms.split(",").map((p) => p.trim())
-        : [],
-      featuredMeta: gameForm.featuredMeta
-        ? gameForm.featuredMeta.split(",").map((m) => m.trim())
-        : [],
-      featuredTags: gameForm.featuredTags
-        ? gameForm.featuredTags.split(",").map((t) => t.trim())
-        : [],
+      platforms,
+      featuredMeta,
+      featuredTags,
     };
 
     const success = addGame(processedGame);
@@ -147,6 +152,7 @@ export default function AdminPanel() {
         category: "",
         players: "",
         image: "",
+        thumbnail: "",
         description: "",
         art: "",
         tag: "NEW",
@@ -171,17 +177,21 @@ export default function AdminPanel() {
 
   const handleUpdateGame = () => {
     // Process arrays from comma-separated strings
+    const platforms = gameForm.platforms?.trim()
+      ? gameForm.platforms.split(",").map((p) => p.trim())
+      : null;
+    const featuredMeta = gameForm.featuredMeta?.trim()
+      ? gameForm.featuredMeta.split(",").map((m) => m.trim())
+      : null;
+    const featuredTags = gameForm.featuredTags?.trim()
+      ? gameForm.featuredTags.split(",").map((t) => t.trim())
+      : null;
+
     const processedGame = {
       ...gameForm,
-      platforms: gameForm.platforms
-        ? gameForm.platforms.split(",").map((p) => p.trim())
-        : [],
-      featuredMeta: gameForm.featuredMeta
-        ? gameForm.featuredMeta.split(",").map((m) => m.trim())
-        : [],
-      featuredTags: gameForm.featuredTags
-        ? gameForm.featuredTags.split(",").map((t) => t.trim())
-        : [],
+      platforms,
+      featuredMeta,
+      featuredTags,
     };
 
     const success = updateGame(editingItem.id, processedGame);
@@ -193,6 +203,7 @@ export default function AdminPanel() {
         category: "",
         players: "",
         image: "",
+        thumbnail: "",
         description: "",
         art: "",
         tag: "NEW",
@@ -291,6 +302,7 @@ export default function AdminPanel() {
         category: item.category || "",
         players: item.players || "",
         image: item.image || "",
+        thumbnail: item.thumbnail || "",
         description: item.description || "",
         art: item.art || "",
         tag: item.tag || "NEW",
@@ -539,12 +551,20 @@ export default function AdminPanel() {
                     }
                     required
                   />
-                  <input
+                  {/* <input
                     type="text"
                     placeholder="Game Art (2 letters, e.g., SR)"
                     value={gameForm.art}
                     onChange={(e) =>
                       setGameForm({ ...gameForm, art: e.target.value })
+                    }
+                  /> */}
+                  <input
+                    type="text"
+                    placeholder="Thumbnail URL (for game cards + featured poster)"
+                    value={gameForm.thumbnail}
+                    onChange={(e) =>
+                      setGameForm({ ...gameForm, thumbnail: e.target.value })
                     }
                   />
                   <input
@@ -583,7 +603,7 @@ export default function AdminPanel() {
                     required
                   />
 
-                  {/* <h4 style={{ color: "#ff6b6b", margin: "1rem 0 0.5rem" }}>
+                  <h4 style={{ color: "#ff6b6b", margin: "1rem 0 0.5rem" }}>
                     Game Card Styling
                   </h4>
                   <input
@@ -698,7 +718,7 @@ export default function AdminPanel() {
                     onChange={(e) =>
                       setGameForm({ ...gameForm, videoUrl: e.target.value })
                     }
-                  /> */}
+                  />
 
                   <div className="form-actions">
                     <button type="submit" className="btn-save">

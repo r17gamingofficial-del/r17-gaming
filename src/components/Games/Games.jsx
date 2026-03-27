@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useAppContext } from "../../Context/AppContext";
 import "./Games.css";
 
@@ -81,11 +81,33 @@ export default function Games({ onGameSelect, selectedGame }) {
     }
   };
 
+  // Helper function to get game display data
+  const getGameDisplay = (game) => {
+    return {
+      art: game.art || game.name?.substring(0, 2).toUpperCase() || "??",
+      genre: game.genre || game.category || "GAME",
+      name: game.name || "Untitled Game",
+      description:
+        game.description ||
+        game.desc ||
+        "Experience the ultimate gaming adventure",
+      stars: game.stars || "★★★★☆",
+      rating:
+        game.rating ||
+        `${game.players || "4.5"} / 5 · ${game.reviews || "10K"} reviews`,
+      platforms: game.platforms || ["PC", "PS5", "XSX"],
+      tag: game.tag || "NEW",
+      tagClass: game.tagClass || "",
+    };
+  };
+
+  const getCardImage = (game) => game.thumbnail || game.image || null;
+
   // Show loading or empty state if no games
   if (!games || games.length === 0) {
     return (
       <section id="games">
-        <div className="reveal">
+        <div className="reveal visible">
           <div className="section-label">Our Titles</div>
           <h2 className="section-title">FEATURED GAMES</h2>
           <div className="no-games">
@@ -98,132 +120,148 @@ export default function Games({ onGameSelect, selectedGame }) {
 
   return (
     <section id="games">
-      <div className="reveal">
-        <div className="section-label">Our Titles</div>
-        <h2 className="section-title">FEATURED GAMES</h2>
+      <div className="games-content">
+        <div className="reveal visible">
+          <div className="section-label">Our Titles</div>
+          <h2 className="section-title">FEATURED GAMES</h2>
+        </div>
+
+        {row1.length > 0 && (
+          <div className="slider-row-container">
+            <div className="row-header">
+              <div className="row-title">
+                <span>/// Trending Now</span>
+              </div>
+            </div>
+            <div
+              className="slider-row"
+              id="sliderRow1"
+              onWheel={handleWheel}
+              onMouseDown={(e) => handleMouseDown(e, e.currentTarget)}
+              onMouseMove={(e) => handleMouseMove(e, e.currentTarget)}
+              onMouseUp={(e) => handleMouseUp(e.currentTarget)}
+              onMouseLeave={(e) => handleMouseLeave(e.currentTarget)}
+              onTouchStart={(e) => handleTouchStart(e, e.currentTarget)}
+              onTouchMove={(e) => handleTouchMove(e, e.currentTarget)}
+              onTouchEnd={(e) => handleTouchEnd(e.currentTarget)}
+              style={{ cursor: "grab" }}
+            >
+              <div className="games-horizontal">
+                {row1.map((g, index) => {
+                  const display = getGameDisplay(g);
+                  const cardImage = getCardImage(g);
+                  return (
+                    <div
+                      className={`game-card c${(g.id % 6) + 1} ${selectedGame?.id === g.id ? "active" : ""}`}
+                      key={`row1-${g.id}-${index}`}
+                      onClick={() => handleGameClick(g)}
+                      style={{ "--index": index }}
+                    >
+                      {cardImage && (
+                        <div
+                          className="game-card-thumb"
+                          style={{ backgroundImage: `url(${cardImage})` }}
+                        />
+                      )}
+                      <div className="game-card-thumb-overlay" />
+                      <div className="game-card-art">{display.art}</div>
+                      <div className="game-card-top">
+                        <div className="game-platforms">
+                          {display.platforms.slice(0, 3).map((p) => (
+                            <span className="plat" key={p}>
+                              {p}
+                            </span>
+                          ))}
+                        </div>
+                        <span className={`game-tag ${display.tagClass}`}>
+                          {display.tag}
+                        </span>
+                      </div>
+                      <div className="game-card-body">
+                        <div className="game-genre">{display.genre}</div>
+                        <div className="game-name">{display.name}</div>
+                        <div className="game-desc">{display.description}</div>
+                        <div className="game-rating">
+                          <span className="stars">{display.stars}</span>
+                          <span className="rating-val">{display.rating}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {row2.length > 0 && (
+          <div className="slider-row-container">
+            <div className="row-header">
+              <div className="row-title">
+                <span>/// Most Played</span>
+              </div>
+            </div>
+            <div
+              className="slider-row"
+              id="sliderRow2"
+              onWheel={handleWheel}
+              onMouseDown={(e) => handleMouseDown(e, e.currentTarget)}
+              onMouseMove={(e) => handleMouseMove(e, e.currentTarget)}
+              onMouseUp={(e) => handleMouseUp(e.currentTarget)}
+              onMouseLeave={(e) => handleMouseLeave(e.currentTarget)}
+              onTouchStart={(e) => handleTouchStart(e, e.currentTarget)}
+              onTouchMove={(e) => handleTouchMove(e, e.currentTarget)}
+              onTouchEnd={(e) => handleTouchEnd(e.currentTarget)}
+              style={{ cursor: "grab" }}
+            >
+              <div className="games-horizontal">
+                {row2.map((g, index) => {
+                  const display = getGameDisplay(g);
+                  const cardImage = getCardImage(g);
+                  return (
+                    <div
+                      className={`game-card c${(g.id % 6) + 1} ${selectedGame?.id === g.id ? "active" : ""}`}
+                      key={`row2-${g.id}-${index}`}
+                      onClick={() => handleGameClick(g)}
+                      style={{ "--index": index + row1.length }}
+                    >
+                      {cardImage && (
+                        <div
+                          className="game-card-thumb"
+                          style={{ backgroundImage: `url(${cardImage})` }}
+                        />
+                      )}
+                      <div className="game-card-thumb-overlay" />
+                      <div className="game-card-art">{display.art}</div>
+                      <div className="game-card-top">
+                        <div className="game-platforms">
+                          {display.platforms.slice(0, 3).map((p) => (
+                            <span className="plat" key={p}>
+                              {p}
+                            </span>
+                          ))}
+                        </div>
+                        <span className={`game-tag ${display.tagClass}`}>
+                          {display.tag}
+                        </span>
+                      </div>
+                      <div className="game-card-body">
+                        <div className="game-genre">{display.genre}</div>
+                        <div className="game-name">{display.name}</div>
+                        <div className="game-desc">{display.description}</div>
+                        <div className="game-rating">
+                          <span className="stars">{display.stars}</span>
+                          <span className="rating-val">{display.rating}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-      {row1.length > 0 && (
-        <div className="slider-row-container">
-          <div className="row-header">
-            <div className="row-title">
-              <span>/// Trending Now</span>
-            </div>
-          </div>
-          <div
-            className="slider-row"
-            id="sliderRow1"
-            onWheel={handleWheel}
-            onMouseDown={(e) => handleMouseDown(e, e.currentTarget)}
-            onMouseMove={(e) => handleMouseMove(e, e.currentTarget)}
-            onMouseUp={(e) => handleMouseUp(e.currentTarget)}
-            onMouseLeave={(e) => handleMouseLeave(e.currentTarget)}
-            onTouchStart={(e) => handleTouchStart(e, e.currentTarget)}
-            onTouchMove={(e) => handleTouchMove(e, e.currentTarget)}
-            onTouchEnd={(e) => handleTouchEnd(e.currentTarget)}
-            style={{ cursor: "grab" }}
-          >
-            <div className="games-horizontal">
-              {row1.map((g, index) => (
-                <div
-                  className={`game-card c${(g.id % 6) + 1} ${selectedGame?.id === g.id ? "active" : ""}`}
-                  key={`row1-${g.id}-${index}`}
-                  onClick={() => handleGameClick(g)}
-                >
-                  <div className="game-card-art">
-                    {g.art || g.name.substring(0, 2).toUpperCase()}
-                  </div>
-                  <div className="game-card-top">
-                    <div className="game-platforms">
-                      {g.platforms &&
-                        g.platforms.map((p) => (
-                          <span className="plat" key={p}>
-                            {p}
-                          </span>
-                        ))}
-                    </div>
-                    <span className={`game-tag ${g.tagClass || ""}`}>
-                      {g.tag || "NEW"}
-                    </span>
-                  </div>
-                  <div className="game-card-body">
-                    <div className="game-genre">{g.genre || g.category}</div>
-                    <div className="game-name">{g.name}</div>
-                    <div className="game-desc">{g.description || g.desc}</div>
-                    <div className="game-rating">
-                      <span className="stars">{g.stars || "★★★★☆"}</span>
-                      <span className="rating-val">
-                        {g.rating || "4.5 / 5 · 10K reviews"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {row2.length > 0 && (
-        <div className="slider-row-container">
-          <div className="row-header">
-            <div className="row-title">
-              <span>/// Most Played</span>
-            </div>
-          </div>
-          <div
-            className="slider-row"
-            id="sliderRow2"
-            onWheel={handleWheel}
-            onMouseDown={(e) => handleMouseDown(e, e.currentTarget)}
-            onMouseMove={(e) => handleMouseMove(e, e.currentTarget)}
-            onMouseUp={(e) => handleMouseUp(e.currentTarget)}
-            onMouseLeave={(e) => handleMouseLeave(e.currentTarget)}
-            onTouchStart={(e) => handleTouchStart(e, e.currentTarget)}
-            onTouchMove={(e) => handleTouchMove(e, e.currentTarget)}
-            onTouchEnd={(e) => handleTouchEnd(e.currentTarget)}
-            style={{ cursor: "grab" }}
-          >
-            <div className="games-horizontal">
-              {row2.map((g, index) => (
-                <div
-                  className={`game-card c${(g.id % 6) + 1} ${selectedGame?.id === g.id ? "active" : ""}`}
-                  key={`row2-${g.id}-${index}`}
-                  onClick={() => handleGameClick(g)}
-                >
-                  <div className="game-card-art">
-                    {g.art || g.name.substring(0, 2).toUpperCase()}
-                  </div>
-                  <div className="game-card-top">
-                    <div className="game-platforms">
-                      {g.platforms &&
-                        g.platforms.map((p) => (
-                          <span className="plat" key={p}>
-                            {p}
-                          </span>
-                        ))}
-                    </div>
-                    <span className={`game-tag ${g.tagClass || ""}`}>
-                      {g.tag || "NEW"}
-                    </span>
-                  </div>
-                  <div className="game-card-body">
-                    <div className="game-genre">{g.genre || g.category}</div>
-                    <div className="game-name">{g.name}</div>
-                    <div className="game-desc">{g.description || g.desc}</div>
-                    <div className="game-rating">
-                      <span className="stars">{g.stars || "★★★★☆"}</span>
-                      <span className="rating-val">
-                        {g.rating || "4.5 / 5 · 10K reviews"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 }

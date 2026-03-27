@@ -1,9 +1,14 @@
 import { useState, useEffect } from 'react'
 import './Navbar.css'
+import { useAuth } from '../../hooks/useAuth'
+import AuthModal from './Authmodal/AuthModal'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [authModalOpen, setAuthModalOpen] = useState(false)
+  const [authMode, setAuthMode] = useState('login')
+  const { user, loading, logout } = useAuth()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60)
@@ -24,7 +29,28 @@ export default function Navbar() {
           <li><a href="#community">Community</a></li>
           <li><a href="#newsletter">Newsletter</a></li>
         </ul>
-        <a href="#" className="nav-cta">Login</a>
+        {user ? (
+          <button
+            type="button"
+            className="nav-cta"
+            onClick={() => logout().finally(() => setAuthModalOpen(false))}
+            disabled={loading}
+          >
+            Logout
+          </button>
+        ) : (
+          <a
+            href="#"
+            className="nav-cta"
+            onClick={(e) => {
+              e.preventDefault()
+              setAuthModalOpen(true)
+              setAuthMode('login')
+            }}
+          >
+            Login
+          </a>
+        )}
         <button
           className={`hamburger${menuOpen ? ' open' : ''}`}
           onClick={() => setMenuOpen(!menuOpen)}
@@ -39,7 +65,40 @@ export default function Navbar() {
         <a href="#leaderboard" onClick={closeMenu}>Leaderboard</a>
         <a href="#community" onClick={closeMenu}>Community</a>
         <a href="#newsletter" onClick={closeMenu}>Newsletter</a>
+        {user ? (
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault()
+              closeMenu()
+              logout().finally(() => setAuthModalOpen(false))
+            }}
+          >
+            Logout
+          </a>
+        ) : (
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault()
+              closeMenu()
+              setAuthMode('login')
+              setAuthModalOpen(true)
+            }}
+          >
+            Login
+          </a>
+        )}
       </div>
+
+      {authModalOpen && (
+        <AuthModal
+          isOpen={authModalOpen}
+          onClose={() => setAuthModalOpen(false)}
+          mode={authMode}
+          onModeChange={setAuthMode}
+        />
+      )}
     </>
   )
 }

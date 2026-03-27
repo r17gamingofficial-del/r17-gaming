@@ -133,6 +133,9 @@
   border-radius: 1rem;
   width: 90%;
   max-width: 500px;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid rgba(255, 255, 255, 0.1);
   animation: slideUp 0.3s ease;
 }
