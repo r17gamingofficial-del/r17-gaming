@@ -2,6 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import "./Tournaments.css";
 import { useAppContext } from "../../Context/AppContext.jsx";
 
+function registerHref(raw) {
+  const s = (raw || "").trim();
+  if (!s) return "";
+  if (/^https?:\/\//i.test(s)) return s;
+  return `https://${s}`;
+}
+
 export default function Tournaments() {
   const { tournaments, loading } = useAppContext();
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,6 +42,13 @@ export default function Tournaments() {
 
   const handleTournamentClick = (tournament) => {
     setSelectedTournament(tournament);
+  };
+
+  const openRegistration = (e, tournament) => {
+    e.stopPropagation();
+    const href = registerHref(tournament?.registerUrl);
+    if (!href) return;
+    window.open(href, "_blank", "noopener,noreferrer");
   };
 
   // Handle video autoplay on hover for cards
@@ -137,11 +151,15 @@ export default function Tournaments() {
                     </div>
                   </div>
                   <button
+                    type="button"
                     className="register-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      console.log("Register for:", selectedTournament.name);
-                    }}
+                    disabled={!registerHref(selectedTournament.registerUrl)}
+                    title={
+                      registerHref(selectedTournament.registerUrl)
+                        ? "Open registration page"
+                        : "Registration link not set (add it in Admin → Tournaments)"
+                    }
+                    onClick={(e) => openRegistration(e, selectedTournament)}
                   >
                     Register Now →
                   </button>
@@ -266,12 +284,15 @@ export default function Tournaments() {
                     <small>Prize Pool</small>
                   </div>
                   <button
+                    type="button"
                     className="t-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Handle registration
-                      console.log("Register for:", t.name);
-                    }}
+                    disabled={!registerHref(t.registerUrl)}
+                    title={
+                      registerHref(t.registerUrl)
+                        ? "Open registration page"
+                        : "Registration link not set (add it in Admin → Tournaments)"
+                    }
+                    onClick={(e) => openRegistration(e, t)}
                   >
                     Register
                   </button>

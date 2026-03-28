@@ -162,6 +162,47 @@
   transform: translateY(0);
 }
 
+/* Logged-in: profile avatar (desktop) */
+.nav-avatar-link {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 34, 51, 0.55);
+  box-shadow: 0 0 20px rgba(255, 34, 51, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  background: linear-gradient(145deg, #2a1518, #1a1a1f);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+  z-index: 1001;
+}
+
+.nav-avatar-link:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 34, 51, 0.9);
+  box-shadow: 0 0 28px rgba(255, 34, 51, 0.45);
+}
+
+.nav-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.nav-avatar-fallback {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1.15rem;
+  color: #fff;
+  line-height: 1;
+}
+
 .hamburger {
   display: none;
   flex-direction: column;
@@ -262,6 +303,39 @@
   animation-delay: 0.5s;
 }
 
+.mobile-menu a:nth-child(6) {
+  animation-delay: 0.6s;
+}
+
+.mobile-profile-link {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 1rem;
+  font-size: 2rem !important;
+}
+
+.mobile-profile-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(255, 34, 51, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1.25rem;
+  color: #fff;
+  background: linear-gradient(145deg, #2a1518, #1a1a1f);
+  flex-shrink: 0;
+}
+
+.mobile-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 @keyframes mobileLinkFade {
   to {
     opacity: 1;
@@ -301,7 +375,8 @@
   }
 
   .nav-links,
-  .nav-cta {
+  .nav-cta,
+  .nav-avatar-link {
     display: none;
   }
 

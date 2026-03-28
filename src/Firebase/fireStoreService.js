@@ -19,6 +19,7 @@ const tournamentsCollection = collection(db, "tournaments");
 const gamesCollection = collection(db, "games");
 const leaderboardCollection = collection(db, "leaderboard");
 const usersCollection = collection(db, "users");
+const communityPostsCollection = collection(db, "communityPosts");
 
 // ============ TOURNAMENTS ============
 
@@ -323,6 +324,107 @@ export const deleteUser = async (id) => {
     return true;
   } catch (error) {
     console.error("Error deleting user:", error);
+    throw error;
+  }
+};
+
+// ============ HERO (single doc: siteSettings/hero) ============
+
+const heroDocRef = doc(db, "siteSettings", "hero");
+
+export const getHero = async () => {
+  try {
+    const snap = await getDoc(heroDocRef);
+    if (!snap.exists()) return null;
+    return snap.data();
+  } catch (error) {
+    console.error("Error getting hero:", error);
+    throw error;
+  }
+};
+
+export const setHero = async (data) => {
+  try {
+    await setDoc(
+      heroDocRef,
+      { ...data, updatedAt: Timestamp.now() },
+      { merge: true },
+    );
+    const snap = await getDoc(heroDocRef);
+    return snap.exists() ? snap.data() : data;
+  } catch (error) {
+    console.error("Error saving hero:", error);
+    throw error;
+  }
+};
+
+// ============ COMMUNITY POSTS (reviews / testimonials) ============
+
+export const getCommunityPosts = async () => {
+  try {
+    const q = query(communityPostsCollection, orderBy("sortOrder", "asc"));
+    const querySnapshot = await getDocs(q);
+    const posts = [];
+    querySnapshot.forEach((d) => {
+      posts.push({ id: d.id, ...d.data() });
+    });
+    return posts;
+  } catch (error) {
+    console.error("Error getting community posts:", error);
+    throw error;
+  }
+};
+
+export const addCommunityPost = async (postData) => {
+  try {
+    const snap = await getDocs(communityPostsCollection);
+    let maxSort = -1;
+    snap.forEach((d) => {
+      const s = d.data().sortOrder;
+      if (typeof s === "number" && s > maxSort) maxSort = s;
+    });
+    const sortOrder = maxSort + 1;
+
+    const post = {
+      stars: postData.stars || "★★★★★",
+      av: postData.av || "ra1",
+      letter: postData.letter || "?",
+      name: postData.name || "",
+      handle: postData.handle || "",
+      text: postData.text || "",
+      sortOrder,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    };
+    const docRef = await addDoc(communityPostsCollection, post);
+    return { id: docRef.id, ...post };
+  } catch (error) {
+    console.error("Error adding community post:", error);
+    throw error;
+  }
+};
+
+export const updateCommunityPost = async (id, postData) => {
+  try {
+    const docRef = doc(db, "communityPosts", id);
+    await updateDoc(docRef, {
+      ...postData,
+      updatedAt: Timestamp.now(),
+    });
+    return { id, ...postData };
+  } catch (error) {
+    console.error("Error updating community post:", error);
+    throw error;
+  }
+};
+
+export const deleteCommunityPost = async (id) => {
+  try {
+    const docRef = doc(db, "communityPosts", id);
+    await deleteDoc(docRef);
+    return true;
+  } catch (error) {
+    console.error("Error deleting community post:", error);
     throw error;
   }
 };

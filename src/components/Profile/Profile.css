@@ -1,0 +1,182 @@
+.profile-page {
+  min-height: calc(100vh - 72px);
+  margin-top: 72px;
+  padding: 4rem 5vw 5rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: radial-gradient(
+    ellipse 80% 50% at 50% -20%,
+    rgba(255, 34, 51, 0.12),
+    transparent
+  );
+}
+
+.profile-page--loading {
+  align-items: center;
+}
+
+.profile-loading-text {
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.profile-card {
+  width: 100%;
+  max-width: 480px;
+  padding: 2.25rem;
+  border: 1px solid rgba(255, 34, 51, 0.15);
+  border-radius: 1rem;
+  background: rgba(12, 12, 14, 0.85);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+.profile-card-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.profile-avatar-large {
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 1.25rem;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid rgba(255, 34, 51, 0.45);
+  box-shadow: 0 0 32px rgba(255, 34, 51, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #2a1518, #1a1a1f);
+}
+
+.profile-avatar-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-avatar-large span {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 2.75rem;
+  color: #fff;
+  line-height: 1;
+}
+
+.profile-title {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 2rem;
+  letter-spacing: 0.08em;
+  color: #fff;
+  margin: 0 0 0.35rem;
+}
+
+.profile-sub {
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+}
+
+.profile-details {
+  margin: 0;
+  padding: 0;
+}
+
+.profile-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 0.75rem 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.profile-row:last-of-type {
+  border-bottom: none;
+}
+
+.profile-row dt {
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.52rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.38);
+  margin: 0;
+  padding-top: 0.2rem;
+}
+
+.profile-row dd {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #fff;
+  word-break: break-word;
+}
+
+.profile-mono {
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem !important;
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
+.profile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.profile-logout-btn {
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0.9rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: linear-gradient(135deg, #ff2233, #c41e2a);
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.profile-logout-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 34, 51, 0.35);
+}
+
+.profile-logout-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.profile-back-btn {
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.5rem;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.profile-back-btn:hover {
+  color: #fff;
+  border-color: rgba(255, 34, 51, 0.35);
+}
+
+@media (max-width: 520px) {
+  .profile-row {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+}

@@ -1,10 +1,19 @@
 import { useEffect, useRef } from "react";
+import { useAppContext } from "../../Context/AppContext.jsx";
 import "./Hero.css";
 
 export default function Hero() {
+  const { hero } = useAppContext();
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
-  const videoContainerRef = useRef(null);
+
+  const h = hero || {};
+  const backgroundMode = h.backgroundMode === "image" ? "image" : "youtube";
+  const backgroundImageUrl = (h.backgroundImageUrl || "").trim();
+  const youtubeVideoId = (h.youtubeVideoId || "EZMYvAWbyLo").trim();
+  const embedSrc = youtubeVideoId
+    ? `https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&mute=1&loop=1&playlist=${youtubeVideoId}&controls=0&modestbranding=1&rel=0&playsinline=1`
+    : "";
 
   useEffect(() => {
     const wrap = wrapRef.current;
@@ -58,94 +67,74 @@ export default function Hero() {
     };
   }, []);
 
-  // YouTube API integration
-  useEffect(() => {
-    // Load YouTube IFrame API
-    const tag = document.createElement("script");
-    tag.src = "https://www.youtube.com/iframe_api";
-    const firstScriptTag = document.getElementsByTagName("script")[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-    window.onYouTubeIframeAPIReady = () => {
-      new window.YT.Player("youtube-player", {
-        videoId: "EZMYvAWbyLo",
-        playerVars: {
-          autoplay: 1,
-          loop: 1,
-          mute: 1,
-          controls: 0,
-          showinfo: 0,
-          modestbranding: 1,
-          rel: 0,
-          playlist: "EZMYvAWbyLo",
-        },
-        events: {
-          onReady: (event) => {
-            event.target.playVideo();
-          },
-        },
-      });
-    };
-
-    return () => {
-      delete window.onYouTubeIframeAPIReady;
-    };
-  }, []);
+  const defaultStats = [
+    { main: "4.2", inner: "M", label: "Active Players" },
+    { main: "$", inner: "2.8M", label: "Prize Pool" },
+    { main: "340", inner: "+", label: "Tournaments" },
+    { main: "18", inner: "+", label: "Game Titles" },
+  ];
+  const stats =
+    Array.isArray(h.stats) && h.stats.length ? h.stats : defaultStats;
 
   return (
-    <section id="hero">
-      {/* YouTube video background with API */}
-      <div className="hero-video-bg" ref={videoContainerRef}>
-        <div id="youtube-player"></div>
+    <section id="hero" ref={wrapRef}>
+      <div className="hero-video-bg">
+        {backgroundMode === "image" && backgroundImageUrl ? (
+          <div
+            className="hero-image-bg"
+            style={{ backgroundImage: `url(${backgroundImageUrl})` }}
+            role="img"
+            aria-hidden
+          />
+        ) : embedSrc ? (
+          <iframe
+            key={youtubeVideoId}
+            title="Hero background video"
+            src={embedSrc}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        ) : null}
         <div className="video-overlay"></div>
       </div>
 
+      <canvas ref={canvasRef} className="hero-particles" aria-hidden />
 
       <div className="hero-overlay"></div>
       <div className="scanlines"></div>
 
       <div className="hero-content">
         <h1 className="hero-title">
-          <span className="glitch" data-text="DOMINATE">
-            DOMINATE
+          <span className="glitch" data-text={h.titleGlitch || "DOMINATE"}>
+            {h.titleGlitch || "DOMINATE"}
           </span>
           <br />
-          THE <span className="accent">ARENA</span>
+          {h.titlePrefix || "THE "}
+          <span className="accent">{h.titleAccent || "ARENA"}</span>
         </h1>
         <p className="hero-sub">
-          Elite competitive gaming. Forge your legacy. Rise through the ranks
-          and claim glory in the world's most intense tournaments.
+          {h.subtitle ||
+            "Elite competitive gaming. Forge your legacy. Rise through the ranks and claim glory in the world's most intense tournaments."}
         </p>
       </div>
 
       <div className="hero-stats">
-        <div className="stat-item">
-          <div className="stat-num">
-            4.2<span>M</span>
-          </div>
-          <div className="stat-label">Active Players</div>
-        </div>
-        <div className="divider"></div>
-        <div className="stat-item">
-          <div className="stat-num">
-            $<span>2.8M</span>
-          </div>
-          <div className="stat-label">Prize Pool</div>
-        </div>
-        <div className="divider"></div>
-        <div className="stat-item">
-          <div className="stat-num">
-            340<span>+</span>
-          </div>
-          <div className="stat-label">Tournaments</div>
-        </div>
-        <div className="divider"></div>
-        <div className="stat-item">
-          <div className="stat-num">
-            18<span>+</span>
-          </div>
-          <div className="stat-label">Game Titles</div>
-        </div>
+        {stats.flatMap((s, i) => {
+          const item = (
+            <div className="stat-item" key={`stat-${i}`}>
+              <div className="stat-num">
+                {s.main}
+                <span>{s.inner}</span>
+              </div>
+              <div className="stat-label">{s.label}</div>
+            </div>
+          );
+          if (i === 0) return [item];
+          return [
+            <div className="divider" key={`div-${i}`} />,
+            item,
+          ];
+        })}
       </div>
 
       <div className="scroll-ind">

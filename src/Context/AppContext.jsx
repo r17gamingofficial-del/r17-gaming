@@ -12,6 +12,12 @@ import {
   updateGame as updateGameInDb,
   updateLeaderboardEntry as updateLeaderboardEntryInDb,
   updateTournament as updateTournamentInDb,
+  getHero,
+  setHero as setHeroInDb,
+  getCommunityPosts,
+  addCommunityPost as addCommunityPostInDb,
+  updateCommunityPost as updateCommunityPostInDb,
+  deleteCommunityPost as deleteCommunityPostInDb,
 } from "../Firebase/fireStoreService.js";
 
 const AppContext = createContext();
@@ -24,10 +30,46 @@ export const useAppContext = () => {
   return context;
 };
 
+const defaultHero = {
+  backgroundMode: "youtube",
+  backgroundImageUrl: "",
+  youtubeVideoId: "EZMYvAWbyLo",
+  titleGlitch: "DOMINATE",
+  titlePrefix: "THE ",
+  titleAccent: "ARENA",
+  subtitle:
+    "Elite competitive gaming. Forge your legacy. Rise through the ranks and claim glory in the world's most intense tournaments.",
+  stats: [
+    { main: "4.2", inner: "M", label: "Active Players" },
+    { main: "$", inner: "2.8M", label: "Prize Pool" },
+    { main: "340", inner: "+", label: "Tournaments" },
+    { main: "18", inner: "+", label: "Game Titles" },
+  ],
+};
+
+function mergeHero(loaded) {
+  if (!loaded || typeof loaded !== "object") return { ...defaultHero };
+  const stats =
+    Array.isArray(loaded.stats) && loaded.stats.length
+      ? loaded.stats.map((s, i) => ({
+          main: s?.main ?? defaultHero.stats[i]?.main ?? "",
+          inner: s?.inner ?? defaultHero.stats[i]?.inner ?? "",
+          label: s?.label ?? defaultHero.stats[i]?.label ?? "",
+        }))
+      : defaultHero.stats;
+  return {
+    ...defaultHero,
+    ...loaded,
+    stats,
+  };
+}
+
 export const AppProvider = ({ children }) => {
   const [tournaments, setTournaments] = useState([]);
   const [games, setGames] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
+  const [hero, setHero] = useState(() => ({ ...defaultHero }));
+  const [communityPosts, setCommunityPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Load initial data
@@ -177,6 +219,57 @@ export const AppProvider = ({ children }) => {
         },
       ];
 
+      const defaultCommunityPosts = [
+        {
+          stars: "★★★★★",
+          av: "ra1",
+          letter: "Z",
+          name: "ZephyrX",
+          handle: "@zephyrx_pro · Shadow Realm",
+          text: "R17 completely changed how I approach competitive gaming. The tournament system is flawless and prize payouts are always on time. Addicted since day one.",
+        },
+        {
+          stars: "★★★★★",
+          av: "ra2",
+          letter: "N",
+          name: "NovaBurst",
+          handle: "@novaburst_eu · Cyber Siege",
+          text: "Nothing comes close to the competition here. I've been in esports for 8 years and R17 has the best infrastructure I've ever played on. Period.",
+        },
+        {
+          stars: "★★★★★",
+          av: "ra3",
+          letter: "K",
+          name: "KryptonPeak",
+          handle: "@kryptonpeak · Iron Legion",
+          text: "I went from casual to winning my first $10K tournament in three months. The ranked system genuinely pushes you to improve every single match.",
+        },
+        {
+          stars: "★★★★☆",
+          av: "ra4",
+          letter: "S",
+          name: "SolarWarden",
+          handle: "@solarwarden · Neon Strike",
+          text: "The matchmaking is incredibly fair. Never felt thrown into impossible games. Steady climb up the leaderboard since joining six months ago.",
+        },
+        {
+          stars: "★★★★★",
+          av: "ra5",
+          letter: "V",
+          name: "VoidHunter",
+          handle: "@voidhunter_de · Void Protocol",
+          text: "Community events, weekly tournaments, daily challenges — there's always something happening. This platform has everything a competitive player needs.",
+        },
+        {
+          stars: "★★★★★",
+          av: "ra6",
+          letter: "P",
+          name: "PhantomAce",
+          handle: "@phantomace_jp · Phantom Arena",
+          text: "As a streamer, the spectator mode is unreal. My viewers see live stats in real-time. Completely game-changing feature I haven't seen built this well anywhere else.",
+        },
+      ];
+
       const [dbTournaments, dbGames, dbLeaderboard] = await Promise.all([
         getTournaments(),
         getGames(),
@@ -203,8 +296,31 @@ export const AppProvider = ({ children }) => {
         }
       }
 
-      const [finalTournaments, finalGames, finalLeaderboard] =
-        await Promise.all([getTournaments(), getGames(), getLeaderboard()]);
+      const [finalTournaments, finalGames, finalLeaderboard, heroSnap, rawCommunity] =
+        await Promise.all([
+          getTournaments(),
+          getGames(),
+          getLeaderboard(),
+          getHero(),
+          getCommunityPosts(),
+        ]);
+
+      let communityFinal = rawCommunity;
+      if (!communityFinal?.length) {
+        for (const p of defaultCommunityPosts) {
+          await addCommunityPostInDb(p);
+        }
+        communityFinal = await getCommunityPosts();
+      }
+      setCommunityPosts(communityFinal);
+
+      let heroMerged = mergeHero(heroSnap);
+      if (!heroSnap) {
+        await setHeroInDb(heroMerged);
+        const again = await getHero();
+        heroMerged = mergeHero(again);
+      }
+      setHero(heroMerged);
 
       setTournaments(finalTournaments);
       setGames(finalGames);
@@ -325,10 +441,67 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const updateHero = async (partial) => {
+    try {
+      const snap = await getHero();
+      const current = mergeHero(snap);
+      const next = mergeHero({ ...current, ...partial });
+      await setHeroInDb(next);
+      const fresh = await getHero();
+      setHero(mergeHero(fresh));
+      return true;
+    } catch (error) {
+      console.error("Error updating hero:", error);
+      return false;
+    }
+  };
+
+  const addCommunityPost = async (post) => {
+    try {
+      const created = await addCommunityPostInDb(post);
+      setCommunityPosts((prev) =>
+        [...prev, created].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)),
+      );
+      return created;
+    } catch (error) {
+      console.error("Error adding community post:", error);
+      return null;
+    }
+  };
+
+  const updateCommunityPost = async (id, data) => {
+    try {
+      await updateCommunityPostInDb(id, data);
+      setCommunityPosts((prev) =>
+        prev
+          .map((p) => (p.id === id ? { ...p, ...data } : p))
+          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)),
+      );
+      return true;
+    } catch (error) {
+      console.error("Error updating community post:", error);
+      return false;
+    }
+  };
+
+  const deleteCommunityPost = async (id) => {
+    try {
+      await deleteCommunityPostInDb(id);
+      const refreshed = await getCommunityPosts();
+      setCommunityPosts(refreshed);
+      return true;
+    } catch (error) {
+      console.error("Error deleting community post:", error);
+      return false;
+    }
+  };
+
   const value = {
     tournaments,
     games,
     leaderboard,
+    hero,
+    communityPosts,
     loading,
     addTournament,
     updateTournament,
@@ -339,6 +512,10 @@ export const AppProvider = ({ children }) => {
     addLeaderboardEntry,
     updateLeaderboardEntry,
     deleteLeaderboardEntry,
+    updateHero,
+    addCommunityPost,
+    updateCommunityPost,
+    deleteCommunityPost,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

@@ -14,6 +14,7 @@ import Community from "./components/Community/Community.jsx";
 import Newsletter from "./components/Newsletter/Newsletter.jsx";
 import Footer from "./components/Footer/Footer.jsx";
 import AdminPanel from "./components/Admin/AdminPanel.jsx";
+import Profile from "./components/Profile/Profile.jsx";
 
 // Create a separate component that uses the context
 function HomePage() {
@@ -161,12 +162,24 @@ function AdminRoute() {
   );
 }
 
+function ProfileRoute() {
+  return (
+    <>
+      <Cursor />
+      <Navbar />
+      <Profile />
+      <Footer />
+    </>
+  );
+}
+
 function App() {
   return (
     <AppProvider>
       <Router>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/profile" element={<ProfileRoute />} />
           <Route path="/admin" element={<AdminRoute />} />
         </Routes>
       </Router>

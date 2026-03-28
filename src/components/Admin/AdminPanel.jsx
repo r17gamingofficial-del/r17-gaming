@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAppContext } from "../../Context/AppContext";
 import "./AdminPanel.css";
 
@@ -7,6 +7,7 @@ export default function AdminPanel() {
     tournaments,
     games,
     leaderboard,
+    hero,
     addTournament,
     updateTournament,
     deleteTournament,
@@ -16,6 +17,11 @@ export default function AdminPanel() {
     addLeaderboardEntry,
     updateLeaderboardEntry,
     deleteLeaderboardEntry,
+    updateHero,
+    communityPosts,
+    addCommunityPost,
+    updateCommunityPost,
+    deleteCommunityPost,
   } = useAppContext();
 
   const [activeTab, setActiveTab] = useState("tournaments");
@@ -35,6 +41,7 @@ export default function AdminPanel() {
     thumbnail: "",
     videoUrl: "",
     gallery: "",
+    registerUrl: "",
   });
 
   // Enhanced Game Form with all featured fields
@@ -69,6 +76,47 @@ export default function AdminPanel() {
     kd: "",
     game: "",
   });
+
+  const [communityForm, setCommunityForm] = useState({
+    stars: "★★★★★",
+    av: "ra1",
+    letter: "",
+    name: "",
+    handle: "",
+    text: "",
+  });
+
+  const [heroForm, setHeroForm] = useState(null);
+
+  useEffect(() => {
+    if (!hero) return;
+    const statTemplate = [
+      { main: "4.2", inner: "M", label: "Active Players" },
+      { main: "$", inner: "2.8M", label: "Prize Pool" },
+      { main: "340", inner: "+", label: "Tournaments" },
+      { main: "18", inner: "+", label: "Game Titles" },
+    ];
+    const stats = statTemplate.map((t, i) => {
+      const s = hero.stats?.[i];
+      return {
+        main: s?.main ?? t.main,
+        inner: s?.inner ?? t.inner,
+        label: s?.label ?? t.label,
+      };
+    });
+    setHeroForm({
+      backgroundMode: hero.backgroundMode === "image" ? "image" : "youtube",
+      backgroundImageUrl: hero.backgroundImageUrl || "",
+      youtubeVideoUrl: hero.youtubeVideoId
+        ? `https://www.youtube.com/watch?v=${hero.youtubeVideoId}`
+        : "",
+      titleGlitch: hero.titleGlitch || "",
+      titlePrefix: hero.titlePrefix ?? "THE ",
+      titleAccent: hero.titleAccent || "",
+      subtitle: hero.subtitle || "",
+      stats,
+    });
+  }, [hero]);
 
   const showMessage = (text, type = "success") => {
     setMessage({ text, type });
@@ -120,6 +168,7 @@ export default function AdminPanel() {
       gallery,
       videoUrl,
       thumbnail: (form.thumbnail || "").trim(),
+      registerUrl: (form.registerUrl || "").trim(),
     };
   };
 
@@ -142,6 +191,7 @@ export default function AdminPanel() {
         thumbnail: "",
         videoUrl: "",
         gallery: "",
+        registerUrl: "",
       });
       setShowForm(false);
     } else {
@@ -167,6 +217,7 @@ export default function AdminPanel() {
         thumbnail: "",
         videoUrl: "",
         gallery: "",
+        registerUrl: "",
       });
       setShowForm(false);
     } else {
@@ -350,6 +401,7 @@ export default function AdminPanel() {
             ? item.gallery.join(", ")
             : item.gallery
           : "",
+        registerUrl: item.registerUrl || "",
       });
     } else if (type === "games") {
       setGameForm({
@@ -394,6 +446,15 @@ export default function AdminPanel() {
         kd: item.kd,
         game: item.game,
       });
+    } else if (type === "community") {
+      setCommunityForm({
+        stars: item.stars || "★★★★★",
+        av: item.av || "ra1",
+        letter: item.letter || "",
+        name: item.name || "",
+        handle: item.handle || "",
+        text: item.text || "",
+      });
     }
   };
 
@@ -409,11 +470,110 @@ export default function AdminPanel() {
     l.playerName.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
+  const filteredCommunity = (communityPosts || []).filter(
+    (p) =>
+      (p.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.text || "").toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
+  const handleAddCommunityPost = async () => {
+    if (!communityForm.name?.trim()) {
+      showMessage("Please fill in display name", "error");
+      return;
+    }
+    if (!communityForm.text?.trim()) {
+      showMessage("Please fill in review text", "error");
+      return;
+    }
+    const created = await addCommunityPost({
+      stars: communityForm.stars,
+      av: communityForm.av,
+      letter: (communityForm.letter || "?").slice(0, 1),
+      name: communityForm.name.trim(),
+      handle: communityForm.handle.trim(),
+      text: communityForm.text.trim(),
+    });
+    if (created) {
+      showMessage("Community post added!");
+      setCommunityForm({
+        stars: "★★★★★",
+        av: "ra1",
+        letter: "",
+        name: "",
+        handle: "",
+        text: "",
+      });
+      setShowForm(false);
+    } else {
+      showMessage("Error adding post", "error");
+    }
+  };
+
+  const handleUpdateCommunityPost = async () => {
+    const payload = {
+      stars: communityForm.stars,
+      av: communityForm.av,
+      letter: (communityForm.letter || "?").slice(0, 1),
+      name: communityForm.name.trim(),
+      handle: communityForm.handle.trim(),
+      text: communityForm.text.trim(),
+    };
+    const success = await updateCommunityPost(editingItem.id, payload);
+    if (success) {
+      showMessage("Community post updated!");
+      setEditingItem(null);
+      setCommunityForm({
+        stars: "★★★★★",
+        av: "ra1",
+        letter: "",
+        name: "",
+        handle: "",
+        text: "",
+      });
+      setShowForm(false);
+    } else {
+      showMessage("Error updating post", "error");
+    }
+  };
+
+  const handleSaveHero = async () => {
+    if (!heroForm) return;
+    const vid = extractYouTubeId(heroForm.youtubeVideoUrl);
+    const youtubeVideoId =
+      vid || hero?.youtubeVideoId || "EZMYvAWbyLo";
+    const ok = await updateHero({
+      backgroundMode: heroForm.backgroundMode,
+      backgroundImageUrl: heroForm.backgroundImageUrl.trim(),
+      youtubeVideoId,
+      titleGlitch: heroForm.titleGlitch.trim(),
+      titlePrefix: heroForm.titlePrefix,
+      titleAccent: heroForm.titleAccent.trim(),
+      subtitle: heroForm.subtitle.trim(),
+      stats: heroForm.stats.map((s) => ({
+        main: (s.main || "").trim(),
+        inner: (s.inner || "").trim(),
+        label: (s.label || "").trim(),
+      })),
+    });
+    if (ok) showMessage("Hero section saved!");
+    else showMessage("Error saving hero", "error");
+  };
+
+  const updateHeroStat = (index, field, value) => {
+    setHeroForm((prev) => {
+      if (!prev) return prev;
+      const stats = prev.stats.map((row, i) =>
+        i === index ? { ...row, [field]: value } : row,
+      );
+      return { ...prev, stats };
+    });
+  };
+
   return (
     <div className="admin-panel">
       <div className="admin-header">
         <h1>🎮 Admin Dashboard</h1>
-        <p>Manage tournaments, games, and leaderboards</p>
+        <p>Manage tournaments, games, leaderboard, community, and hero</p>
         {message.text && (
           <div className={`message ${message.type}`}>{message.text}</div>
         )}
@@ -450,9 +610,159 @@ export default function AdminPanel() {
         >
           📊 Leaderboard ({leaderboard.length})
         </button>
+        <button
+          className={`tab-btn ${activeTab === "community" ? "active" : ""}`}
+          onClick={() => {
+            setActiveTab("community");
+            setShowForm(false);
+            setSearchTerm("");
+          }}
+        >
+          💬 Community ({communityPosts?.length ?? 0})
+        </button>
+        <button
+          className={`tab-btn ${activeTab === "hero" ? "active" : ""}`}
+          onClick={() => {
+            setActiveTab("hero");
+            setShowForm(false);
+            setSearchTerm("");
+          }}
+        >
+          🎯 Hero
+        </button>
       </div>
 
       <div className="admin-content">
+        {activeTab === "hero" && heroForm && (
+          <div className="hero-admin-card">
+            <h3 className="hero-admin-title">Hero section (homepage)</h3>
+            <p className="hero-admin-hint">
+              Background: YouTube uses an embed-friendly URL (watch / youtu.be
+              links are converted). Image mode uses a full-bleed cover URL.
+            </p>
+            <div className="hero-admin-grid">
+              <label className="hero-admin-label">
+                Background type
+                <select
+                  value={heroForm.backgroundMode}
+                  onChange={(e) =>
+                    setHeroForm({
+                      ...heroForm,
+                      backgroundMode: e.target.value,
+                    })
+                  }
+                >
+                  <option value="youtube">YouTube video</option>
+                  <option value="image">Image URL</option>
+                </select>
+              </label>
+              {heroForm.backgroundMode === "image" ? (
+                <label className="hero-admin-label hero-admin-span-2">
+                  Hero background image URL
+                  <input
+                    type="text"
+                    value={heroForm.backgroundImageUrl}
+                    onChange={(e) =>
+                      setHeroForm({
+                        ...heroForm,
+                        backgroundImageUrl: e.target.value,
+                      })
+                    }
+                    placeholder="https://…"
+                  />
+                </label>
+              ) : (
+                <label className="hero-admin-label hero-admin-span-2">
+                  YouTube video (any watch / embed / youtu.be URL)
+                  <input
+                    type="text"
+                    value={heroForm.youtubeVideoUrl}
+                    onChange={(e) =>
+                      setHeroForm({
+                        ...heroForm,
+                        youtubeVideoUrl: e.target.value,
+                      })
+                    }
+                    placeholder="https://www.youtube.com/watch?v=…"
+                  />
+                </label>
+              )}
+              <label className="hero-admin-label">
+                Title (glitch line)
+                <input
+                  type="text"
+                  value={heroForm.titleGlitch}
+                  onChange={(e) =>
+                    setHeroForm({ ...heroForm, titleGlitch: e.target.value })
+                  }
+                />
+              </label>
+              <label className="hero-admin-label">
+                Title prefix (e.g. &quot;THE &quot;)
+                <input
+                  type="text"
+                  value={heroForm.titlePrefix}
+                  onChange={(e) =>
+                    setHeroForm({ ...heroForm, titlePrefix: e.target.value })
+                  }
+                />
+              </label>
+              <label className="hero-admin-label">
+                Title accent (e.g. ARENA)
+                <input
+                  type="text"
+                  value={heroForm.titleAccent}
+                  onChange={(e) =>
+                    setHeroForm({ ...heroForm, titleAccent: e.target.value })
+                  }
+                />
+              </label>
+              <label className="hero-admin-label hero-admin-span-3">
+                Subtitle
+                <textarea
+                  rows={3}
+                  value={heroForm.subtitle}
+                  onChange={(e) =>
+                    setHeroForm({ ...heroForm, subtitle: e.target.value })
+                  }
+                />
+              </label>
+            </div>
+            <h4 className="hero-admin-stats-heading">Hero stats (4 columns)</h4>
+            <div className="hero-admin-stats">
+              {heroForm.stats.map((row, i) => (
+                <div className="hero-admin-stat-row" key={i}>
+                  <span className="hero-admin-stat-num">#{i + 1}</span>
+                  <input
+                    placeholder="Main (e.g. 4.2)"
+                    value={row.main}
+                    onChange={(e) => updateHeroStat(i, "main", e.target.value)}
+                  />
+                  <input
+                    placeholder="Highlight (e.g. M)"
+                    value={row.inner}
+                    onChange={(e) => updateHeroStat(i, "inner", e.target.value)}
+                  />
+                  <input
+                    placeholder="Label"
+                    value={row.label}
+                    onChange={(e) => updateHeroStat(i, "label", e.target.value)}
+                  />
+                </div>
+              ))}
+            </div>
+            <button type="button" className="btn-save hero-admin-save" onClick={handleSaveHero}>
+              Save hero
+            </button>
+          </div>
+        )}
+
+        {activeTab === "hero" && !heroForm ? (
+          <p className="no-data">Loading hero settings…</p>
+        ) : null}
+
+        {activeTab !== "hero" ? (
+          <>
         <div className="admin-actions">
           <div className="search-bar">
             <input
@@ -595,6 +905,17 @@ export default function AdminPanel() {
                       })
                     }
                     rows="3"
+                  />
+                  <input
+                    type="url"
+                    placeholder="Registration link (opens when users click Register)"
+                    value={tournamentForm.registerUrl}
+                    onChange={(e) =>
+                      setTournamentForm({
+                        ...tournamentForm,
+                        registerUrl: e.target.value,
+                      })
+                    }
                   />
                   <div className="form-actions">
                     <button type="submit" className="btn-save">
@@ -917,6 +1238,116 @@ export default function AdminPanel() {
                   </div>
                 </form>
               )}
+
+              {activeTab === "community" && (
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (editingItem) {
+                      await handleUpdateCommunityPost();
+                      return;
+                    }
+                    await handleAddCommunityPost();
+                  }}
+                >
+                  <h4 style={{ color: "#ff6b6b", marginBottom: "0.5rem" }}>
+                    Review card (What Players Say)
+                  </h4>
+                  <select
+                    value={communityForm.stars}
+                    onChange={(e) =>
+                      setCommunityForm({
+                        ...communityForm,
+                        stars: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="★★★★★">★★★★★ (5)</option>
+                    <option value="★★★★☆">★★★★☆ (4)</option>
+                    <option value="★★★☆☆">★★★☆☆ (3)</option>
+                    <option value="★★☆☆☆">★★☆☆☆ (2)</option>
+                    <option value="★☆☆☆☆">★☆☆☆☆ (1)</option>
+                  </select>
+                  <select
+                    value={communityForm.av}
+                    onChange={(e) =>
+                      setCommunityForm({
+                        ...communityForm,
+                        av: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="ra1">Avatar style 1</option>
+                    <option value="ra2">Avatar style 2</option>
+                    <option value="ra3">Avatar style 3</option>
+                    <option value="ra4">Avatar style 4</option>
+                    <option value="ra5">Avatar style 5</option>
+                    <option value="ra6">Avatar style 6</option>
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="Avatar letter (one character)"
+                    maxLength={1}
+                    value={communityForm.letter}
+                    onChange={(e) =>
+                      setCommunityForm({
+                        ...communityForm,
+                        letter: e.target.value,
+                      })
+                    }
+                  />
+                  <input
+                    type="text"
+                    placeholder="Display name"
+                    value={communityForm.name}
+                    onChange={(e) =>
+                      setCommunityForm({
+                        ...communityForm,
+                        name: e.target.value,
+                      })
+                    }
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Handle (e.g. @user · Game)"
+                    value={communityForm.handle}
+                    onChange={(e) =>
+                      setCommunityForm({
+                        ...communityForm,
+                        handle: e.target.value,
+                      })
+                    }
+                  />
+                  <textarea
+                    placeholder="Review text"
+                    value={communityForm.text}
+                    onChange={(e) =>
+                      setCommunityForm({
+                        ...communityForm,
+                        text: e.target.value,
+                      })
+                    }
+                    rows={4}
+                    required
+                  />
+                  <div className="form-actions">
+                    <button type="submit" className="btn-save">
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-cancel"
+                      onClick={() => {
+                        setShowForm(false);
+                        setEditingItem(null);
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           </div>
         )}
@@ -932,6 +1363,7 @@ export default function AdminPanel() {
                   <th>Region</th>
                   <th>Prize</th>
                   <th>Status</th>
+                  <th>Register link</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -950,6 +1382,15 @@ export default function AdminPanel() {
                         >
                           {tournament.status}
                         </span>
+                      </td>
+                      <td>
+                        {tournament.registerUrl?.trim() ? (
+                          <span className="tournament-has-link" title={tournament.registerUrl}>
+                            ✓ Set
+                          </span>
+                        ) : (
+                          <span className="tournament-no-link">—</span>
+                        )}
                       </td>
                       <td>
                         <button
@@ -975,7 +1416,7 @@ export default function AdminPanel() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="7" className="no-data">
+                    <td colSpan="8" className="no-data">
                       No tournaments found
                     </td>
                   </tr>
@@ -1096,6 +1537,65 @@ export default function AdminPanel() {
             </table>
           </div>
         )}
+
+        {activeTab === "community" && (
+          <div className="data-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Stars</th>
+                  <th>Name</th>
+                  <th>Handle</th>
+                  <th>Preview</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCommunity.length > 0 ? (
+                  filteredCommunity.map((post) => (
+                    <tr key={post.id}>
+                      <td>{post.stars}</td>
+                      <td>{post.name}</td>
+                      <td>{post.handle}</td>
+                      <td className="community-preview-cell">
+                        {(post.text || "").slice(0, 80)}
+                        {(post.text || "").length > 80 ? "…" : ""}
+                      </td>
+                      <td>
+                        <button
+                          className="btn-edit"
+                          onClick={() => handleEdit(post, "community")}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn-delete"
+                          onClick={() =>
+                            handleDelete(
+                              post.id,
+                              "post",
+                              deleteCommunityPost,
+                            )
+                          }
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" className="no-data">
+                      No community posts found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+          </>
+        ) : null}
       </div>
 
       <div className="admin-stats">

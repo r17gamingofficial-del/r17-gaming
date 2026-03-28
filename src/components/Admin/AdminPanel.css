@@ -886,3 +886,132 @@ tr:hover {
     content: "Authenticating..";
   }
 }
+
+/* Hero editor tab */
+.hero-admin-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.hero-admin-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+.hero-admin-hint {
+  margin: 0 0 1.25rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.45;
+}
+
+.hero-admin-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 900px) {
+  .hero-admin-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hero-admin-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.hero-admin-label.hero-admin-span-2 {
+  grid-column: span 2;
+}
+
+.hero-admin-label.hero-admin-span-3 {
+  grid-column: 1 / -1;
+}
+
+.hero-admin-label input,
+.hero-admin-label select,
+.hero-admin-label textarea {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-size: 0.95rem;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.hero-admin-stats-heading {
+  margin: 1.5rem 0 0.75rem;
+  font-size: 0.95rem;
+  color: #ff6b6b;
+}
+
+.hero-admin-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.hero-admin-stat-row {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr 1.5fr;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+@media (max-width: 700px) {
+  .hero-admin-stat-row {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-admin-label.hero-admin-span-2 {
+    grid-column: auto;
+  }
+}
+
+.hero-admin-stat-num {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
+  min-width: 1.5rem;
+}
+
+.hero-admin-stat-row input {
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.hero-admin-save {
+  margin-top: 1.25rem;
+}
+
+.community-preview-cell {
+  max-width: 280px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.35;
+}
+
+.tournament-has-link {
+  color: #6ee7a8;
+  font-size: 0.85rem;
+}
+
+.tournament-no-link {
+  color: rgba(255, 255, 255, 0.35);
+}

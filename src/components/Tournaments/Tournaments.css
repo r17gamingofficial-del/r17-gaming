@@ -247,6 +247,20 @@
   letter-spacing: 2px;
 }
 
+.register-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  letter-spacing: 1px;
+}
+
+.register-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+  letter-spacing: 1px;
+}
+
 /* Video Section */
 .video-section {
   margin-bottom: 1.5rem;
@@ -594,6 +608,18 @@
 .t-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(255, 34, 51, 0.4);
+}
+
+.t-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.t-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 /* Status Badges */

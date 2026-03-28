@@ -16,11 +16,22 @@
   pointer-events: none;
 }
 
+.section-title{
+  text-align: center;
+}
+
 .review-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
   margin-top: 3rem;
+}
+
+.community-loading {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 2rem;
 }
 
 .review-card {
