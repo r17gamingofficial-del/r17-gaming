@@ -328,6 +328,36 @@ export const deleteUser = async (id) => {
   }
 };
 
+// Block a user
+export const blockUser = async (id) => {
+  try {
+    const docRef = doc(db, "users", id);
+    await updateDoc(docRef, {
+      isBlocked: true,
+      updatedAt: Timestamp.now(),
+    });
+    return true;
+  } catch (error) {
+    console.error("Error blocking user:", error);
+    throw error;
+  }
+};
+
+// Unblock a user
+export const unblockUser = async (id) => {
+  try {
+    const docRef = doc(db, "users", id);
+    await updateDoc(docRef, {
+      isBlocked: false,
+      updatedAt: Timestamp.now(),
+    });
+    return true;
+  } catch (error) {
+    console.error("Error unblocking user:", error);
+    throw error;
+  }
+};
+
 // ============ HERO (single doc: siteSettings/hero) ============
 
 const heroDocRef = doc(db, "siteSettings", "hero");

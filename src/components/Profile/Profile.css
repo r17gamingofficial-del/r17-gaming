@@ -26,7 +26,7 @@
 
 .profile-card {
   width: 100%;
-  max-width: 480px;
+  max-width: 680px;
   padding: 2.25rem;
   border: 1px solid rgba(255, 34, 51, 0.15);
   border-radius: 1rem;
@@ -124,6 +124,320 @@
   color: rgba(255, 255, 255, 0.65) !important;
 }
 
+.profile-wins-count {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+/* Tournaments Section */
+.profile-tournaments-section {
+  margin: 2rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 1.5rem;
+}
+
+.profile-tournaments-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.profile-tournaments-header h3 {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1.2rem;
+  letter-spacing: 0.08em;
+  color: #fff;
+  margin: 0;
+}
+
+.profile-tournaments-tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.profile-tournaments-tabs .tab-btn {
+  font-family: "Orbitron", sans-serif;
+  padding: 0.5rem 1.2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 2rem;
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.profile-tournaments-tabs .tab-btn:hover {
+  background: rgba(255, 34, 51, 0.1);
+  border-color: rgba(255, 34, 51, 0.35);
+  color: #fff;
+}
+
+.profile-tournaments-tabs .tab-btn.active {
+  background: linear-gradient(135deg, #ff2233, #c41e2a);
+  border-color: transparent;
+  color: white;
+}
+
+/* Tournaments Grid */
+.tournaments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.tournaments-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tournaments-grid::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.tournaments-grid::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #ff2233, #c41e2a);
+  border-radius: 10px;
+}
+
+/* Tournament Card Mini */
+.tournament-card-mini {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+.tournament-card-mini:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 34, 51, 0.25);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.tournament-card-mini.winner-card {
+  border-color: #ffd700;
+  background: rgba(255, 215, 0, 0.05);
+}
+
+.winner-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: linear-gradient(135deg, #ffd700, #ffb347);
+  padding: 0.25rem 0.75rem;
+  border-radius: 2rem;
+  font-size: 0.65rem;
+  font-weight: bold;
+  color: #1a1a2e;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  font-family: "Orbitron", sans-serif;
+  letter-spacing: 0.05em;
+}
+
+.tournament-card-mini-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.tournament-card-mini-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.tournament-card-mini:hover .tournament-card-mini-image img {
+  transform: scale(1.05);
+}
+
+.tournament-status {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 2rem;
+  font-size: 0.6rem;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  color: white;
+  font-family: "Orbitron", sans-serif;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.tournament-status.status-live {
+  background: linear-gradient(135deg, #ff4757, #ff6b6b);
+}
+
+.tournament-status.status-soon {
+  background: linear-gradient(135deg, #ffa502, #ff7e05);
+}
+
+.tournament-status.status-open {
+  background: linear-gradient(135deg, #2ed573, #26c281);
+}
+
+.placement-badge {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  background: linear-gradient(135deg, #ffd700, #ffb347);
+  padding: 0.25rem 0.7rem;
+  border-radius: 2rem;
+  font-size: 0.65rem;
+  font-weight: bold;
+  color: #1a1a2e;
+  font-family: "Orbitron", sans-serif;
+  letter-spacing: 0.05em;
+}
+
+.tournament-card-mini-content {
+  padding: 0.9rem;
+}
+
+.tournament-card-mini-content h4 {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #fff;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tournament-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 0.6rem;
+  font-family: "Orbitron", sans-serif;
+  letter-spacing: 0.03em;
+}
+
+.tournament-meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.registration-info,
+.win-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.65rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: "Orbitron", sans-serif;
+}
+
+.registered-badge {
+  color: #2ed573;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.registered-date,
+.win-date {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.win-badge {
+  color: #ffd700;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* Tournaments Loading */
+.tournaments-loading {
+  text-align: center;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0.75rem;
+}
+
+.tournaments-loading .loader {
+  width: 36px;
+  height: 36px;
+  border: 2px solid rgba(255, 34, 51, 0.3);
+  border-top-color: #ff2233;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 0.75rem auto;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tournaments-loading p {
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.45);
+  margin: 0;
+}
+
+/* No Tournaments */
+.no-tournaments {
+  text-align: center;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0.75rem;
+}
+
+.no-tournaments p {
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 1rem;
+}
+
+.browse-tournaments-btn {
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.6rem 1.2rem;
+  background: linear-gradient(135deg, #ff2233, #c41e2a);
+  border: none;
+  border-radius: 2rem;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.browse-tournaments-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 34, 51, 0.4);
+}
+
 .profile-actions {
   display: flex;
   flex-direction: column;
@@ -142,7 +456,9 @@
   background: linear-gradient(135deg, #ff2233, #c41e2a);
   color: #fff;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .profile-logout-btn:hover:not(:disabled) {
@@ -166,7 +482,9 @@
   background: transparent;
   color: rgba(255, 255, 255, 0.55);
   cursor: pointer;
-  transition: color 0.2s ease, border-color 0.2s ease;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .profile-back-btn:hover {
@@ -174,9 +492,68 @@
   border-color: rgba(255, 34, 51, 0.35);
 }
 
+/* Responsive */
+@media (max-width: 768px) {
+  .profile-card {
+    max-width: 100%;
+    padding: 1.5rem;
+  }
+
+  .tournaments-grid {
+    grid-template-columns: 1fr;
+    max-height: 400px;
+  }
+
+  .profile-tournaments-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .profile-tournaments-tabs {
+    width: 100%;
+  }
+
+  .profile-tournaments-tabs .tab-btn {
+    flex: 1;
+    text-align: center;
+    font-size: 0.6rem;
+  }
+
+  .tournament-card-mini-content h4 {
+    font-size: 0.85rem;
+  }
+
+  .tournament-meta {
+    font-size: 0.6rem;
+  }
+}
+
 @media (max-width: 520px) {
   .profile-row {
     grid-template-columns: 1fr;
     gap: 0.25rem;
+  }
+
+  .profile-title {
+    font-size: 1.5rem;
+  }
+
+  .profile-avatar-large {
+    width: 72px;
+    height: 72px;
+  }
+
+  .profile-avatar-large span {
+    font-size: 2rem;
+  }
+
+  .tournament-card-mini {
+    margin: 0;
+  }
+
+  .winner-badge,
+  .placement-badge {
+    font-size: 0.55rem;
+    padding: 0.2rem 0.6rem;
   }
 }

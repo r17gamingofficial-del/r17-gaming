@@ -18,6 +18,10 @@ import {
   addCommunityPost as addCommunityPostInDb,
   updateCommunityPost as updateCommunityPostInDb,
   deleteCommunityPost as deleteCommunityPostInDb,
+  getUsers,
+  deleteUser as deleteUserInDb,
+  blockUser as blockUserInDb,
+  unblockUser as unblockUserInDb,
 } from "../Firebase/fireStoreService.js";
 
 const AppContext = createContext();
@@ -70,6 +74,7 @@ export const AppProvider = ({ children }) => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [hero, setHero] = useState(() => ({ ...defaultHero }));
   const [communityPosts, setCommunityPosts] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Load initial data
@@ -296,14 +301,21 @@ export const AppProvider = ({ children }) => {
         }
       }
 
-      const [finalTournaments, finalGames, finalLeaderboard, heroSnap, rawCommunity] =
-        await Promise.all([
-          getTournaments(),
-          getGames(),
-          getLeaderboard(),
-          getHero(),
-          getCommunityPosts(),
-        ]);
+      const [
+        finalTournaments,
+        finalGames,
+        finalLeaderboard,
+        heroSnap,
+        rawCommunity,
+        rawUsers,
+      ] = await Promise.all([
+        getTournaments(),
+        getGames(),
+        getLeaderboard(),
+        getHero(),
+        getCommunityPosts(),
+        getUsers(),
+      ]);
 
       let communityFinal = rawCommunity;
       if (!communityFinal?.length) {
@@ -313,6 +325,7 @@ export const AppProvider = ({ children }) => {
         communityFinal = await getCommunityPosts();
       }
       setCommunityPosts(communityFinal);
+      setUsers(rawUsers || []);
 
       let heroMerged = mergeHero(heroSnap);
       if (!heroSnap) {
@@ -337,7 +350,9 @@ export const AppProvider = ({ children }) => {
   const addTournament = async (tournament) => {
     try {
       const created = await addTournamentInDb(tournament);
-      setTournaments((prev) => [...prev, created].sort((a, b) => a.rank.localeCompare(b.rank)));
+      setTournaments((prev) =>
+        [...prev, created].sort((a, b) => a.rank.localeCompare(b.rank)),
+      );
       return created;
     } catch (error) {
       console.error("Error adding tournament:", error);
@@ -385,7 +400,9 @@ export const AppProvider = ({ children }) => {
   const updateGame = async (id, updatedData) => {
     try {
       await updateGameInDb(id, updatedData);
-      setGames((prev) => prev.map((g) => (g.id === id ? { ...g, ...updatedData } : g)));
+      setGames((prev) =>
+        prev.map((g) => (g.id === id ? { ...g, ...updatedData } : g)),
+      );
       return true;
     } catch (error) {
       console.error("Error updating game:", error);
@@ -408,7 +425,9 @@ export const AppProvider = ({ children }) => {
   const addLeaderboardEntry = async (entry) => {
     try {
       const created = await addLeaderboardEntryInDb(entry);
-      setLeaderboard((prev) => [...prev, created].sort((a, b) => a.rank.localeCompare(b.rank)));
+      setLeaderboard((prev) =>
+        [...prev, created].sort((a, b) => a.rank.localeCompare(b.rank)),
+      );
       return created;
     } catch (error) {
       console.error("Error adding leaderboard entry:", error);
@@ -460,7 +479,9 @@ export const AppProvider = ({ children }) => {
     try {
       const created = await addCommunityPostInDb(post);
       setCommunityPosts((prev) =>
-        [...prev, created].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)),
+        [...prev, created].sort(
+          (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+        ),
       );
       return created;
     } catch (error) {
@@ -496,12 +517,51 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // User Management Operations
+  const blockUser = async (id) => {
+    try {
+      await blockUserInDb(id);
+      setUsers((prev) =>
+        prev.map((u) => (u.id === id ? { ...u, isBlocked: true } : u)),
+      );
+      return true;
+    } catch (error) {
+      console.error("Error blocking user:", error);
+      return false;
+    }
+  };
+
+  const unblockUser = async (id) => {
+    try {
+      await unblockUserInDb(id);
+      setUsers((prev) =>
+        prev.map((u) => (u.id === id ? { ...u, isBlocked: false } : u)),
+      );
+      return true;
+    } catch (error) {
+      console.error("Error unblocking user:", error);
+      return false;
+    }
+  };
+
+  const deleteUser = async (id) => {
+    try {
+      await deleteUserInDb(id);
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      return false;
+    }
+  };
+
   const value = {
     tournaments,
     games,
     leaderboard,
     hero,
     communityPosts,
+    users,
     loading,
     addTournament,
     updateTournament,
@@ -516,6 +576,9 @@ export const AppProvider = ({ children }) => {
     addCommunityPost,
     updateCommunityPost,
     deleteCommunityPost,
+    blockUser,
+    unblockUser,
+    deleteUser,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

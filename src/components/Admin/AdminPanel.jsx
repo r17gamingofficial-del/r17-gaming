@@ -8,6 +8,7 @@ export default function AdminPanel() {
     games,
     leaderboard,
     hero,
+    users,
     addTournament,
     updateTournament,
     deleteTournament,
@@ -22,6 +23,9 @@ export default function AdminPanel() {
     addCommunityPost,
     updateCommunityPost,
     deleteCommunityPost,
+    blockUser,
+    unblockUser,
+    deleteUser,
   } = useAppContext();
 
   const [activeTab, setActiveTab] = useState("tournaments");
@@ -29,6 +33,8 @@ export default function AdminPanel() {
   const [editingItem, setEditingItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [message, setMessage] = useState({ text: "", type: "" });
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showUserModal, setShowUserModal] = useState(false);
 
   // Form states
   const [tournamentForm, setTournamentForm] = useState({
@@ -128,19 +134,15 @@ export default function AdminPanel() {
     const trimmed = url.trim();
     if (!trimmed) return null;
 
-    // Already an embed link
     const embedMatch = trimmed.match(/youtube\.com\/embed\/([^?&/]+)/i);
     if (embedMatch?.[1]) return embedMatch[1];
 
-    // youtu.be/<id>
     const shortMatch = trimmed.match(/youtu\.be\/([^?&/]+)/i);
     if (shortMatch?.[1]) return shortMatch[1];
 
-    // youtube.com/watch?v=<id> (including m.youtube.com)
     const watchMatch = trimmed.match(/[?&]v=([^?&/]+)/i);
     if (watchMatch?.[1]) return watchMatch[1];
 
-    // youtube.com/shorts/<id>
     const shortsMatch = trimmed.match(/youtube\.com\/shorts\/([^?&/]+)/i);
     if (shortsMatch?.[1]) return shortsMatch[1];
 
@@ -178,7 +180,9 @@ export default function AdminPanel() {
       return;
     }
 
-    const created = await addTournament(normalizeTournamentPayload(tournamentForm));
+    const created = await addTournament(
+      normalizeTournamentPayload(tournamentForm),
+    );
     if (created) {
       showMessage("Tournament added successfully!");
       setTournamentForm({
@@ -231,7 +235,6 @@ export default function AdminPanel() {
       return;
     }
 
-    // Process arrays from comma-separated strings
     const platforms = gameForm.platforms?.trim()
       ? gameForm.platforms.split(",").map((p) => p.trim())
       : null;
@@ -281,7 +284,6 @@ export default function AdminPanel() {
   };
 
   const handleUpdateGame = async () => {
-    // Process arrays from comma-separated strings
     const platforms = gameForm.platforms?.trim()
       ? gameForm.platforms.split(",").map((p) => p.trim())
       : null;
@@ -354,7 +356,10 @@ export default function AdminPanel() {
   };
 
   const handleUpdateLeaderboardEntry = async () => {
-    const success = await updateLeaderboardEntry(editingItem.id, leaderboardForm);
+    const success = await updateLeaderboardEntry(
+      editingItem.id,
+      leaderboardForm,
+    );
     if (success) {
       showMessage("Leaderboard entry updated successfully!");
       setEditingItem(null);
@@ -380,6 +385,52 @@ export default function AdminPanel() {
         showMessage(`Error deleting ${type}`, "error");
       }
     }
+  };
+
+  const handleBlockUser = async (user) => {
+    if (
+      window.confirm(
+        `Block ${user.displayName || user.email}? They will not be able to log in.`,
+      )
+    ) {
+      const success = await blockUser(user.id);
+      if (success) {
+        showMessage(`${user.displayName || user.email} has been blocked.`);
+      } else {
+        showMessage("Error blocking user", "error");
+      }
+    }
+  };
+
+  const handleUnblockUser = async (user) => {
+    if (window.confirm(`Unblock ${user.displayName || user.email}?`)) {
+      const success = await unblockUser(user.id);
+      if (success) {
+        showMessage(`${user.displayName || user.email} has been unblocked.`);
+      } else {
+        showMessage("Error unblocking user", "error");
+      }
+    }
+  };
+
+  const handleDeleteUser = async (user) => {
+    if (
+      window.confirm(
+        `⚠️ WARNING: This will permanently delete ${user.displayName || user.email} and all their data. This action cannot be undone. Are you sure?`,
+      )
+    ) {
+      const success = await deleteUser(user.id);
+      if (success) {
+        showMessage(`${user.displayName || user.email} has been deleted.`);
+      } else {
+        showMessage("Error deleting user", "error");
+      }
+    }
+  };
+
+  const handleViewUserDetails = (user) => {
+    setSelectedUser(user);
+    setShowUserModal(true);
   };
 
   const handleEdit = (item, type) => {
@@ -476,6 +527,12 @@ export default function AdminPanel() {
       (p.text || "").toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
+  const filteredUsers = (users || []).filter(
+    (u) =>
+      (u.displayName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (u.email || "").toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
   const handleAddCommunityPost = async () => {
     if (!communityForm.name?.trim()) {
       showMessage("Please fill in display name", "error");
@@ -539,8 +596,7 @@ export default function AdminPanel() {
   const handleSaveHero = async () => {
     if (!heroForm) return;
     const vid = extractYouTubeId(heroForm.youtubeVideoUrl);
-    const youtubeVideoId =
-      vid || hero?.youtubeVideoId || "EZMYvAWbyLo";
+    const youtubeVideoId = vid || hero?.youtubeVideoId || "EZMYvAWbyLo";
     const ok = await updateHero({
       backgroundMode: heroForm.backgroundMode,
       backgroundImageUrl: heroForm.backgroundImageUrl.trim(),
@@ -573,7 +629,9 @@ export default function AdminPanel() {
     <div className="admin-panel">
       <div className="admin-header">
         <h1>🎮 Admin Dashboard</h1>
-        <p>Manage tournaments, games, leaderboard, community, and hero</p>
+        <p>
+          Manage tournaments, games, leaderboard, community, users, and hero
+        </p>
         {message.text && (
           <div className={`message ${message.type}`}>{message.text}</div>
         )}
@@ -619,6 +677,16 @@ export default function AdminPanel() {
           }}
         >
           💬 Community ({communityPosts?.length ?? 0})
+        </button>
+        <button
+          className={`tab-btn ${activeTab === "users" ? "active" : ""}`}
+          onClick={() => {
+            setActiveTab("users");
+            setShowForm(false);
+            setSearchTerm("");
+          }}
+        >
+          👥 Users ({users?.length ?? 0})
         </button>
         <button
           className={`tab-btn ${activeTab === "hero" ? "active" : ""}`}
@@ -751,7 +819,11 @@ export default function AdminPanel() {
                 </div>
               ))}
             </div>
-            <button type="button" className="btn-save hero-admin-save" onClick={handleSaveHero}>
+            <button
+              type="button"
+              className="btn-save hero-admin-save"
+              onClick={handleSaveHero}
+            >
               Save hero
             </button>
           </div>
@@ -761,841 +833,1096 @@ export default function AdminPanel() {
           <p className="no-data">Loading hero settings…</p>
         ) : null}
 
-        {activeTab !== "hero" ? (
+        {activeTab !== "hero" && activeTab !== "users" ? (
           <>
-        <div className="admin-actions">
-          <div className="search-bar">
-            <input
-              type="text"
-              placeholder={`Search ${activeTab}...`}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          {!showForm && (
-            <button className="btn-add" onClick={() => setShowForm(true)}>
-              + Add New
-            </button>
-          )}
-        </div>
+            <div className="admin-actions">
+              <div className="search-bar">
+                <input
+                  type="text"
+                  placeholder={`Search ${activeTab}...`}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              {!showForm && (
+                <button className="btn-add" onClick={() => setShowForm(true)}>
+                  + Add New
+                </button>
+              )}
+            </div>
 
-        {showForm && (
-          <div className="form-modal">
-            <div className="form-container">
-              <h3>
-                {editingItem ? "Edit" : "Add New"} {activeTab.slice(0, -1)}
-              </h3>
+            {showForm && (
+              <div className="form-modal">
+                <div className="form-container">
+                  <h3>
+                    {editingItem ? "Edit" : "Add New"} {activeTab.slice(0, -1)}
+                  </h3>
 
-              {activeTab === "tournaments" && (
-                <form
-                  onSubmit={async (e) => {
-                    e.preventDefault();
-                    if (editingItem) {
-                      await handleUpdateTournament();
-                      return;
-                    }
-                    await handleAddTournament();
-                  }}
-                >
-                  <input
-                    type="text"
-                    placeholder="Tournament Name"
-                    value={tournamentForm.name}
-                    onChange={(e) =>
-                      setTournamentForm({
-                        ...tournamentForm,
-                        name: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="Date (e.g., Dec 15–20, 2025)"
-                    value={tournamentForm.date}
-                    onChange={(e) =>
-                      setTournamentForm({
-                        ...tournamentForm,
-                        date: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="Region (e.g., 🌍 Global)"
-                    value={tournamentForm.region}
-                    onChange={(e) =>
-                      setTournamentForm({
-                        ...tournamentForm,
-                        region: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="Teams (e.g., 128 Teams)"
-                    value={tournamentForm.teams}
-                    onChange={(e) =>
-                      setTournamentForm({
-                        ...tournamentForm,
-                        teams: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="Prize Pool (e.g., $500,000)"
-                    value={tournamentForm.prize}
-                    onChange={(e) =>
-                      setTournamentForm({
-                        ...tournamentForm,
-                        prize: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                  <select
-                    value={tournamentForm.status}
-                    onChange={(e) =>
-                      setTournamentForm({
-                        ...tournamentForm,
-                        status: e.target.value,
-                      })
-                    }
-                  >
-                    <option value="live">Live</option>
-                    <option value="soon">Soon</option>
-                    <option value="open">Open</option>
-                  </select>
-                  <h4 style={{ color: "#ff6b6b", margin: "1rem 0 0.5rem" }}>
-                    Media
-                  </h4>
-                  <input
-                    type="text"
-                    placeholder="Card Image URL (used in main tournament card)"
-                    value={tournamentForm.thumbnail}
-                    onChange={(e) =>
-                      setTournamentForm({
-                        ...tournamentForm,
-                        thumbnail: e.target.value,
-                      })
-                    }
-                  />
-                  <input
-                    type="text"
-                    placeholder="Video URL (YouTube embed link recommended)"
-                    value={tournamentForm.videoUrl}
-                    onChange={(e) =>
-                      setTournamentForm({
-                        ...tournamentForm,
-                        videoUrl: e.target.value,
-                      })
-                    }
-                  />
-                  <textarea
-                    placeholder="Tournament Highlights (comma-separated image URLs)"
-                    value={tournamentForm.gallery}
-                    onChange={(e) =>
-                      setTournamentForm({
-                        ...tournamentForm,
-                        gallery: e.target.value,
-                      })
-                    }
-                    rows="3"
-                  />
-                  <input
-                    type="url"
-                    placeholder="Registration link (opens when users click Register)"
-                    value={tournamentForm.registerUrl}
-                    onChange={(e) =>
-                      setTournamentForm({
-                        ...tournamentForm,
-                        registerUrl: e.target.value,
-                      })
-                    }
-                  />
-                  <div className="form-actions">
-                    <button type="submit" className="btn-save">
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-cancel"
-                      onClick={() => {
-                        setShowForm(false);
-                        setEditingItem(null);
+                  {activeTab === "tournaments" && (
+                    <form
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        if (editingItem) {
+                          await handleUpdateTournament();
+                          return;
+                        }
+                        await handleAddTournament();
                       }}
                     >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              )}
+                      <input
+                        type="text"
+                        placeholder="Tournament Name"
+                        value={tournamentForm.name}
+                        onChange={(e) =>
+                          setTournamentForm({
+                            ...tournamentForm,
+                            name: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Date (e.g., Dec 15–20, 2025)"
+                        value={tournamentForm.date}
+                        onChange={(e) =>
+                          setTournamentForm({
+                            ...tournamentForm,
+                            date: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Region (e.g., 🌍 Global)"
+                        value={tournamentForm.region}
+                        onChange={(e) =>
+                          setTournamentForm({
+                            ...tournamentForm,
+                            region: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Teams (e.g., 128 Teams)"
+                        value={tournamentForm.teams}
+                        onChange={(e) =>
+                          setTournamentForm({
+                            ...tournamentForm,
+                            teams: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Prize Pool (e.g., $500,000)"
+                        value={tournamentForm.prize}
+                        onChange={(e) =>
+                          setTournamentForm({
+                            ...tournamentForm,
+                            prize: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                      <select
+                        value={tournamentForm.status}
+                        onChange={(e) =>
+                          setTournamentForm({
+                            ...tournamentForm,
+                            status: e.target.value,
+                          })
+                        }
+                      >
+                        <option value="live">Live</option>
+                        <option value="soon">Soon</option>
+                        <option value="open">Open</option>
+                      </select>
+                      <h4 style={{ color: "#ff6b6b", margin: "1rem 0 0.5rem" }}>
+                        Media
+                      </h4>
+                      <input
+                        type="text"
+                        placeholder="Card Image URL (used in main tournament card)"
+                        value={tournamentForm.thumbnail}
+                        onChange={(e) =>
+                          setTournamentForm({
+                            ...tournamentForm,
+                            thumbnail: e.target.value,
+                          })
+                        }
+                      />
+                      <input
+                        type="text"
+                        placeholder="Video URL (YouTube embed link recommended)"
+                        value={tournamentForm.videoUrl}
+                        onChange={(e) =>
+                          setTournamentForm({
+                            ...tournamentForm,
+                            videoUrl: e.target.value,
+                          })
+                        }
+                      />
+                      <textarea
+                        placeholder="Tournament Highlights (comma-separated image URLs)"
+                        value={tournamentForm.gallery}
+                        onChange={(e) =>
+                          setTournamentForm({
+                            ...tournamentForm,
+                            gallery: e.target.value,
+                          })
+                        }
+                        rows="3"
+                      />
+                      <input
+                        type="url"
+                        placeholder="Registration link (opens when users click Register)"
+                        value={tournamentForm.registerUrl}
+                        onChange={(e) =>
+                          setTournamentForm({
+                            ...tournamentForm,
+                            registerUrl: e.target.value,
+                          })
+                        }
+                      />
+                      <div className="form-actions">
+                        <button type="submit" className="btn-save">
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-cancel"
+                          onClick={() => {
+                            setShowForm(false);
+                            setEditingItem(null);
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
 
-              {activeTab === "games" && (
-                <form
-                  onSubmit={async (e) => {
-                    e.preventDefault();
-                    if (editingItem) {
-                      await handleUpdateGame();
-                      return;
-                    }
-                    await handleAddGame();
-                  }}
-                >
-                  <h4 style={{ color: "#ff6b6b", marginBottom: "0.5rem" }}>
-                    Basic Information
-                  </h4>
-                  <input
-                    type="text"
-                    placeholder="Game Name *"
-                    value={gameForm.name}
-                    onChange={(e) =>
-                      setGameForm({ ...gameForm, name: e.target.value })
-                    }
-                    required
-                  />
-                  {/* <input
-                    type="text"
-                    placeholder="Game Art (2 letters, e.g., SR)"
-                    value={gameForm.art}
-                    onChange={(e) =>
-                      setGameForm({ ...gameForm, art: e.target.value })
-                    }
-                  /> */}
-                  <input
-                    type="text"
-                    placeholder="Thumbnail URL (for game cards + featured poster)"
-                    value={gameForm.thumbnail}
-                    onChange={(e) =>
-                      setGameForm({ ...gameForm, thumbnail: e.target.value })
-                    }
-                  />
-                  <input
-                    type="text"
-                    placeholder="Category (e.g., FPS, MOBA, Battle Royale)"
-                    value={gameForm.category}
-                    onChange={(e) =>
-                      setGameForm({ ...gameForm, category: e.target.value })
-                    }
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="Active Players (e.g., 4.2M)"
-                    value={gameForm.players}
-                    onChange={(e) =>
-                      setGameForm({ ...gameForm, players: e.target.value })
-                    }
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="Genre (e.g., Tactical FPS, Battle Royale)"
-                    value={gameForm.genre}
-                    onChange={(e) =>
-                      setGameForm({ ...gameForm, genre: e.target.value })
-                    }
-                  />
-                  <textarea
-                    placeholder="Description"
-                    value={gameForm.description}
-                    onChange={(e) =>
-                      setGameForm({ ...gameForm, description: e.target.value })
-                    }
-                    rows="2"
-                    required
-                  />
-
-                  <h4 style={{ color: "#ff6b6b", margin: "1rem 0 0.5rem" }}>
-                    Game Card Styling
-                  </h4>
-                  <input
-                    type="text"
-                    placeholder="Tag (e.g., HOT, NEW, FREE, PRO)"
-                    value={gameForm.tag}
-                    onChange={(e) =>
-                      setGameForm({ ...gameForm, tag: e.target.value })
-                    }
-                  />
-                  <select
-                    value={gameForm.tagClass}
-                    onChange={(e) =>
-                      setGameForm({ ...gameForm, tagClass: e.target.value })
-                    }
-                  >
-                    <option value="">Default Tag Style</option>
-                    <option value="gold-tag">Gold Tag (HOT)</option>
-                    <option value="blue-tag">Blue Tag (NEW)</option>
-                    <option value="green-tag">Green Tag (FREE)</option>
-                    <option value="purple-tag">Purple Tag (PRO)</option>
-                  </select>
-                  <input
-                    type="text"
-                    placeholder="Platforms (comma-separated, e.g., PC, PS5, XSX, Mobile)"
-                    value={gameForm.platforms}
-                    onChange={(e) =>
-                      setGameForm({ ...gameForm, platforms: e.target.value })
-                    }
-                  />
-                  <input
-                    type="text"
-                    placeholder="Stars (e.g., ★★★★★, ★★★★☆)"
-                    value={gameForm.stars}
-                    onChange={(e) =>
-                      setGameForm({ ...gameForm, stars: e.target.value })
-                    }
-                  />
-                  <input
-                    type="text"
-                    placeholder="Rating (e.g., 4.9 / 5 · 120K reviews)"
-                    value={gameForm.rating}
-                    onChange={(e) =>
-                      setGameForm({ ...gameForm, rating: e.target.value })
-                    }
-                  />
-
-                  <h4 style={{ color: "#ff6b6b", margin: "1rem 0 0.5rem" }}>
-                    Featured Section (Editor's Pick)
-                  </h4>
-                  <input
-                    type="text"
-                    placeholder="Featured Title (e.g., SHADOW REALM X)"
-                    value={gameForm.featuredTitle}
-                    onChange={(e) =>
-                      setGameForm({
-                        ...gameForm,
-                        featuredTitle: e.target.value,
-                      })
-                    }
-                  />
-                  <input
-                    type="text"
-                    placeholder="Featured Score (e.g., 9.8)"
-                    value={gameForm.featuredScore}
-                    onChange={(e) =>
-                      setGameForm({
-                        ...gameForm,
-                        featuredScore: e.target.value,
-                      })
-                    }
-                  />
-                  <input
-                    type="text"
-                    placeholder="Featured Meta (comma-separated, e.g., 🎮 Tactical FPS, 👥 5v5, 🏆 $500K Prize Pool)"
-                    value={gameForm.featuredMeta}
-                    onChange={(e) =>
-                      setGameForm({ ...gameForm, featuredMeta: e.target.value })
-                    }
-                  />
-                  <input
-                    type="text"
-                    placeholder="Featured Tags (comma-separated, e.g., Season 6 Live, 128-Tick Servers, Anti-Cheat)"
-                    value={gameForm.featuredTags}
-                    onChange={(e) =>
-                      setGameForm({ ...gameForm, featuredTags: e.target.value })
-                    }
-                  />
-                  <textarea
-                    placeholder="Featured Description"
-                    value={gameForm.featuredDesc}
-                    onChange={(e) =>
-                      setGameForm({ ...gameForm, featuredDesc: e.target.value })
-                    }
-                    rows="3"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Featured Button Text (e.g., Play Now — Free)"
-                    value={gameForm.featuredButtonText}
-                    onChange={(e) =>
-                      setGameForm({
-                        ...gameForm,
-                        featuredButtonText: e.target.value,
-                      })
-                    }
-                  />
-                  <input
-                    type="text"
-                    placeholder="Video URL (YouTube embed, e.g., https://www.youtube.com/embed/VIDEO_ID?autoplay=1&mute=1&loop=1)"
-                    value={gameForm.videoUrl}
-                    onChange={(e) =>
-                      setGameForm({ ...gameForm, videoUrl: e.target.value })
-                    }
-                  />
-
-                  <div className="form-actions">
-                    <button type="submit" className="btn-save">
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-cancel"
-                      onClick={() => {
-                        setShowForm(false);
-                        setEditingItem(null);
+                  {activeTab === "games" && (
+                    <form
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        if (editingItem) {
+                          await handleUpdateGame();
+                          return;
+                        }
+                        await handleAddGame();
                       }}
                     >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              )}
+                      <h4 style={{ color: "#ff6b6b", marginBottom: "0.5rem" }}>
+                        Basic Information
+                      </h4>
+                      <input
+                        type="text"
+                        placeholder="Game Name *"
+                        value={gameForm.name}
+                        onChange={(e) =>
+                          setGameForm({ ...gameForm, name: e.target.value })
+                        }
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Thumbnail URL (for game cards + featured poster)"
+                        value={gameForm.thumbnail}
+                        onChange={(e) =>
+                          setGameForm({
+                            ...gameForm,
+                            thumbnail: e.target.value,
+                          })
+                        }
+                      />
+                      <input
+                        type="text"
+                        placeholder="Category (e.g., FPS, MOBA, Battle Royale)"
+                        value={gameForm.category}
+                        onChange={(e) =>
+                          setGameForm({ ...gameForm, category: e.target.value })
+                        }
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Active Players (e.g., 4.2M)"
+                        value={gameForm.players}
+                        onChange={(e) =>
+                          setGameForm({ ...gameForm, players: e.target.value })
+                        }
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Genre (e.g., Tactical FPS, Battle Royale)"
+                        value={gameForm.genre}
+                        onChange={(e) =>
+                          setGameForm({ ...gameForm, genre: e.target.value })
+                        }
+                      />
+                      <textarea
+                        placeholder="Description"
+                        value={gameForm.description}
+                        onChange={(e) =>
+                          setGameForm({
+                            ...gameForm,
+                            description: e.target.value,
+                          })
+                        }
+                        rows="2"
+                        required
+                      />
 
-              {activeTab === "leaderboard" && (
-                <form
-                  onSubmit={async (e) => {
-                    e.preventDefault();
-                    if (editingItem) {
-                      await handleUpdateLeaderboardEntry();
-                      return;
-                    }
-                    await handleAddLeaderboardEntry();
-                  }}
-                >
-                  <input
-                    type="text"
-                    placeholder="Player Name"
-                    value={leaderboardForm.playerName}
-                    onChange={(e) =>
-                      setLeaderboardForm({
-                        ...leaderboardForm,
-                        playerName: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="Country (e.g., 🇰🇷 South Korea)"
-                    value={leaderboardForm.country}
-                    onChange={(e) =>
-                      setLeaderboardForm({
-                        ...leaderboardForm,
-                        country: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="Score (e.g., 98,420)"
-                    value={leaderboardForm.score}
-                    onChange={(e) =>
-                      setLeaderboardForm({
-                        ...leaderboardForm,
-                        score: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="K/D Ratio (e.g., 4.8)"
-                    value={leaderboardForm.kd}
-                    onChange={(e) =>
-                      setLeaderboardForm({
-                        ...leaderboardForm,
-                        kd: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                  <select
-                    value={leaderboardForm.game}
-                    onChange={(e) =>
-                      setLeaderboardForm({
-                        ...leaderboardForm,
-                        game: e.target.value,
-                      })
-                    }
-                    required
-                  >
-                    <option value="">Select Game</option>
-                    {games.map((game) => (
-                      <option key={game.id} value={game.name}>
-                        {game.name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="form-actions">
-                    <button type="submit" className="btn-save">
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-cancel"
-                      onClick={() => {
-                        setShowForm(false);
-                        setEditingItem(null);
+                      <h4 style={{ color: "#ff6b6b", margin: "1rem 0 0.5rem" }}>
+                        Game Card Styling
+                      </h4>
+                      <input
+                        type="text"
+                        placeholder="Tag (e.g., HOT, NEW, FREE, PRO)"
+                        value={gameForm.tag}
+                        onChange={(e) =>
+                          setGameForm({ ...gameForm, tag: e.target.value })
+                        }
+                      />
+                      <select
+                        value={gameForm.tagClass}
+                        onChange={(e) =>
+                          setGameForm({ ...gameForm, tagClass: e.target.value })
+                        }
+                      >
+                        <option value="">Default Tag Style</option>
+                        <option value="gold-tag">Gold Tag (HOT)</option>
+                        <option value="blue-tag">Blue Tag (NEW)</option>
+                        <option value="green-tag">Green Tag (FREE)</option>
+                        <option value="purple-tag">Purple Tag (PRO)</option>
+                      </select>
+                      <input
+                        type="text"
+                        placeholder="Platforms (comma-separated, e.g., PC, PS5, XSX, Mobile)"
+                        value={gameForm.platforms}
+                        onChange={(e) =>
+                          setGameForm({
+                            ...gameForm,
+                            platforms: e.target.value,
+                          })
+                        }
+                      />
+                      <input
+                        type="text"
+                        placeholder="Stars (e.g., ★★★★★, ★★★★☆)"
+                        value={gameForm.stars}
+                        onChange={(e) =>
+                          setGameForm({ ...gameForm, stars: e.target.value })
+                        }
+                      />
+                      <input
+                        type="text"
+                        placeholder="Rating (e.g., 4.9 / 5 · 120K reviews)"
+                        value={gameForm.rating}
+                        onChange={(e) =>
+                          setGameForm({ ...gameForm, rating: e.target.value })
+                        }
+                      />
+
+                      <h4 style={{ color: "#ff6b6b", margin: "1rem 0 0.5rem" }}>
+                        Featured Section (Editor's Pick)
+                      </h4>
+                      <input
+                        type="text"
+                        placeholder="Featured Title (e.g., SHADOW REALM X)"
+                        value={gameForm.featuredTitle}
+                        onChange={(e) =>
+                          setGameForm({
+                            ...gameForm,
+                            featuredTitle: e.target.value,
+                          })
+                        }
+                      />
+                      <input
+                        type="text"
+                        placeholder="Featured Score (e.g., 9.8)"
+                        value={gameForm.featuredScore}
+                        onChange={(e) =>
+                          setGameForm({
+                            ...gameForm,
+                            featuredScore: e.target.value,
+                          })
+                        }
+                      />
+                      <input
+                        type="text"
+                        placeholder="Featured Meta (comma-separated, e.g., 🎮 Tactical FPS, 👥 5v5, 🏆 $500K Prize Pool)"
+                        value={gameForm.featuredMeta}
+                        onChange={(e) =>
+                          setGameForm({
+                            ...gameForm,
+                            featuredMeta: e.target.value,
+                          })
+                        }
+                      />
+                      <input
+                        type="text"
+                        placeholder="Featured Tags (comma-separated, e.g., Season 6 Live, 128-Tick Servers, Anti-Cheat)"
+                        value={gameForm.featuredTags}
+                        onChange={(e) =>
+                          setGameForm({
+                            ...gameForm,
+                            featuredTags: e.target.value,
+                          })
+                        }
+                      />
+                      <textarea
+                        placeholder="Featured Description"
+                        value={gameForm.featuredDesc}
+                        onChange={(e) =>
+                          setGameForm({
+                            ...gameForm,
+                            featuredDesc: e.target.value,
+                          })
+                        }
+                        rows="3"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Featured Button Text (e.g., Play Now — Free)"
+                        value={gameForm.featuredButtonText}
+                        onChange={(e) =>
+                          setGameForm({
+                            ...gameForm,
+                            featuredButtonText: e.target.value,
+                          })
+                        }
+                      />
+                      <input
+                        type="text"
+                        placeholder="Video URL (YouTube embed, e.g., https://www.youtube.com/embed/VIDEO_ID?autoplay=1&mute=1&loop=1)"
+                        value={gameForm.videoUrl}
+                        onChange={(e) =>
+                          setGameForm({ ...gameForm, videoUrl: e.target.value })
+                        }
+                      />
+
+                      <div className="form-actions">
+                        <button type="submit" className="btn-save">
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-cancel"
+                          onClick={() => {
+                            setShowForm(false);
+                            setEditingItem(null);
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {activeTab === "leaderboard" && (
+                    <form
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        if (editingItem) {
+                          await handleUpdateLeaderboardEntry();
+                          return;
+                        }
+                        await handleAddLeaderboardEntry();
                       }}
                     >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              )}
+                      <input
+                        type="text"
+                        placeholder="Player Name"
+                        value={leaderboardForm.playerName}
+                        onChange={(e) =>
+                          setLeaderboardForm({
+                            ...leaderboardForm,
+                            playerName: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Country (e.g., 🇰🇷 South Korea)"
+                        value={leaderboardForm.country}
+                        onChange={(e) =>
+                          setLeaderboardForm({
+                            ...leaderboardForm,
+                            country: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Score (e.g., 98,420)"
+                        value={leaderboardForm.score}
+                        onChange={(e) =>
+                          setLeaderboardForm({
+                            ...leaderboardForm,
+                            score: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="K/D Ratio (e.g., 4.8)"
+                        value={leaderboardForm.kd}
+                        onChange={(e) =>
+                          setLeaderboardForm({
+                            ...leaderboardForm,
+                            kd: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                      <select
+                        value={leaderboardForm.game}
+                        onChange={(e) =>
+                          setLeaderboardForm({
+                            ...leaderboardForm,
+                            game: e.target.value,
+                          })
+                        }
+                        required
+                      >
+                        <option value="">Select Game</option>
+                        {games.map((game) => (
+                          <option key={game.id} value={game.name}>
+                            {game.name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="form-actions">
+                        <button type="submit" className="btn-save">
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-cancel"
+                          onClick={() => {
+                            setShowForm(false);
+                            setEditingItem(null);
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
 
-              {activeTab === "community" && (
-                <form
-                  onSubmit={async (e) => {
-                    e.preventDefault();
-                    if (editingItem) {
-                      await handleUpdateCommunityPost();
-                      return;
-                    }
-                    await handleAddCommunityPost();
-                  }}
-                >
-                  <h4 style={{ color: "#ff6b6b", marginBottom: "0.5rem" }}>
-                    Review card (What Players Say)
-                  </h4>
-                  <select
-                    value={communityForm.stars}
-                    onChange={(e) =>
-                      setCommunityForm({
-                        ...communityForm,
-                        stars: e.target.value,
-                      })
-                    }
-                  >
-                    <option value="★★★★★">★★★★★ (5)</option>
-                    <option value="★★★★☆">★★★★☆ (4)</option>
-                    <option value="★★★☆☆">★★★☆☆ (3)</option>
-                    <option value="★★☆☆☆">★★☆☆☆ (2)</option>
-                    <option value="★☆☆☆☆">★☆☆☆☆ (1)</option>
-                  </select>
-                  <select
-                    value={communityForm.av}
-                    onChange={(e) =>
-                      setCommunityForm({
-                        ...communityForm,
-                        av: e.target.value,
-                      })
-                    }
-                  >
-                    <option value="ra1">Avatar style 1</option>
-                    <option value="ra2">Avatar style 2</option>
-                    <option value="ra3">Avatar style 3</option>
-                    <option value="ra4">Avatar style 4</option>
-                    <option value="ra5">Avatar style 5</option>
-                    <option value="ra6">Avatar style 6</option>
-                  </select>
-                  <input
-                    type="text"
-                    placeholder="Avatar letter (one character)"
-                    maxLength={1}
-                    value={communityForm.letter}
-                    onChange={(e) =>
-                      setCommunityForm({
-                        ...communityForm,
-                        letter: e.target.value,
-                      })
-                    }
-                  />
-                  <input
-                    type="text"
-                    placeholder="Display name"
-                    value={communityForm.name}
-                    onChange={(e) =>
-                      setCommunityForm({
-                        ...communityForm,
-                        name: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="Handle (e.g. @user · Game)"
-                    value={communityForm.handle}
-                    onChange={(e) =>
-                      setCommunityForm({
-                        ...communityForm,
-                        handle: e.target.value,
-                      })
-                    }
-                  />
-                  <textarea
-                    placeholder="Review text"
-                    value={communityForm.text}
-                    onChange={(e) =>
-                      setCommunityForm({
-                        ...communityForm,
-                        text: e.target.value,
-                      })
-                    }
-                    rows={4}
-                    required
-                  />
-                  <div className="form-actions">
-                    <button type="submit" className="btn-save">
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-cancel"
-                      onClick={() => {
-                        setShowForm(false);
-                        setEditingItem(null);
+                  {activeTab === "community" && (
+                    <form
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        if (editingItem) {
+                          await handleUpdateCommunityPost();
+                          return;
+                        }
+                        await handleAddCommunityPost();
                       }}
                     >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              )}
+                      <h4 style={{ color: "#ff6b6b", marginBottom: "0.5rem" }}>
+                        Review card (What Players Say)
+                      </h4>
+                      <select
+                        value={communityForm.stars}
+                        onChange={(e) =>
+                          setCommunityForm({
+                            ...communityForm,
+                            stars: e.target.value,
+                          })
+                        }
+                      >
+                        <option value="★★★★★">★★★★★ (5)</option>
+                        <option value="★★★★☆">★★★★☆ (4)</option>
+                        <option value="★★★☆☆">★★★☆☆ (3)</option>
+                        <option value="★★☆☆☆">★★☆☆☆ (2)</option>
+                        <option value="★☆☆☆☆">★☆☆☆☆ (1)</option>
+                      </select>
+                      <select
+                        value={communityForm.av}
+                        onChange={(e) =>
+                          setCommunityForm({
+                            ...communityForm,
+                            av: e.target.value,
+                          })
+                        }
+                      >
+                        <option value="ra1">Avatar style 1</option>
+                        <option value="ra2">Avatar style 2</option>
+                        <option value="ra3">Avatar style 3</option>
+                        <option value="ra4">Avatar style 4</option>
+                        <option value="ra5">Avatar style 5</option>
+                        <option value="ra6">Avatar style 6</option>
+                      </select>
+                      <input
+                        type="text"
+                        placeholder="Avatar letter (one character)"
+                        maxLength={1}
+                        value={communityForm.letter}
+                        onChange={(e) =>
+                          setCommunityForm({
+                            ...communityForm,
+                            letter: e.target.value,
+                          })
+                        }
+                      />
+                      <input
+                        type="text"
+                        placeholder="Display name"
+                        value={communityForm.name}
+                        onChange={(e) =>
+                          setCommunityForm({
+                            ...communityForm,
+                            name: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Handle (e.g. @user · Game)"
+                        value={communityForm.handle}
+                        onChange={(e) =>
+                          setCommunityForm({
+                            ...communityForm,
+                            handle: e.target.value,
+                          })
+                        }
+                      />
+                      <textarea
+                        placeholder="Review text"
+                        value={communityForm.text}
+                        onChange={(e) =>
+                          setCommunityForm({
+                            ...communityForm,
+                            text: e.target.value,
+                          })
+                        }
+                        rows={4}
+                        required
+                      />
+                      <div className="form-actions">
+                        <button type="submit" className="btn-save">
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-cancel"
+                          onClick={() => {
+                            setShowForm(false);
+                            setEditingItem(null);
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === "tournaments" && (
+              <div className="data-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Tournament Name</th>
+                      <th>Date</th>
+                      <th>Region</th>
+                      <th>Prize</th>
+                      <th>Status</th>
+                      <th>Register link</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredTournaments.length > 0 ? (
+                      filteredTournaments.map((tournament) => (
+                        <tr key={tournament.id}>
+                          <td>{tournament.rank}</td>
+                          <td>{tournament.name}</td>
+                          <td>{tournament.date}</td>
+                          <td>{tournament.region}</td>
+                          <td>{tournament.prize}</td>
+                          <td>
+                            <span
+                              className={`status-badge status-${tournament.status}`}
+                            >
+                              {tournament.status}
+                            </span>
+                          </td>
+                          <td>
+                            {tournament.registerUrl?.trim() ? (
+                              <span
+                                className="tournament-has-link"
+                                title={tournament.registerUrl}
+                              >
+                                ✓ Set
+                              </span>
+                            ) : (
+                              <span className="tournament-no-link">—</span>
+                            )}
+                          </td>
+                          <td>
+                            <button
+                              className="btn-edit"
+                              onClick={() =>
+                                handleEdit(tournament, "tournaments")
+                              }
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="btn-delete"
+                              onClick={() =>
+                                handleDelete(
+                                  tournament.id,
+                                  "tournament",
+                                  deleteTournament,
+                                )
+                              }
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="8" className="no-data">
+                          No tournaments found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {activeTab === "games" && (
+              <div className="data-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Game Name</th>
+                      <th>Category</th>
+                      <th>Genre</th>
+                      <th>Active Players</th>
+                      <th>Platforms</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredGames.length > 0 ? (
+                      filteredGames.map((game) => (
+                        <tr key={game.id}>
+                          <td>{game.name}</td>
+                          <td>{game.category}</td>
+                          <td>{game.genre || game.category}</td>
+                          <td>{game.players}</td>
+                          <td>
+                            {game.platforms ? game.platforms.join(", ") : "-"}
+                          </td>
+                          <td>
+                            <button
+                              className="btn-edit"
+                              onClick={() => handleEdit(game, "games")}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="btn-delete"
+                              onClick={() =>
+                                handleDelete(game.id, "game", deleteGame)
+                              }
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="6" className="no-data">
+                          No games found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {activeTab === "leaderboard" && (
+              <div className="data-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Player Name</th>
+                      <th>Country</th>
+                      <th>Score</th>
+                      <th>K/D</th>
+                      <th>Game</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredLeaderboard.length > 0 ? (
+                      filteredLeaderboard.map((entry) => (
+                        <tr key={entry.id}>
+                          <td>{entry.rank}</td>
+                          <td>{entry.playerName}</td>
+                          <td>{entry.country}</td>
+                          <td>{entry.score}</td>
+                          <td>{entry.kd}</td>
+                          <td>{entry.game}</td>
+                          <td>
+                            <button
+                              className="btn-edit"
+                              onClick={() => handleEdit(entry, "leaderboard")}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="btn-delete"
+                              onClick={() =>
+                                handleDelete(
+                                  entry.id,
+                                  "player",
+                                  deleteLeaderboardEntry,
+                                )
+                              }
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="7" className="no-data">
+                          No leaderboard entries found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {activeTab === "community" && (
+              <div className="data-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Stars</th>
+                      <th>Name</th>
+                      <th>Handle</th>
+                      <th>Preview</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredCommunity.length > 0 ? (
+                      filteredCommunity.map((post) => (
+                        <tr key={post.id}>
+                          <td>{post.stars}</td>
+                          <td>{post.name}</td>
+                          <td>{post.handle}</td>
+                          <td className="community-preview-cell">
+                            {(post.text || "").slice(0, 80)}
+                            {(post.text || "").length > 80 ? "…" : ""}
+                          </td>
+                          <td>
+                            <button
+                              className="btn-edit"
+                              onClick={() => handleEdit(post, "community")}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="btn-delete"
+                              onClick={() =>
+                                handleDelete(
+                                  post.id,
+                                  "post",
+                                  deleteCommunityPost,
+                                )
+                              }
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="5" className="no-data">
+                          No community posts found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        ) : null}
+
+        {activeTab === "users" && (
+          <div className="users-management">
+            <div className="admin-actions">
+              <div className="search-bar">
+                <input
+                  type="text"
+                  placeholder="Search users by name or email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="user-stats">
+                <span>Total: {users?.length || 0}</span>
+                <span>
+                  Active: {users?.filter((u) => !u.isBlocked).length || 0}
+                </span>
+                <span>
+                  Blocked: {users?.filter((u) => u.isBlocked).length || 0}
+                </span>
+              </div>
+            </div>
+
+            <div className="data-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Avatar</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Member Since</th>
+                    <th>Status</th>
+                    <th>Tournaments</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredUsers.length > 0 ? (
+                    filteredUsers.map((user) => (
+                      <tr
+                        key={user.id}
+                        className={user.isBlocked ? "user-blocked" : ""}
+                      >
+                        <td className="user-avatar-cell">
+                          {user.photoURL ? (
+                            <img
+                              src={user.photoURL}
+                              alt=""
+                              className="user-avatar"
+                            />
+                          ) : (
+                            <div className="user-avatar-placeholder">
+                              {(
+                                user.displayName?.[0] ||
+                                user.email?.[0] ||
+                                "?"
+                              ).toUpperCase()}
+                            </div>
+                          )}
+                        </td>
+                        <td>
+                          <strong>{user.displayName || "—"}</strong>
+                          {user.uid && (
+                            <div className="user-uid">
+                              {user.uid.slice(0, 8)}...
+                            </div>
+                          )}
+                        </td>
+                        <td>{user.email || "—"}</td>
+                        <td>
+                          {user.createdAt
+                            ? new Date(user.createdAt).toLocaleDateString()
+                            : "—"}
+                        </td>
+                        <td>
+                          <span
+                            className={`user-status-badge ${user.isBlocked ? "status-blocked" : "status-active"}`}
+                          >
+                            {user.isBlocked ? "Blocked" : "Active"}
+                          </span>
+                        </td>
+                        <td className="user-tournaments-count">
+                          {user.tournamentCount || 0}
+                        </td>
+                        <td className="user-actions">
+                          <button
+                            className="btn-view"
+                            onClick={() => handleViewUserDetails(user)}
+                            title="View Details"
+                          >
+                            👁️
+                          </button>
+                          {user.isBlocked ? (
+                            <button
+                              className="btn-unblock"
+                              onClick={() => handleUnblockUser(user)}
+                              title="Unblock User"
+                            >
+                              🔓
+                            </button>
+                          ) : (
+                            <button
+                              className="btn-block"
+                              onClick={() => handleBlockUser(user)}
+                              title="Block User"
+                            >
+                              🔒
+                            </button>
+                          )}
+                          <button
+                            className="btn-delete-user"
+                            onClick={() => handleDeleteUser(user)}
+                            title="Delete User"
+                          >
+                            🗑️
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="7" className="no-data">
+                        No users found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
 
-        {activeTab === "tournaments" && (
-          <div className="data-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Tournament Name</th>
-                  <th>Date</th>
-                  <th>Region</th>
-                  <th>Prize</th>
-                  <th>Status</th>
-                  <th>Register link</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTournaments.length > 0 ? (
-                  filteredTournaments.map((tournament) => (
-                    <tr key={tournament.id}>
-                      <td>{tournament.rank}</td>
-                      <td>{tournament.name}</td>
-                      <td>{tournament.date}</td>
-                      <td>{tournament.region}</td>
-                      <td>{tournament.prize}</td>
-                      <td>
-                        <span
-                          className={`status-badge status-${tournament.status}`}
-                        >
-                          {tournament.status}
-                        </span>
-                      </td>
-                      <td>
-                        {tournament.registerUrl?.trim() ? (
-                          <span className="tournament-has-link" title={tournament.registerUrl}>
-                            ✓ Set
-                          </span>
-                        ) : (
-                          <span className="tournament-no-link">—</span>
-                        )}
-                      </td>
-                      <td>
-                        <button
-                          className="btn-edit"
-                          onClick={() => handleEdit(tournament, "tournaments")}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn-delete"
-                          onClick={() =>
-                            handleDelete(
-                              tournament.id,
-                              "tournament",
-                              deleteTournament,
-                            )
-                          }
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+        {/* User Details Modal */}
+        {showUserModal && selectedUser && (
+          <div
+            className="modal-overlay"
+            onClick={() => setShowUserModal(false)}
+          >
+            <div className="user-modal" onClick={(e) => e.stopPropagation()}>
+              <button
+                className="modal-close"
+                onClick={() => setShowUserModal(false)}
+              >
+                ×
+              </button>
+              <div className="modal-header">
+                <div className="modal-avatar-large">
+                  {selectedUser.photoURL ? (
+                    <img src={selectedUser.photoURL} alt="" />
+                  ) : (
+                    <span>
+                      {(
+                        selectedUser.displayName?.[0] ||
+                        selectedUser.email?.[0] ||
+                        "?"
+                      ).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <div className="modal-user-info">
+                  <h3>{selectedUser.displayName || "No name set"}</h3>
+                  <p>{selectedUser.email}</p>
+                  <span
+                    className={`user-status-badge ${selectedUser.isBlocked ? "status-blocked" : "status-active"}`}
+                  >
+                    {selectedUser.isBlocked ? "Blocked" : "Active"}
+                  </span>
+                </div>
+              </div>
+              <div className="modal-details">
+                <div className="detail-row">
+                  <span className="detail-label">User ID:</span>
+                  <span className="detail-value">
+                    {selectedUser.uid || selectedUser.id}
+                  </span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Member since:</span>
+                  <span className="detail-value">
+                    {selectedUser.createdAt
+                      ? new Date(selectedUser.createdAt).toLocaleString()
+                      : "—"}
+                  </span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Last login:</span>
+                  <span className="detail-value">
+                    {selectedUser.lastLoginAt
+                      ? new Date(selectedUser.lastLoginAt).toLocaleString()
+                      : "—"}
+                  </span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Tournaments registered:</span>
+                  <span className="detail-value">
+                    {selectedUser.tournamentCount || 0}
+                  </span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Tournaments won:</span>
+                  <span className="detail-value">
+                    {selectedUser.tournamentsWon || 0}
+                  </span>
+                </div>
+              </div>
+              <div className="modal-actions">
+                {selectedUser.isBlocked ? (
+                  <button
+                    className="btn-unblock"
+                    onClick={() => {
+                      handleUnblockUser(selectedUser);
+                      setShowUserModal(false);
+                    }}
+                  >
+                    Unblock User
+                  </button>
                 ) : (
-                  <tr>
-                    <td colSpan="8" className="no-data">
-                      No tournaments found
-                    </td>
-                  </tr>
+                  <button
+                    className="btn-block"
+                    onClick={() => {
+                      handleBlockUser(selectedUser);
+                      setShowUserModal(false);
+                    }}
+                  >
+                    Block User
+                  </button>
                 )}
-              </tbody>
-            </table>
+                <button
+                  className="btn-delete-user"
+                  onClick={() => {
+                    handleDeleteUser(selectedUser);
+                    setShowUserModal(false);
+                  }}
+                >
+                  Delete User Permanently
+                </button>
+              </div>
+            </div>
           </div>
         )}
-
-        {activeTab === "games" && (
-          <div className="data-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>Game Name</th>
-                  <th>Category</th>
-                  <th>Genre</th>
-                  <th>Active Players</th>
-                  <th>Platforms</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredGames.length > 0 ? (
-                  filteredGames.map((game) => (
-                    <tr key={game.id}>
-                      <td>{game.name}</td>
-                      <td>{game.category}</td>
-                      <td>{game.genre || game.category}</td>
-                      <td>{game.players}</td>
-                      <td>
-                        {game.platforms ? game.platforms.join(", ") : "-"}
-                      </td>
-                      <td>
-                        <button
-                          className="btn-edit"
-                          onClick={() => handleEdit(game, "games")}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn-delete"
-                          onClick={() =>
-                            handleDelete(game.id, "game", deleteGame)
-                          }
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="6" className="no-data">
-                      No games found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {activeTab === "leaderboard" && (
-          <div className="data-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Player Name</th>
-                  <th>Country</th>
-                  <th>Score</th>
-                  <th>K/D</th>
-                  <th>Game</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredLeaderboard.length > 0 ? (
-                  filteredLeaderboard.map((entry) => (
-                    <tr key={entry.id}>
-                      <td>{entry.rank}</td>
-                      <td>{entry.playerName}</td>
-                      <td>{entry.country}</td>
-                      <td>{entry.score}</td>
-                      <td>{entry.kd}</td>
-                      <td>{entry.game}</td>
-                      <td>
-                        <button
-                          className="btn-edit"
-                          onClick={() => handleEdit(entry, "leaderboard")}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn-delete"
-                          onClick={() =>
-                            handleDelete(
-                              entry.id,
-                              "player",
-                              deleteLeaderboardEntry,
-                            )
-                          }
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="7" className="no-data">
-                      No leaderboard entries found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {activeTab === "community" && (
-          <div className="data-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>Stars</th>
-                  <th>Name</th>
-                  <th>Handle</th>
-                  <th>Preview</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredCommunity.length > 0 ? (
-                  filteredCommunity.map((post) => (
-                    <tr key={post.id}>
-                      <td>{post.stars}</td>
-                      <td>{post.name}</td>
-                      <td>{post.handle}</td>
-                      <td className="community-preview-cell">
-                        {(post.text || "").slice(0, 80)}
-                        {(post.text || "").length > 80 ? "…" : ""}
-                      </td>
-                      <td>
-                        <button
-                          className="btn-edit"
-                          onClick={() => handleEdit(post, "community")}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn-delete"
-                          onClick={() =>
-                            handleDelete(
-                              post.id,
-                              "post",
-                              deleteCommunityPost,
-                            )
-                          }
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="5" className="no-data">
-                      No community posts found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-          </>
-        ) : null}
       </div>
 
       <div className="admin-stats">
@@ -1610,6 +1937,10 @@ export default function AdminPanel() {
         <div className="stat-card">
           <h3>Total Players</h3>
           <p className="stat-number">{leaderboard.length}</p>
+        </div>
+        <div className="stat-card">
+          <h3>Total Users</h3>
+          <p className="stat-number">{users?.length || 0}</p>
         </div>
       </div>
     </div>
