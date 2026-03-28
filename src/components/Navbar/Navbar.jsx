@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import "./Navbar.css";
 import { useAuth } from "../../hooks/useAuth";
 import AuthModal from "./Authmodal/AuthModal";
@@ -17,12 +17,40 @@ export default function Navbar() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
   const { user } = useAuth();
+  const location = useLocation();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // Handle smooth scrolling to sections
+  const handleScrollToSection = (e, sectionId) => {
+    e.preventDefault();
+
+    // If we're not on the home page, navigate to home first
+    if (location.pathname !== "/") {
+      window.location.href = `/#${sectionId}`;
+      return;
+    }
+
+    // Scroll to section on home page
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const offset = 80; // Height of fixed navbar
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+    }
+
+    // Close mobile menu if open
+    setMenuOpen(false);
+  };
 
   const closeMenu = () => setMenuOpen(false);
 
@@ -34,19 +62,41 @@ export default function Navbar() {
         </Link>
         <ul className="nav-links">
           <li>
-            <Link to="/#games">Games</Link>
+            <a href="#games" onClick={(e) => handleScrollToSection(e, "games")}>
+              Games
+            </a>
           </li>
           <li>
-            <Link to="/#tournaments">Tournaments</Link>
+            <a
+              href="#tournaments"
+              onClick={(e) => handleScrollToSection(e, "tournaments")}
+            >
+              Tournaments
+            </a>
           </li>
           <li>
-            <Link to="/#leaderboard">Leaderboard</Link>
+            <a
+              href="#leaderboard"
+              onClick={(e) => handleScrollToSection(e, "leaderboard")}
+            >
+              Leaderboard
+            </a>
           </li>
           <li>
-            <Link to="/#community">Community</Link>
+            <a
+              href="#community"
+              onClick={(e) => handleScrollToSection(e, "community")}
+            >
+              Community
+            </a>
           </li>
           <li>
-            <Link to="/#newsletter">Newsletter</Link>
+            <a
+              href="#newsletter"
+              onClick={(e) => handleScrollToSection(e, "newsletter")}
+            >
+              Newsletter
+            </a>
           </li>
         </ul>
         {user ? (
@@ -93,21 +143,33 @@ export default function Navbar() {
       </nav>
 
       <div className={`mobile-menu${menuOpen ? " open" : ""}`}>
-        <Link to="/#games" onClick={closeMenu}>
+        <a href="#games" onClick={(e) => handleScrollToSection(e, "games")}>
           Games
-        </Link>
-        <Link to="/#tournaments" onClick={closeMenu}>
+        </a>
+        <a
+          href="#tournaments"
+          onClick={(e) => handleScrollToSection(e, "tournaments")}
+        >
           Tournaments
-        </Link>
-        <Link to="/#leaderboard" onClick={closeMenu}>
+        </a>
+        <a
+          href="#leaderboard"
+          onClick={(e) => handleScrollToSection(e, "leaderboard")}
+        >
           Leaderboard
-        </Link>
-        <Link to="/#community" onClick={closeMenu}>
+        </a>
+        <a
+          href="#community"
+          onClick={(e) => handleScrollToSection(e, "community")}
+        >
           Community
-        </Link>
-        <Link to="/#newsletter" onClick={closeMenu}>
+        </a>
+        <a
+          href="#newsletter"
+          onClick={(e) => handleScrollToSection(e, "newsletter")}
+        >
           Newsletter
-        </Link>
+        </a>
         {user ? (
           <Link
             to="/profile"
@@ -116,11 +178,7 @@ export default function Navbar() {
           >
             <span className="mobile-profile-avatar">
               {user.photoURL ? (
-                <img
-                  src={user.photoURL}
-                  alt=""
-                  referrerPolicy="no-referrer"
-                />
+                <img src={user.photoURL} alt="" referrerPolicy="no-referrer" />
               ) : (
                 userInitial(user)
               )}
