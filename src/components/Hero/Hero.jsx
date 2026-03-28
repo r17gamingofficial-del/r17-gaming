@@ -139,7 +139,7 @@ export default function Hero() {
 
       <div className="scroll-ind">
         <div className="scroll-line"></div>
-        Scroll
+        Scroll1
       </div>
     </section>
   );
