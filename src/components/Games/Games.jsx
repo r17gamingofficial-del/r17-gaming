@@ -78,6 +78,11 @@ export default function Games({ onGameSelect, selectedGame }) {
   const handleGameClick = (game) => {
     if (onGameSelect) {
       onGameSelect(game);
+      // scroll to featured section after selection (small delay to allow render)
+      setTimeout(() => {
+        const el = document.getElementById("featured");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 120);
     }
   };
 
