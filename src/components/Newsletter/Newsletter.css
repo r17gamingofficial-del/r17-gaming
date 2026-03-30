@@ -13,7 +13,7 @@
 }
 
 #newsletter::before {
-  content: '';
+  content: "";
   position: absolute;
   right: -100px;
   top: 50%;
@@ -25,7 +25,7 @@
 }
 
 .newsletter-heading {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: "Bebas Neue", sans-serif;
   font-size: clamp(2rem, 4vw, 3.5rem);
   letter-spacing: 0.05em;
   color: #fff;
@@ -57,7 +57,7 @@
 
 .newsletter-input {
   flex: 1 1 220px;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: "Rajdhani", sans-serif;
   font-size: 1rem;
   padding: 0.85rem 1.2rem;
   background: rgba(255, 255, 255, 0.05);
@@ -76,7 +76,7 @@
 }
 
 .newsletter-btn {
-  font-family: 'Orbitron', sans-serif;
+  font-family: "Orbitron", sans-serif;
   font-size: 0.65rem;
   letter-spacing: 0.18em;
   padding: 0.85rem 2rem;
@@ -85,7 +85,9 @@
   border: none;
   cursor: none;
   text-transform: uppercase;
-  transition: background 0.25s, box-shadow 0.25s;
+  transition:
+    background 0.25s,
+    box-shadow 0.25s;
 }
 
 .newsletter-btn:hover {
@@ -97,6 +99,31 @@
   font-size: 0.75rem;
   color: var(--muted);
   margin-top: 0.7rem;
+}
+
+/* Loader inside newsletter button */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.newsletter-btn[disabled] {
+  opacity: 0.8;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 680px) {

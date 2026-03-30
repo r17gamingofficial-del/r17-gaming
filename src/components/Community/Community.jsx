@@ -11,7 +11,7 @@ import { useAppContext } from "../../Context/AppContext.jsx";
 const socialLinks = [
   {
     platform: "Discord",
-    url: "https://discord.gg/r17gaming",
+    url: "https://discord.gg/CDJMJa7dyh",
     icon: FaDiscord,
     color: "#5865F2",
   },
@@ -23,7 +23,7 @@ const socialLinks = [
   },
   {
     platform: "Instagram",
-    url: "https://instagram.com/r17.gaming",
+    url: "https://www.instagram.com/r17_esport?igsh=bXNxY2pmcDlnZDVm",
     icon: FaInstagram,
     color: "#E4405F",
   },

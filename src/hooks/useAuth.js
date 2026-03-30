@@ -5,6 +5,12 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
+import {
+  GoogleAuthProvider,
+  FacebookAuthProvider,
+  signInWithPopup,
+  getAdditionalUserInfo,
+} from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../Firebase/config";
 
@@ -34,7 +40,7 @@ export function useAuth() {
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       const uid = cred.user.uid;
-  
+
       await setDoc(doc(db, "users", uid), {
         uid,
         email: cred.user.email || email,
@@ -43,13 +49,46 @@ export function useAuth() {
       });
     } catch (error) {
       console.error("Firebase Error:", error); // 👈 ADD THIS
-  
+
       // Throw readable error
       throw new Error(error.message);
     } finally {
       setLoading(false);
     }
   }, []);
+
+  const providerLogin = useCallback(async (provider) => {
+    setLoading(true);
+    try {
+      const cred = await signInWithPopup(auth, provider);
+      const user = cred.user;
+      const info = getAdditionalUserInfo(cred);
+
+      if (info && info.isNewUser) {
+        await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          email: user.email || "",
+          name: user.displayName || "",
+          photoURL: user.photoURL || "",
+          createdAt: serverTimestamp(),
+        });
+      }
+    } catch (error) {
+      console.error("Social login error:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const googleLogin = useCallback(
+    () => providerLogin(new GoogleAuthProvider()),
+    [providerLogin],
+  );
+  const facebookLogin = useCallback(
+    () => providerLogin(new FacebookAuthProvider()),
+    [providerLogin],
+  );
 
   const logout = useCallback(async () => {
     setLoading(true);
@@ -66,9 +105,10 @@ export function useAuth() {
       loading,
       login,
       register,
+      googleLogin,
+      facebookLogin,
       logout,
     }),
-    [user, loading, login, register, logout],
+    [user, loading, login, register, logout, googleLogin, facebookLogin],
   );
 }
-
