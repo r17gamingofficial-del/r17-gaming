@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../../hooks/useAuth";
+import { FcGoogle } from "react-icons/fc";
 import "./AuthModal.css";
 
 const AuthModal = ({ isOpen, onClose, mode, onModeChange }) => {
@@ -362,21 +363,10 @@ const AuthModal = ({ isOpen, onClose, mode, onModeChange }) => {
             disabled={loading}
             aria-label="Sign in with Google"
           >
-            <svg
-              className="social-icon"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
-              <path
-                fill="#EA4335"
-                d="M12 11.5v2.9h3.9c-.17 1.1-.99 3.2-3.9 3.2-2.35 0-4.27-1.93-4.27-4.3s1.92-4.3 4.27-4.3c1.33 0 2.2.57 2.71 1.05l1.85-1.77C15.6 7.1 14 6.2 12 6.2 8.13 6.2 5 9.33 5 13.2S8.13 20.2 12 20.2c6 0 8.5-4.3 8.5-8.2 0-.55-.06-.95-.14-1.36H12z"
-              />
-            </svg>
+            <FcGoogle className="social-icon" />
             <span className="sr-only">Sign in with Google</span>
           </button>
         </div>
-
         {/* Footer */}
         <div className="modal-footer">
           <p>
