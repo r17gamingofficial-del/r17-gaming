@@ -12,7 +12,13 @@ import {
   signInWithPopup,
   getAdditionalUserInfo,
 } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  serverTimestamp,
+  onSnapshot,
+  getDoc,
+} from "firebase/firestore";
 import { auth, db } from "../Firebase/config";
 
 export function useAuth() {
@@ -27,10 +33,37 @@ export function useAuth() {
     return () => unsub();
   }, []);
 
+  // Watch current user's Firestore profile for deletion or block flag
+  useEffect(() => {
+    if (!user?.uid) return;
+    const userDocRef = doc(db, "users", user.uid);
+    const unsubDoc = onSnapshot(
+      userDocRef,
+      (snap) => {
+        // If profile deleted or marked blocked, sign the user out immediately
+        if (!snap.exists() || snap.data()?.isBlocked) {
+          console.warn("User profile deleted or blocked — signing out");
+          signOut(auth).catch((e) => console.error("Sign-out error:", e));
+        }
+      },
+      (err) => {
+        console.error("User doc listener error:", err);
+      },
+    );
+
+    return () => unsubDoc();
+  }, [user]);
+
   const login = useCallback(async (email, password) => {
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      // Check Firestore profile for block flag
+      const snap = await getDoc(doc(db, "users", cred.user.uid));
+      if (snap.exists() && snap.data()?.isBlocked) {
+        await signOut(auth);
+        throw new Error("User is blocked by admin");
+      }
     } finally {
       setLoading(false);
     }
@@ -64,6 +97,13 @@ export function useAuth() {
       const cred = await signInWithPopup(auth, provider);
       const user = cred.user;
       const info = getAdditionalUserInfo(cred);
+
+      // If existing user, check block flag and sign out immediately
+      const snap = await getDoc(doc(db, "users", user.uid));
+      if (snap.exists() && snap.data()?.isBlocked) {
+        await signOut(auth);
+        throw new Error("User is blocked by admin");
+      }
 
       if (info && info.isNewUser) {
         await setDoc(doc(db, "users", user.uid), {

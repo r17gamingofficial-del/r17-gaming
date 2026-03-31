@@ -111,7 +111,7 @@ const AuthModal = ({ isOpen, onClose, mode, onModeChange }) => {
         setTimeout(() => onClose(), 1500);
       } catch (err) {
         hideFullScreenLoader();
-        setError("Invalid email or password");
+        setError(err?.message || "Invalid email or password");
       }
     }
   };
@@ -128,7 +128,7 @@ const AuthModal = ({ isOpen, onClose, mode, onModeChange }) => {
       setTimeout(() => onClose(), 1200);
     } catch (err) {
       hideFullScreenLoader();
-      setError("Google sign-in failed");
+      setError(err?.message || "Google sign-in failed");
     }
   };
 
