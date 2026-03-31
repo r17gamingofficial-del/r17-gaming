@@ -17,7 +17,11 @@ const AuthModal = ({ isOpen, onClose, mode, onModeChange }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const modalRef = useRef(null);
-  const { login, register, loading, googleLogin } = useAuth();
+  const { login, register, loading, googleLogin, resetPassword } = useAuth();
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetError, setResetError] = useState("");
+  const [resetSuccess, setResetSuccess] = useState("");
+  const resetTimerRef = useRef(null);
 
   // Handle escape key press
   useEffect(() => {
@@ -237,6 +241,43 @@ const AuthModal = ({ isOpen, onClose, mode, onModeChange }) => {
             </div>
           )}
 
+          {resetError && (
+            <div className="message error">
+              <svg
+                className="message-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+              >
+                <circle cx="12" cy="12" r="10" strokeWidth="2" />
+                <path
+                  d="M12 8v4M12 16h.01"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span>{resetError}</span>
+            </div>
+          )}
+
+          {resetSuccess && (
+            <div className="message success">
+              <svg
+                className="message-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+              >
+                <path
+                  d="M20 6L9 17l-5-5"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span>{resetSuccess}</span>
+            </div>
+          )}
+
           {success && (
             <div className="message success">
               <svg
@@ -257,6 +298,88 @@ const AuthModal = ({ isOpen, onClose, mode, onModeChange }) => {
 
           {/* Form - Compact Layout */}
           <form onSubmit={handleSubmit} className="auth-form">
+            {mode === "reset" && (
+              <>
+                <div className="form-group">
+                  <label htmlFor="resetEmail">
+                    <svg className="input-icon" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                      <path
+                        d="M22 6l-10 7L2 6"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                    </svg>
+                    EMAIL
+                  </label>
+                  <input
+                    type="email"
+                    id="resetEmail"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    placeholder="Enter your account email"
+                    required
+                    className="form-input"
+                    disabled={isAuthLoading}
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  className={`submit-btn ${loading || isAuthLoading ? "loading" : ""}`}
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    setResetError("");
+                    setResetSuccess("");
+
+                    if (!resetEmail || resetEmail.indexOf("@") === -1) {
+                      setResetError("Please enter a valid email address");
+                      return;
+                    }
+
+                    showFullScreenLoader();
+                    try {
+                      await resetPassword(resetEmail);
+                      hideFullScreenLoader();
+                      setResetSuccess(
+                        "A password reset link has been sent to your email.",
+                      );
+                      // clear any previous timer
+                      if (resetTimerRef.current)
+                        clearTimeout(resetTimerRef.current);
+                      resetTimerRef.current = setTimeout(() => {
+                        setResetSuccess("");
+                        onModeChange("login");
+                      }, 1800);
+                    } catch (err) {
+                      hideFullScreenLoader();
+                      setResetError(
+                        "Failed to send reset link. Please try again.",
+                      );
+                    }
+                  }}
+                  disabled={loading || isAuthLoading}
+                >
+                  {loading || isAuthLoading ? (
+                    <div className="btn-loader">
+                      <div className="loader-dot"></div>
+                      <div className="loader-dot"></div>
+                      <div className="loader-dot"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <span className="btn-text">SEND RESET LINK</span>
+                    </>
+                  )}
+                </button>
+
+                {/* resetSuccess is shown as a transient toast and auto-returns to login */}
+              </>
+            )}
             {mode === "register" && (
               <div className="form-group">
                 <label htmlFor="name">
@@ -472,6 +595,13 @@ const AuthModal = ({ isOpen, onClose, mode, onModeChange }) => {
                   type="button"
                   className="forgot-link"
                   disabled={isAuthLoading}
+                  onClick={() => {
+                    // switch modal to reset mode
+                    onModeChange("reset");
+                    setResetEmail("");
+                    setResetError("");
+                    setResetSuccess("");
+                  }}
                 >
                   Forgot Password?
                 </button>

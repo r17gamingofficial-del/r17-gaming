@@ -5,6 +5,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
+import { sendPasswordResetEmail } from "firebase/auth";
 import {
   GoogleAuthProvider,
   FacebookAuthProvider,
@@ -99,6 +100,18 @@ export function useAuth() {
     }
   }, []);
 
+  const resetPassword = useCallback(async (email) => {
+    setLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+    } catch (error) {
+      console.error("Password reset error:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return useMemo(
     () => ({
       user,
@@ -108,7 +121,17 @@ export function useAuth() {
       googleLogin,
       facebookLogin,
       logout,
+      resetPassword,
     }),
-    [user, loading, login, register, logout, googleLogin, facebookLogin],
+    [
+      user,
+      loading,
+      login,
+      register,
+      logout,
+      googleLogin,
+      facebookLogin,
+      resetPassword,
+    ],
   );
 }
