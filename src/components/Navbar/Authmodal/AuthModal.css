@@ -46,7 +46,15 @@
     0 0 70px rgba(255, 34, 51, 0.2);
   animation: slideUp 0.4s ease;
   z-index: 1000000;
-  /* No overflow, no scroll */
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+/* Loading state for modal */
+.auth-modal.loading {
+  opacity: 0.7;
+  pointer-events: none;
 }
 
 /* Animated Background */
@@ -361,26 +369,239 @@
   transition: transform 0.3s ease;
 }
 
-/* Loader */
-.loader {
-  display: flex;
+/* ========== LOADER STYLES ========== */
+
+/* Inline loader inside button */
+.submit-btn .btn-loader {
+  display: none;
+  align-items: center;
+  justify-content: center;
   gap: 0.4rem;
 }
 
+.submit-btn.loading .btn-text {
+  display: none;
+}
+
+.submit-btn.loading .btn-loader {
+  display: flex;
+}
+
+.submit-btn.loading {
+  pointer-events: none;
+  background: linear-gradient(180deg, #cc1a2a, #88000e);
+}
+
 .loader-dot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   background: white;
   border-radius: 50%;
-  animation: bounce 0.5s ease infinite;
+  animation: loaderBounce 0.6s ease-in-out infinite;
+}
+
+.loader-dot:nth-child(1) {
+  animation-delay: 0s;
 }
 
 .loader-dot:nth-child(2) {
-  animation-delay: 0.1s;
+  animation-delay: 0.15s;
 }
 
 .loader-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+/* Full-screen overlay loader (shown while waiting for login) */
+.auth-loader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 99999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 1.5rem;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Main loader container */
+.auth-loader {
+  text-align: center;
+  padding: 2rem;
+}
+
+/* Spinner animation */
+.auth-loader-spinner {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 1.5rem;
+  position: relative;
+}
+
+.auth-loader-spinner::before,
+.auth-loader-spinner::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  animation: spinPulse 1.2s ease-out infinite;
+}
+
+.auth-loader-spinner::before {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 3px solid rgba(255, 34, 51, 0.2);
+  border-top-color: #ff2233;
+  animation: spin 0.8s linear infinite;
+}
+
+.auth-loader-spinner::after {
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  border: 2px solid rgba(255, 34, 51, 0.1);
+  border-top-color: rgba(255, 34, 51, 0.6);
+  animation: spin 0.6s linear reverse infinite;
+}
+
+/* Animated rings */
+.auth-loader-rings {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.ring {
+  width: 12px;
+  height: 12px;
+  background: #ff2233;
+  border-radius: 50%;
+  animation: ringPulse 1.4s ease-in-out infinite;
+}
+
+.ring:nth-child(1) {
+  animation-delay: 0s;
+}
+.ring:nth-child(2) {
   animation-delay: 0.2s;
+}
+.ring:nth-child(3) {
+  animation-delay: 0.4s;
+}
+.ring:nth-child(4) {
+  animation-delay: 0.6s;
+}
+.ring:nth-child(5) {
+  animation-delay: 0.8s;
+}
+
+/* Loader text */
+.auth-loader-text {
+  color: white;
+  font-family: "Orbitron", monospace;
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 1rem;
+}
+
+.auth-loader-subtext {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+  letter-spacing: 1px;
+}
+
+/* Pulsing dots animation */
+.auth-loader-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.auth-loader-dots span {
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 34, 51, 0.6);
+  border-radius: 50%;
+  animation: dotPulse 1.4s ease-in-out infinite;
+}
+
+.auth-loader-dots span:nth-child(1) {
+  animation-delay: 0s;
+}
+.auth-loader-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.auth-loader-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Keyframe animations for loaders */
+@keyframes loaderBounce {
+  0%,
+  80%,
+  100% {
+    transform: scale(0.6);
+    opacity: 0.4;
+  }
+  40% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spinPulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+
+@keyframes ringPulse {
+  0%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+    background: #ff6b6b;
+  }
+}
+
+@keyframes dotPulse {
+  0%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
 }
 
 /* Footer */
@@ -399,7 +620,7 @@
   margin: 0;
 }
 
-/* Social buttons */
+/* Social buttons - Fixed cursor */
 .social-row {
   display: flex;
   gap: 0.6rem;
@@ -415,28 +636,46 @@
   background: rgba(255, 255, 255, 0.04);
   color: white;
   font-weight: 700;
-  cursor: pointer;
+  cursor: pointer !important;
   transition:
     transform 0.18s ease,
-    box-shadow 0.18s ease;
+    box-shadow 0.18s ease,
+    opacity 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .social-btn:disabled {
   opacity: 0.6;
-  cursor: not-allowed;
+  cursor: not-allowed !important;
 }
 
 .social-btn.google {
   background: linear-gradient(180deg, #fff 0%, #f1f1f1 100%);
   color: #222;
+  cursor: pointer !important;
 }
 
 .social-btn.facebook {
   background: linear-gradient(180deg, #1877f2 0%, #1565d8 100%);
   color: #fff;
+  cursor: pointer !important;
 }
 
-/* screen-reader only helper */
+.social-btn.google:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(180deg, #ffffff 0%, #e8e8e8 100%);
+}
+
+.social-btn.facebook:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(24, 119, 242, 0.4);
+  background: linear-gradient(180deg, #1e82f5 0%, #1360c4 100%);
+}
+
 .sr-only {
   position: absolute !important;
   width: 1px !important;
@@ -453,19 +692,7 @@
   width: 20px;
   height: 20px;
   display: inline-block;
-}
-
-.social-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.social-btn.google .social-icon {
-  margin: 0;
-}
-.social-btn.facebook .social-icon {
-  margin: 0;
+  flex-shrink: 0;
 }
 
 .switch-btn {
@@ -474,13 +701,13 @@
   color: #ff2233;
   font-weight: 600;
   cursor: pointer;
-  text-decoration: underline;
   transition: all 0.3s ease;
   font-size: 0.85rem;
 }
 
 .switch-btn:hover {
   color: #ff6b6b;
+  text-decoration: underline;
 }
 
 /* Corner Decorations */
@@ -580,17 +807,7 @@
   }
 }
 
-@keyframes bounce {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
-}
-
-/* Responsive - Still no scroll */
+/* Responsive */
 @media (max-width: 480px) {
   .auth-modal {
     max-width: 350px;
@@ -612,9 +829,22 @@
   .submit-btn {
     padding: 0.75rem;
   }
+
+  .social-btn {
+    padding: 0.5rem 0.7rem;
+    font-size: 0.85rem;
+  }
+
+  .auth-loader-spinner {
+    width: 50px;
+    height: 50px;
+  }
+
+  .auth-loader-text {
+    font-size: 0.8rem;
+  }
 }
 
-/* For very small screens, scale down instead of scroll */
 @media (max-height: 700px) {
   .auth-modal {
     transform: scale(0.95);
@@ -626,3 +856,64 @@
     transform: scale(0.9);
   }
 }
+
+/* Password Input with Eye Button */
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-input {
+  padding-right: 2.8rem !important;
+}
+
+.password-eye-btn {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.5);
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.password-eye-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.8;
+}
+
+.password-eye-btn:hover {
+  color: #ff2233;
+  transform: translateY(-50%) scale(1.05);
+}
+
+.password-eye-btn:focus {
+  outline: none;
+  color: #ff2233;
+}
+
+/* Disabled state */
+.password-eye-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Adjust for smaller screens */
+@media (max-width: 480px) {
+  .password-eye-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .password-input {
+    padding-right: 2.5rem !important;
+  }
+}   
