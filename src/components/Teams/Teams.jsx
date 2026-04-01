@@ -80,6 +80,13 @@ export default function Teams() {
 
                 {/* Bottom Name */}
                 <div className="player-name-bottom">{player.name}</div>
+
+                {/* Hover Details */}
+                <div className="player-details-hover">
+                  <div className="player-hover-ign">{player.ign || player.name}</div>
+                  {player.role && <div className="player-hover-role">{player.role}</div>}
+                  {player.bio && <p className="player-hover-bio">{player.bio}</p>}
+                </div>
               </div>
             );
           })}

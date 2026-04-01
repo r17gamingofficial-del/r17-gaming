@@ -186,11 +186,17 @@
 
 .player-edit-row {
   display: flex;
-  gap: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
   align-items: center;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.player-edit-row input {
+.player-edit-row input,
+.player-edit-row textarea {
   padding: 0.6rem;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -199,13 +205,20 @@
   font-size: 0.9rem;
 }
 
-.player-edit-row input::placeholder {
+.player-edit-row input::placeholder,
+.player-edit-row textarea::placeholder {
   color: rgba(255, 255, 255, 0.45);
 }
 
 .player-edit-row input[type="text"] {
-  flex: 1 1 0;
-  min-width: 0;
+  flex: 1 1 calc(50% - 0.75rem);
+  min-width: 140px;
+}
+
+.player-edit-row textarea {
+  flex: 1 1 100%;
+  min-width: 100%;
+  resize: vertical;
 }
 
 .btn-add-player {

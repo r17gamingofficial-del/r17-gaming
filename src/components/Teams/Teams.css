@@ -151,3 +151,57 @@
 .no-teams {
   color: gray;
 }
+
+/* Hover Details Overlay */
+.player-details-hover {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(5px);
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  transform: translateY(20px);
+  color: white;
+  z-index: 5;
+}
+
+.player-card-new:hover .player-details-hover {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.player-hover-ign {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #00ff9c;
+  margin-bottom: 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.player-hover-role {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ccc;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.player-hover-bio {
+  font-size: 0.9rem;
+  color: #eee;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-weight: 500;
+}

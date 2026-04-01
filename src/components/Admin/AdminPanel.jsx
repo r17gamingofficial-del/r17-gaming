@@ -108,7 +108,7 @@ export default function AdminPanel() {
   const [teamForm, setTeamForm] = useState({
     name: "",
     country: "",
-    players: [], // array of { name, avatar, role, bio }
+    players: [], // array of { name, ign, avatar, role, bio }
   });
 
   const [heroForm, setHeroForm] = useState(null);
@@ -1100,6 +1100,7 @@ export default function AdminPanel() {
                           players: (teamForm.players || [])
                             .map((p) => ({
                               name: (p.name || "").trim(),
+                              ign: (p.ign || "").trim(),
                               avatar: (p.avatar || "").trim(),
                               role: (p.role || "").trim(),
                               bio: (p.bio || "").trim(),
@@ -1186,6 +1187,32 @@ export default function AdminPanel() {
                                 setTeamForm({ ...teamForm, players: next });
                               }}
                             />
+                            <input
+                              type="text"
+                              placeholder="IGN (In-Game Name)"
+                              value={p.ign || ""}
+                              onChange={(e) => {
+                                const next = [...teamForm.players];
+                                next[idx] = {
+                                  ...next[idx],
+                                  ign: e.target.value,
+                                };
+                                setTeamForm({ ...teamForm, players: next });
+                              }}
+                            />
+                            <textarea
+                              placeholder="Player Bio / Details"
+                              value={p.bio || ""}
+                              rows={2}
+                              onChange={(e) => {
+                                const next = [...teamForm.players];
+                                next[idx] = {
+                                  ...next[idx],
+                                  bio: e.target.value,
+                                };
+                                setTeamForm({ ...teamForm, players: next });
+                              }}
+                            ></textarea>
                             <button
                               type="button"
                               className="btn-remove"
@@ -1208,7 +1235,7 @@ export default function AdminPanel() {
                               ...teamForm,
                               players: [
                                 ...(teamForm.players || []),
-                                { name: "", avatar: "", role: "", bio: "" },
+                                { name: "", ign: "", avatar: "", role: "", bio: "" },
                               ],
                             })
                           }
