@@ -66,6 +66,11 @@ export default function Navbar() {
               Games
             </a>
           </li>
+           <li>
+            <a href="#teams" onClick={(e) => handleScrollToSection(e, "teams")}>
+              Teams
+            </a>
+          </li>
           <li>
             <a
               href="#tournaments"
