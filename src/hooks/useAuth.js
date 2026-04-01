@@ -40,9 +40,9 @@ export function useAuth() {
     const unsubDoc = onSnapshot(
       userDocRef,
       (snap) => {
-        // If profile deleted or marked blocked, sign the user out immediately
-        if (!snap.exists() || snap.data()?.isBlocked) {
-          console.warn("User profile deleted or blocked — signing out");
+        // If profile marked blocked, sign the user out immediately
+        if (snap.exists() && snap.data()?.isBlocked) {
+          console.warn("User profile is blocked — signing out");
           signOut(auth).catch((e) => console.error("Sign-out error:", e));
         }
       },
