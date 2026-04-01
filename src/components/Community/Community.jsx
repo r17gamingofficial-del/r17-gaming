@@ -1,3 +1,4 @@
+import React from "react";
 import "./Community.css";
 import {
   FaDiscord,
@@ -42,14 +43,15 @@ const socialLinks = [
 ];
 
 export default function Community() {
-  const { communityPosts, loading } = useAppContext();
+  const { communityPosts, loading, adminComments } = useAppContext();
   const posts = Array.isArray(communityPosts) ? communityPosts : [];
+  const announcements = Array.isArray(adminComments) ? adminComments : [];
 
   return (
     <section id="community">
       <div className="reveal">
         <div className="section-label">Community</div>
-        <h2 className="section-title">WHAT PLAYERS SAY</h2>
+        <h2 className="section-title">JOIN THE ARENA</h2>
         {/* Social Links Section */}
         <div className="social-section reveal">
           <div className="social-links">
@@ -72,30 +74,66 @@ export default function Community() {
           </div>
         </div>
         <p className="section-sub">
-          Join millions of warriors who've already entered the arena.
+          Connect with millions of warriors, read reviews, and share your thoughts.
         </p>
       </div>
 
-      <div className="review-grid reveal">
-        {loading && posts.length === 0 ? (
-          <p className="community-loading">Loading community posts…</p>
-        ) : (
-          posts.map((r) => (
-            <div className="review-card" key={r.id}>
-              <div className="review-stars">{r.stars}</div>
-              <p className="review-text">{r.text}</p>
-              <div className="review-author">
-                <div className={`review-av ${r.av || "ra1"}`}>
-                  {(r.letter || "?").slice(0, 1)}
-                </div>
-                <div>
-                  <div className="review-name">{r.name}</div>
-                  <div className="review-handle">{r.handle}</div>
-                </div>
-              </div>
+      <div className="community-split reveal">
+        {/* Left Side: Reviews */}
+        <div className="community-left">
+          <h3 className="sub-section-title">Blogs</h3>
+          <div className="scrollable-content">
+            <div className="review-grid">
+              {loading && posts.length === 0 ? (
+                <p className="community-loading">Loading community posts…</p>
+              ) : (
+                posts.map((r) => (
+                  <div className="review-card" key={r.id}>
+                    <div className="review-stars">{r.stars}</div>
+                    <p className="review-text">{r.text}</p>
+                    <div className="review-author">
+                      <div className={`review-av ${r.av || "ra1"}`}>
+                        {(r.letter || "?").slice(0, 1)}
+                      </div>
+                      <div>
+                        <div className="review-name">{r.name}</div>
+                        <div className="review-handle">{r.handle}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
-          ))
-        )}
+          </div>
+        </div>
+
+        {/* Right Side: Admin Announcements */}
+        <div className="community-right">
+          <h3 className="sub-section-title">Comments</h3>
+          <div className="scrollable-content">
+            <div className="comment-list">
+              {loading && announcements.length === 0 ? (
+                <p className="community-loading">Loading announcements…</p>
+              ) : announcements.length === 0 ? (
+                <div className="comment-card" style={{ textAlign: "center", fontStyle: "italic", opacity: 0.7 }}>
+                  No new announcements at this time.
+                </div>
+              ) : (
+                announcements.map((comment) => (
+                  <div className="comment-card" key={comment.id}>
+                    <div className="comment-header">
+                      <span className="comment-author" style={{ color: "var(--gold)" }}>{comment.author}</span>
+                      <span className="comment-date">
+                        {comment.createdAt ? new Date(comment.createdAt.seconds * 1000).toLocaleDateString() : ""}
+                      </span>
+                    </div>
+                    <p className="comment-text">{comment.text}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

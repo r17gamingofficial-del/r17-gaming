@@ -15,6 +15,7 @@ import Newsletter from "./components/Newsletter/Newsletter.jsx";
 import Footer from "./components/Footer/Footer.jsx";
 import AdminPanel from "./components/Admin/AdminPanel.jsx";
 import Profile from "./components/Profile/Profile.jsx";
+import Teams from "./components/Teams/Teams.jsx";
 
 // Create a separate component that uses the context
 function HomePage() {
@@ -52,6 +53,7 @@ function HomePage() {
       <Marquee />
       <Games onGameSelect={handleGameSelect} selectedGame={selectedGame} />
       <Featured selectedGame={selectedGame} />
+      <Teams />
       <HowItWorks />
       <Tournaments />
       <Leaderboard />

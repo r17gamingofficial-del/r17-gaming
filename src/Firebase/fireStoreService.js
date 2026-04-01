@@ -18,8 +18,10 @@ import {
 const tournamentsCollection = collection(db, "tournaments");
 const gamesCollection = collection(db, "games");
 const leaderboardCollection = collection(db, "leaderboard");
+const teamsCollection = collection(db, "teams");
 const usersCollection = collection(db, "users");
 const communityPostsCollection = collection(db, "communityPosts");
+const adminCommentsCollection = collection(db, "adminComments");
 
 // ============ TOURNAMENTS ============
 
@@ -130,6 +132,72 @@ export const getGames = async () => {
     return games;
   } catch (error) {
     console.error("Error getting games:", error);
+    throw error;
+  }
+};
+
+// ============ TEAMS ============
+
+export const getTeams = async () => {
+  try {
+    const q = query(teamsCollection, orderBy("name", "asc"));
+    const querySnapshot = await getDocs(q);
+    const teams = [];
+    querySnapshot.forEach((doc) => {
+      teams.push({ id: doc.id, ...doc.data() });
+    });
+    return teams;
+  } catch (error) {
+    console.error("Error getting teams:", error);
+    throw error;
+  }
+};
+
+export const getTeam = async (id) => {
+  try {
+    const docRef = doc(db, "teams", id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) return { id: docSnap.id, ...docSnap.data() };
+    return null;
+  } catch (error) {
+    console.error("Error getting team:", error);
+    throw error;
+  }
+};
+
+export const addTeam = async (teamData) => {
+  try {
+    const team = {
+      ...teamData,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    };
+    const docRef = await addDoc(teamsCollection, team);
+    return { id: docRef.id, ...team };
+  } catch (error) {
+    console.error("Error adding team:", error);
+    throw error;
+  }
+};
+
+export const updateTeam = async (id, teamData) => {
+  try {
+    const docRef = doc(db, "teams", id);
+    await updateDoc(docRef, { ...teamData, updatedAt: Timestamp.now() });
+    return { id, ...teamData };
+  } catch (error) {
+    console.error("Error updating team:", error);
+    throw error;
+  }
+};
+
+export const deleteTeam = async (id) => {
+  try {
+    const docRef = doc(db, "teams", id);
+    await deleteDoc(docRef);
+    return true;
+  } catch (error) {
+    console.error("Error deleting team:", error);
     throw error;
   }
 };
@@ -455,6 +523,64 @@ export const deleteCommunityPost = async (id) => {
     return true;
   } catch (error) {
     console.error("Error deleting community post:", error);
+    throw error;
+  }
+};
+
+// ============ ADMIN COMMENTS ============
+
+export const getAdminComments = async () => {
+  try {
+    const q = query(adminCommentsCollection, orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
+    const comments = [];
+    querySnapshot.forEach((d) => {
+      comments.push({ id: d.id, ...d.data() });
+    });
+    return comments;
+  } catch (error) {
+    console.error("Error getting admin comments:", error);
+    throw error;
+  }
+};
+
+export const addAdminComment = async (commentData) => {
+  try {
+    const comment = {
+      author: commentData.author || "Admin",
+      text: commentData.text || "",
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    };
+    const docRef = await addDoc(adminCommentsCollection, comment);
+    return { id: docRef.id, ...comment };
+  } catch (error) {
+    console.error("Error adding admin comment:", error);
+    throw error;
+  }
+};
+
+export const updateAdminComment = async (id, commentData) => {
+  try {
+    const docRef = doc(db, "adminComments", id);
+    await updateDoc(docRef, {
+      ...commentData,
+      updatedAt: Timestamp.now(),
+    });
+    return { id, ...commentData };
+  } catch (error) {
+    console.error("Error updating admin comment:", error);
+    throw error;
+  }
+};
+
+export const deleteAdminComment = async (id) => {
+  try {
+    const docRef = doc(db, "adminComments", id);
+    await deleteDoc(docRef);
+    return true;
+  } catch (error) {
+    console.error("Error deleting admin comment:", error);
     throw error;
   }
 };

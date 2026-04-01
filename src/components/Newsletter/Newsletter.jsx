@@ -105,14 +105,14 @@ export default function Newsletter() {
                     <span style={{ marginLeft: 8 }}>Sending...</span>
                   </>
                 ) : (
-                  "Subscribe"
+                  "Connect"
                 )}
               </button>
             </div>
 
-            <p className="newsletter-disclaimer">
+            {/* <p className="newsletter-disclaimer">
               No spam. Unsubscribe anytime. 240K+ subscribers.
-            </p>
+            </p> */}
           </>
         )}
       </div>

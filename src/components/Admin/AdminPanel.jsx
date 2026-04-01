@@ -5,10 +5,14 @@ import "./AdminPanel.css";
 export default function AdminPanel() {
   const {
     tournaments,
+    teams,
     games,
     leaderboard,
     hero,
     users,
+    addTeam,
+    updateTeam,
+    deleteTeam,
     addTournament,
     updateTournament,
     deleteTournament,
@@ -23,6 +27,10 @@ export default function AdminPanel() {
     addCommunityPost,
     updateCommunityPost,
     deleteCommunityPost,
+    adminComments,
+    addAdminComment,
+    updateAdminComment,
+    deleteAdminComment,
     blockUser,
     unblockUser,
     deleteUser,
@@ -90,6 +98,17 @@ export default function AdminPanel() {
     name: "",
     handle: "",
     text: "",
+  });
+
+  const [announcementForm, setAnnouncementForm] = useState({
+    author: "Admin",
+    text: "",
+  });
+
+  const [teamForm, setTeamForm] = useState({
+    name: "",
+    country: "",
+    players: [], // array of { name, avatar, role, bio }
   });
 
   const [heroForm, setHeroForm] = useState(null);
@@ -506,6 +525,11 @@ export default function AdminPanel() {
         handle: item.handle || "",
         text: item.text || "",
       });
+    } else if (type === "announcements") {
+      setAnnouncementForm({
+        author: item.author || "Admin",
+        text: item.text || "",
+      });
     }
   };
 
@@ -525,6 +549,11 @@ export default function AdminPanel() {
     (p) =>
       (p.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
       (p.text || "").toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
+  const filteredAnnouncements = (adminComments || []).filter(
+    (a) =>
+      (a.text || "").toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const filteredUsers = (users || []).filter(
@@ -593,6 +622,39 @@ export default function AdminPanel() {
     }
   };
 
+  const handleAddAnnouncement = async () => {
+    if (!announcementForm.text?.trim()) {
+      showMessage("Please fill in announcement text", "error");
+      return;
+    }
+    const created = await addAdminComment({
+      author: announcementForm.author.trim() || "Admin",
+      text: announcementForm.text.trim(),
+    });
+    if (created) {
+      showMessage("Announcement added!");
+      setAnnouncementForm({ author: "Admin", text: "" });
+      setShowForm(false);
+    } else {
+      showMessage("Error adding announcement", "error");
+    }
+  };
+
+  const handleUpdateAnnouncement = async () => {
+    const success = await updateAdminComment(editingItem.id, {
+      author: announcementForm.author.trim() || "Admin",
+      text: announcementForm.text.trim(),
+    });
+    if (success) {
+      showMessage("Announcement updated!");
+      setEditingItem(null);
+      setAnnouncementForm({ author: "Admin", text: "" });
+      setShowForm(false);
+    } else {
+      showMessage("Error updating announcement", "error");
+    }
+  };
+
   const handleSaveHero = async () => {
     if (!heroForm) return;
     const vid = extractYouTubeId(heroForm.youtubeVideoUrl);
@@ -649,6 +711,16 @@ export default function AdminPanel() {
           🏆 Tournaments ({tournaments.length})
         </button>
         <button
+          className={`tab-btn ${activeTab === "teams" ? "active" : ""}`}
+          onClick={() => {
+            setActiveTab("teams");
+            setShowForm(false);
+            setSearchTerm("");
+          }}
+        >
+          🛡️ Teams ({teams?.length ?? 0})
+        </button>
+        <button
           className={`tab-btn ${activeTab === "games" ? "active" : ""}`}
           onClick={() => {
             setActiveTab("games");
@@ -677,6 +749,16 @@ export default function AdminPanel() {
           }}
         >
           💬 Community ({communityPosts?.length ?? 0})
+        </button>
+        <button
+          className={`tab-btn ${activeTab === "announcements" ? "active" : ""}`}
+          onClick={() => {
+            setActiveTab("announcements");
+            setShowForm(false);
+            setSearchTerm("");
+          }}
+        >
+          📢 Comments  ({adminComments?.length ?? 0})
         </button>
         <button
           className={`tab-btn ${activeTab === "users" ? "active" : ""}`}
@@ -833,7 +915,7 @@ export default function AdminPanel() {
           <p className="no-data">Loading hero settings…</p>
         ) : null}
 
-        {activeTab !== "hero" && activeTab !== "users" ? (
+        {activeTab !== "hero" && activeTab !== "users" && activeTab !== "announcements" ? (
           <>
             <div className="admin-actions">
               <div className="search-bar">
@@ -989,6 +1071,152 @@ export default function AdminPanel() {
                           })
                         }
                       />
+                      <div className="form-actions">
+                        <button type="submit" className="btn-save">
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-cancel"
+                          onClick={() => {
+                            setShowForm(false);
+                            setEditingItem(null);
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {activeTab === "teams" && (
+                    <form
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        // Use the players array directly
+                        const payload = {
+                          name: teamForm.name,
+                          country: teamForm.country,
+                          players: (teamForm.players || [])
+                            .map((p) => ({
+                              name: (p.name || "").trim(),
+                              avatar: (p.avatar || "").trim(),
+                              role: (p.role || "").trim(),
+                              bio: (p.bio || "").trim(),
+                            }))
+                            .filter((p) => p.name),
+                        };
+
+                        if (editingItem) {
+                          const ok = await updateTeam(editingItem.id, payload);
+                          if (ok) {
+                            showMessage("Team updated");
+                          } else showMessage("Error updating team", "error");
+                          setShowForm(false);
+                          setEditingItem(null);
+                          return;
+                        }
+
+                        const created = await addTeam(payload);
+                        if (created) {
+                          showMessage("Team added");
+                          setTeamForm({ name: "", country: "", players: [] });
+                          setShowForm(false);
+                        } else showMessage("Error adding team", "error");
+                      }}
+                    >
+                      <input
+                        type="text"
+                        placeholder="Team Name"
+                        value={teamForm.name}
+                        onChange={(e) =>
+                          setTeamForm({ ...teamForm, name: e.target.value })
+                        }
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Country / Region"
+                        value={teamForm.country}
+                        onChange={(e) =>
+                          setTeamForm({ ...teamForm, country: e.target.value })
+                        }
+                      />
+
+                      <div className="players-edit-list">
+                        {(teamForm.players || []).map((p, idx) => (
+                          <div className="player-edit-row" key={idx}>
+                            <input
+                              type="text"
+                              placeholder="Player name"
+                              value={p.name || ""}
+                              onChange={(e) => {
+                                const next = [...teamForm.players];
+                                next[idx] = {
+                                  ...next[idx],
+                                  name: e.target.value,
+                                };
+                                setTeamForm({ ...teamForm, players: next });
+                              }}
+                              required
+                            />
+                            <input
+                              type="text"
+                              placeholder="Avatar URL"
+                              value={p.avatar || ""}
+                              onChange={(e) => {
+                                const next = [...teamForm.players];
+                                next[idx] = {
+                                  ...next[idx],
+                                  avatar: e.target.value,
+                                };
+                                setTeamForm({ ...teamForm, players: next });
+                              }}
+                            />
+                            <input
+                              type="text"
+                              placeholder="Role (e.g., Captain)"
+                              value={p.role || ""}
+                              onChange={(e) => {
+                                const next = [...teamForm.players];
+                                next[idx] = {
+                                  ...next[idx],
+                                  role: e.target.value,
+                                };
+                                setTeamForm({ ...teamForm, players: next });
+                              }}
+                            />
+                            <button
+                              type="button"
+                              className="btn-remove"
+                              onClick={() => {
+                                const next = [...teamForm.players];
+                                next.splice(idx, 1);
+                                setTeamForm({ ...teamForm, players: next });
+                              }}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))}
+
+                        <button
+                          type="button"
+                          className="btn-add-player"
+                          onClick={() =>
+                            setTeamForm({
+                              ...teamForm,
+                              players: [
+                                ...(teamForm.players || []),
+                                { name: "", avatar: "", role: "", bio: "" },
+                              ],
+                            })
+                          }
+                        >
+                          + Add Player
+                        </button>
+                      </div>
+
                       <div className="form-actions">
                         <button type="submit" className="btn-save">
                           Save
@@ -1513,6 +1741,71 @@ export default function AdminPanel() {
               </div>
             )}
 
+            {activeTab === "teams" && (
+              <div className="data-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Team Name</th>
+                      <th>Country</th>
+                      <th>Players</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {teams && teams.length > 0 ? (
+                      teams.map((team) => (
+                        <tr key={team.id}>
+                          <td>{team.name}</td>
+                          <td>{team.country || "-"}</td>
+                          <td>
+                            {(team.players || []).map((p) => p.name).join(", ")}
+                          </td>
+                          <td>
+                            <button
+                              className="btn-edit"
+                              onClick={() => {
+                                setEditingItem(team);
+                                setShowForm(true);
+                                setTeamForm({
+                                  name: team.name || "",
+                                  country: team.country || "",
+                                  players: Array.isArray(team.players)
+                                    ? team.players.map((p) => ({
+                                        name: p.name || "",
+                                        avatar: p.avatar || "",
+                                        role: p.role || "",
+                                        bio: p.bio || "",
+                                      }))
+                                    : [],
+                                });
+                              }}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="btn-delete"
+                              onClick={() =>
+                                handleDelete(team.id, "team", deleteTeam)
+                              }
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="4" className="no-data">
+                          No teams found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
             {activeTab === "games" && (
               <div className="data-table">
                 <table>
@@ -1923,6 +2216,108 @@ export default function AdminPanel() {
             </div>
           </div>
         )}
+
+        {/* Announcements Tab Content */}
+        {activeTab === "announcements" && !showForm && (
+          <div className="tab-pane">
+            <div className="pane-header">
+              <h2>📢 Admin Comments</h2>
+              <div className="pane-actions">
+                <input
+                  type="text"
+                  placeholder="Search announcements..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="search-input"
+                />
+                <button className="add-btn" onClick={() => setShowForm(true)}>
+                  + New Comment
+                </button>
+              </div>
+            </div>
+            <div className="items-grid">
+              {filteredAnnouncements.map((item) => (
+                <div key={item.id} className="admin-card">
+                  <div className="card-content">
+                    <h3>{item.author}</h3>
+                    <p className="card-subtitle line-clamp-2">{item.text}</p>
+                    <p className="card-date" style={{marginTop: "8px", color: "var(--muted)", fontSize: "0.8rem"}}>
+                      {item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleString() : ""}
+                    </p>
+                  </div>
+                  <div className="card-actions">
+                    <button className="edit-btn" onClick={() => handleEdit(item, "announcements")}>Edit</button>
+                    <button className="delete-btn" onClick={() => handleDelete(item.id, "Announcement", deleteAdminComment)}>Delete</button>
+                  </div>
+                </div>
+              ))}
+              {filteredAnnouncements.length === 0 && (
+                <div className="empty-state">No announcements found.</div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Announcements Form */}
+        {activeTab === "announcements" && showForm && (
+          <div className="form-modal">
+            <div className="form-container">
+              <h3>{editingItem ? "Edit" : "New"} Announcement</h3>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (editingItem) {
+                    await handleUpdateAnnouncement();
+                  } else {
+                    await handleAddAnnouncement();
+                  }
+                }}
+              >
+                <input
+                  type="text"
+                  placeholder="Author Name (e.g. Admin, NightHawk)"
+                  value={announcementForm.author}
+                  onChange={(e) =>
+                    setAnnouncementForm({
+                      ...announcementForm,
+                      author: e.target.value,
+                    })
+                  }
+                  required
+                />
+                <textarea
+                  placeholder="Enter the announcement text..."
+                  value={announcementForm.text}
+                  onChange={(e) =>
+                    setAnnouncementForm({
+                      ...announcementForm,
+                      text: e.target.value,
+                    })
+                  }
+                  required
+                  rows={6}
+                />
+                <div className="form-actions">
+                  <button
+                    type="button"
+                    className="btn-cancel"
+                    onClick={() => {
+                      setShowForm(false);
+                      setEditingItem(null);
+                      setAnnouncementForm({ author: "Admin", text: "" });
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn-save">
+                    {editingItem ? "Update" : "Add"} Announcement
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
       </div>
 
       <div className="admin-stats">

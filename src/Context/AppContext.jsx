@@ -19,9 +19,17 @@ import {
   updateCommunityPost as updateCommunityPostInDb,
   deleteCommunityPost as deleteCommunityPostInDb,
   getUsers,
+  getTeams,
   deleteUser as deleteUserInDb,
   blockUser as blockUserInDb,
   unblockUser as unblockUserInDb,
+  addTeam as addTeamInDb,
+  updateTeam as updateTeamInDb,
+  deleteTeam as deleteTeamInDb,
+  getAdminComments,
+  addAdminComment as addAdminCommentInDb,
+  updateAdminComment as updateAdminCommentInDb,
+  deleteAdminComment as deleteAdminCommentInDb,
 } from "../Firebase/fireStoreService.js";
 
 const AppContext = createContext();
@@ -70,10 +78,12 @@ function mergeHero(loaded) {
 
 export const AppProvider = ({ children }) => {
   const [tournaments, setTournaments] = useState([]);
+  const [teams, setTeams] = useState([]);
   const [games, setGames] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
   const [hero, setHero] = useState(() => ({ ...defaultHero }));
   const [communityPosts, setCommunityPosts] = useState([]);
+  const [adminComments, setAdminComments] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -275,11 +285,13 @@ export const AppProvider = ({ children }) => {
         },
       ];
 
-      const [dbTournaments, dbGames, dbLeaderboard] = await Promise.all([
-        getTournaments(),
-        getGames(),
-        getLeaderboard(),
-      ]);
+      const [dbTournaments, dbGames, dbLeaderboard, dbTeams] =
+        await Promise.all([
+          getTournaments(),
+          getGames(),
+          getLeaderboard(),
+          getTeams(),
+        ]);
 
       if (!dbTournaments?.length) {
         for (const t of defaultTournaments) {
@@ -308,6 +320,7 @@ export const AppProvider = ({ children }) => {
         heroSnap,
         rawCommunity,
         rawUsers,
+        rawAdminComments,
       ] = await Promise.all([
         getTournaments(),
         getGames(),
@@ -315,6 +328,7 @@ export const AppProvider = ({ children }) => {
         getHero(),
         getCommunityPosts(),
         getUsers(),
+        getAdminComments(),
       ]);
 
       let communityFinal = rawCommunity;
@@ -325,6 +339,7 @@ export const AppProvider = ({ children }) => {
         communityFinal = await getCommunityPosts();
       }
       setCommunityPosts(communityFinal);
+      setAdminComments(rawAdminComments || []);
       setUsers(rawUsers || []);
 
       let heroMerged = mergeHero(heroSnap);
@@ -338,6 +353,7 @@ export const AppProvider = ({ children }) => {
       setTournaments(finalTournaments);
       setGames(finalGames);
       setLeaderboard(finalLeaderboard);
+      setTeams(dbTeams || []);
 
       setLoading(false);
     } catch (error) {
@@ -460,6 +476,46 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // Teams CRUD
+  const addTeam = async (team) => {
+    try {
+      const created = await addTeamInDb(team);
+      setTeams((prev) =>
+        [...prev, created].sort((a, b) =>
+          (a.name || "").localeCompare(b.name || ""),
+        ),
+      );
+      return created;
+    } catch (error) {
+      console.error("Error adding team:", error);
+      return null;
+    }
+  };
+
+  const updateTeam = async (id, updatedData) => {
+    try {
+      await updateTeamInDb(id, updatedData);
+      setTeams((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, ...updatedData } : t)),
+      );
+      return true;
+    } catch (error) {
+      console.error("Error updating team:", error);
+      return false;
+    }
+  };
+
+  const deleteTeam = async (id) => {
+    try {
+      await deleteTeamInDb(id);
+      setTeams((prev) => prev.filter((t) => t.id !== id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting team:", error);
+      return false;
+    }
+  };
+
   const updateHero = async (partial) => {
     try {
       const snap = await getHero();
@@ -517,6 +573,42 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const addAdminComment = async (comment) => {
+    try {
+      const created = await addAdminCommentInDb(comment);
+      // add to top since we sort by desc
+      setAdminComments((prev) => [created, ...prev]);
+      return created;
+    } catch (error) {
+      console.error("Error adding admin comment:", error);
+      return null;
+    }
+  };
+
+  const updateAdminComment = async (id, data) => {
+    try {
+      await updateAdminCommentInDb(id, data);
+      setAdminComments((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, ...data } : c)),
+      );
+      return true;
+    } catch (error) {
+      console.error("Error updating admin comment:", error);
+      return false;
+    }
+  };
+
+  const deleteAdminComment = async (id) => {
+    try {
+      await deleteAdminCommentInDb(id);
+      setAdminComments((prev) => prev.filter((c) => c.id !== id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting admin comment:", error);
+      return false;
+    }
+  };
+
   // User Management Operations
   const blockUser = async (id) => {
     try {
@@ -557,6 +649,7 @@ export const AppProvider = ({ children }) => {
 
   const value = {
     tournaments,
+    teams,
     games,
     leaderboard,
     hero,
@@ -576,9 +669,16 @@ export const AppProvider = ({ children }) => {
     addCommunityPost,
     updateCommunityPost,
     deleteCommunityPost,
+    adminComments,
+    addAdminComment,
+    updateAdminComment,
+    deleteAdminComment,
     blockUser,
     unblockUser,
     deleteUser,
+    addTeam,
+    updateTeam,
+    deleteTeam,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

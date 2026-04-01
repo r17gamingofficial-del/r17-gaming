@@ -1,0 +1,153 @@
+/* Section */
+.teams-section {
+  padding: 5rem 2rem;
+  background: #000;
+  text-align: center;
+}
+
+/* Heading */
+.teams-heading {
+  color: white;
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 2rem;
+}
+
+/* Tabs */
+.game-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+}
+
+.game-tab {
+  padding: 0.8rem 2rem;
+  background: #1a1a1a;
+  color: #ccc;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.game-tab:hover {
+  background: #2a2a2a;
+}
+
+.game-tab.active {
+  background: linear-gradient(135deg, #00ff9c, #00c97a);
+  color: black;
+  box-shadow: 0 0 20px rgba(0, 255, 156, 0.5);
+}
+
+/* Carousel Wrapper */
+.players-carousel-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Carousel */
+.players-carousel {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 1rem 0;
+}
+
+.players-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+/* Player Card (Smaller) */
+.player-card-new {
+  min-width: 220px;
+  height: 320px;
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+  transition: 0.3s ease;
+}
+
+.player-card-new:hover {
+  transform: translateY(-6px);
+}
+
+/* Image */
+.player-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.player-card-new:hover .player-img {
+  transform: scale(1.05);
+}
+
+/* Overlay */
+.player-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent 60%);
+}
+
+/* Vertical Gamer Tag */
+.player-tag {
+  position: absolute;
+  right: 8px;
+  top: 15px;
+  writing-mode: vertical-rl;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.8);
+  letter-spacing: 2px;
+}
+
+/* Bottom Name */
+.player-name-bottom {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+/* Carousel Buttons */
+.carousel-btn {
+  position: absolute;
+  z-index: 10;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.carousel-btn:hover {
+  background: #00ff9c;
+  color: black;
+}
+
+.carousel-btn.left {
+  left: -20px;
+}
+
+.carousel-btn.right {
+  right: -20px;
+}
+
+/* Empty State */
+.no-teams {
+  color: gray;
+}
