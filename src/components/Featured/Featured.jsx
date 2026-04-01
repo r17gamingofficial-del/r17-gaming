@@ -154,9 +154,9 @@ export default function Featured({ selectedGame }) {
 
         {/* Action Buttons */}
         <div className="featured-actions">
-          <a href="#" className="btn-primary">
+          {/* <a href="#" className="btn-primary">
             {game.featuredButtonText || "Play Now — Free"}
-          </a>
+          </a> */}
           <a
             href={game.videoUrl || "#"}
             className="btn-ghost"

@@ -53,7 +53,7 @@ export default function Tournaments() {
 
   // Handle video autoplay on hover for cards
   const handleVideoHover = (tournamentId, isHovering) => {
-    const video = videoRefs.current[tournamentId];
+    const video = videoRefs.current[`hover-${tournamentId}`];
     if (video) {
       if (isHovering) {
         video.play().catch((error) => {
@@ -106,7 +106,17 @@ export default function Tournaments() {
               })()}
 
               {/* Tournament Card */}
-              <div className="gallery-tournament-card">
+              <div 
+                className="gallery-tournament-card"
+                onMouseEnter={() => {
+                  setHoveredCard(selectedTournament.id || selectedTournament.rank);
+                  handleVideoHover(selectedTournament.id || selectedTournament.rank, true);
+                }}
+                onMouseLeave={() => {
+                  setHoveredCard(null);
+                  handleVideoHover(selectedTournament.id || selectedTournament.rank, false);
+                }}
+              >
                 <div className="card-image">
                   <img
                     src={
@@ -115,11 +125,39 @@ export default function Tournaments() {
                       "https://via.placeholder.com/600x400?text=No+Image"
                     }
                     alt={selectedTournament.name}
+                    className={`card-bg-img ${(hoveredCard === (selectedTournament.id || selectedTournament.rank)) && selectedTournament.videoUrl ? 'card-image-hidden' : ''}`}
                     onError={(e) => {
                       e.target.src =
                         "https://via.placeholder.com/600x400?text=No+Image";
                     }}
                   />
+                  {/* Hover Trailer Overlay */}
+                  {selectedTournament.videoUrl && (
+                    <div className={`card-video-overlay ${hoveredCard === (selectedTournament.id || selectedTournament.rank) ? 'visible' : ''}`}>
+                      {selectedTournament.videoUrl.includes("youtube.com") || selectedTournament.videoUrl.includes("youtu.be") ? (
+                        hoveredCard === (selectedTournament.id || selectedTournament.rank) && (
+                          <iframe
+                            className="card-hover-video"
+                            src={`${selectedTournament.videoUrl}${selectedTournament.videoUrl.includes("?") ? "&" : "?"}autoplay=1&mute=1&controls=0`}
+                            frameBorder="0"
+                            allow="autoplay; encrypted-media"
+                            allowFullScreen
+                          ></iframe>
+                        )
+                      ) : (
+                        <video
+                          ref={(el) => (videoRefs.current[`hover-${selectedTournament.id || selectedTournament.rank}`] = el)}
+                          className="card-hover-video"
+                          muted
+                          loop
+                          playsInline
+                        >
+                          <source src={selectedTournament.videoUrl} type="video/mp4" />
+                        </video>
+                      )}
+                    </div>
+                  )}
+
                   <div
                     className={`card-status status-${selectedTournament.status}`}
                   >
@@ -165,42 +203,7 @@ export default function Tournaments() {
                   </button>
                 </div>
               </div>
-
-              {/* Video Section */}
-              <div className="video-section">
-                <h4 className="section-heading">🎬 Tournament Trailer</h4>
-                <div className="video-container">
-                  {selectedTournament.videoUrl &&
-                  (selectedTournament.videoUrl.includes("youtube.com") ||
-                    selectedTournament.videoUrl.includes("youtu.be")) ? (
-                    <iframe
-                      className="tournament-video"
-                      src={selectedTournament.videoUrl}
-                      title={`${selectedTournament.name} Trailer`}
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    ></iframe>
-                  ) : (
-                    <video
-                      key={selectedTournament.rank}
-                      className="tournament-video"
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                      controls
-                    >
-                      <source
-                        src={selectedTournament.videoUrl}
-                        type="video/mp4"
-                      />
-                      Your browser does not support the video tag.
-                    </video>
-                  )}
-                </div>
-              </div>
-
+              
               {/* Photos Gallery */}
               <div className="photos-section">
                 <h4 className="section-heading">📸 Tournament Highlights</h4>
