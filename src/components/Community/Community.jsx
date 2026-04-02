@@ -16,30 +16,30 @@ const socialLinks = [
     icon: FaDiscord,
     color: "#5865F2",
   },
-  {
-    platform: "Twitter",
-    url: "https://twitter.com/R17Gaming",
-    icon: FaTwitter,
-    color: "#1DA1F2",
-  },
+  // {
+  //   platform: "Twitter",
+  //   url: "https://twitter.com/R17Gaming",
+  //   icon: FaTwitter,
+  //   color: "#1DA1F2",
+  // },
   {
     platform: "Instagram",
     url: "https://www.instagram.com/r17_esport?igsh=bXNxY2pmcDlnZDVm",
     icon: FaInstagram,
     color: "#E4405F",
   },
-  {
-    platform: "Twitch",
-    url: "https://twitch.tv/R17Gaming",
-    icon: FaTwitch,
-    color: "#9146FF",
-  },
-  {
-    platform: "YouTube",
-    url: "https://youtube.com/@R17Gaming",
-    icon: FaYoutube,
-    color: "#FF0000",
-  },
+  // {
+  //   platform: "Twitch",
+  //   url: "https://twitch.tv/R17Gaming",
+  //   icon: FaTwitch,
+  //   color: "#9146FF",
+  // },
+  // {
+  //   platform: "YouTube",
+  //   url: "https://youtube.com/@R17Gaming",
+  //   icon: FaYoutube,
+  //   color: "#FF0000",
+  // },
 ];
 
 export default function Community() {
