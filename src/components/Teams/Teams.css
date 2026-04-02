@@ -220,3 +220,87 @@
   z-index: 2;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .teams-section {
+    padding: 4rem 3vw;
+  }
+}
+
+@media (max-width: 768px) {
+  .teams-section {
+    padding: 3rem 2vw;
+  }
+
+  .game-tabs {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .game-tab {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
+
+  .player-card-new {
+    min-width: 180px;
+    height: 280px;
+  }
+
+  .player-tag {
+    font-size: 1.2rem;
+  }
+
+  .carousel-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .teams-section {
+    padding: 2.5rem 5%;
+  }
+
+  .teams-heading {
+    font-size: 2rem;
+  }
+
+  .player-card-new {
+    min-width: 150px;
+    height: 230px;
+  }
+
+  .player-tag {
+    font-size: 1.1rem;
+    right: 5px;
+    top: 10px;
+  }
+
+  .player-name-bottom {
+    font-size: 0.8rem;
+  }
+
+  .player-team-logo {
+    width: 30px;
+    height: 30px;
+    top: 10px;
+    left: 10px;
+  }
+
+  .player-hover-ign {
+    font-size: 1.2rem;
+  }
+
+  .player-hover-role {
+    font-size: 0.75rem;
+  }
+
+  .player-hover-bio {
+    font-size: 0.8rem;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+  }
+}

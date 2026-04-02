@@ -307,6 +307,10 @@
   animation-delay: 0.6s;
 }
 
+.mobile-menu a:nth-child(7) {
+  animation-delay: 0.7s;
+}
+
 .mobile-profile-link {
   display: inline-flex !important;
   align-items: center;

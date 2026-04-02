@@ -776,10 +776,6 @@
     margin-bottom: 2rem;
     max-height: none;
   }
-
-  .photos-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
 }
 
 @media (max-width: 768px) {
@@ -787,9 +783,18 @@
     padding: 2rem 1rem;
   }
 
-  .photos-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
+  .neon-grid-mini {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 0.8rem;
+  }
+
+  .mini-game-card {
+    min-height: 200px;
+    padding: 0.8rem;
+  }
+
+  .mini-game-name {
+    font-size: 1.2rem;
   }
 
   .section-heading {

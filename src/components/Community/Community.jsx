@@ -120,9 +120,9 @@ export default function Community() {
               {loading && announcements.length === 0 ? (
                 <p className="community-loading">Loading announcements…</p>
               ) : announcements.length === 0 ? (
-                <div className="comment-card" style={{ textAlign: "center", fontStyle: "italic", opacity: 0.7 }}>
+                <p style={{ textAlign: "center", fontStyle: "italic", opacity: 0.5, fontSize: "0.85rem", margin: "0.5rem 0" }}>
                   No new announcements at this time.
-                </div>
+                </p>
               ) : (
                 announcements.map((comment) => (
                   <div className="comment-card" key={comment.id}>
