@@ -107,6 +107,11 @@ export default function Community() {
           </div>
         </div>
 
+        {/* Center Logo Divider */}
+        <div className="community-center-logo">
+          <span className="logo-r">R</span><span className="logo-17">17</span>
+        </div>
+
         {/* Right Side: Admin Announcements */}
         <div className="community-right">
           <h3 className="sub-section-title">Comments</h3>

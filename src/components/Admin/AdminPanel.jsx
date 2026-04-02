@@ -107,6 +107,7 @@ export default function AdminPanel() {
 
   const [teamForm, setTeamForm] = useState({
     name: "",
+    logo: "",
     country: "",
     players: [], // array of { name, ign, avatar, role, bio }
   });
@@ -472,6 +473,13 @@ export default function AdminPanel() {
             : item.gallery
           : "",
         registerUrl: item.registerUrl || "",
+      });
+    } else if (type === "teams") {
+      setTeamForm({
+        name: item.name || "",
+        logo: item.logo || "",
+        country: item.country || "",
+        players: item.players || [],
       });
     } else if (type === "games") {
       setGameForm({
@@ -1096,6 +1104,7 @@ export default function AdminPanel() {
                         // Use the players array directly
                         const payload = {
                           name: teamForm.name,
+                          logo: teamForm.logo,
                           country: teamForm.country,
                           players: (teamForm.players || [])
                             .map((p) => ({
@@ -1121,7 +1130,7 @@ export default function AdminPanel() {
                         const created = await addTeam(payload);
                         if (created) {
                           showMessage("Team added");
-                          setTeamForm({ name: "", country: "", players: [] });
+                          setTeamForm({ name: "", logo: "", country: "", players: [] });
                           setShowForm(false);
                         } else showMessage("Error adding team", "error");
                       }}
@@ -1134,6 +1143,14 @@ export default function AdminPanel() {
                           setTeamForm({ ...teamForm, name: e.target.value })
                         }
                         required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Team Logo URL"
+                        value={teamForm.logo || ""}
+                        onChange={(e) =>
+                          setTeamForm({ ...teamForm, logo: e.target.value })
+                        }
                       />
                       <input
                         type="text"

@@ -204,13 +204,33 @@ export default function Tournaments() {
                 </div>
               </div>
               
-              {/* Photos Gallery */}
-              <div className="photos-section">
-                <h4 className="section-heading">📸 Tournament Highlights</h4>
-                <div className="photos-grid">
-                  {(selectedTournament.gallery || []).map((img, index) => (
-                    <div key={index} className="photo-item">
-                      <img src={img} alt={`Highlight ${index + 1}`} />
+              {/* Game-style Mini Cards for Other Tournaments */}
+              <div className="neon-mini-gallery" style={{ marginTop: "2rem" }}>
+                <h4 className="section-heading" style={{ color: "var(--red)", marginBottom: "1.5rem" }}>⚡ OTHER TOURNAMENTS</h4>
+                <div className="neon-grid-mini">
+                  {tournaments.map((t) => (
+                    <div 
+                      key={t.id || t.rank} 
+                      className={`mini-game-card ${selectedTournament?.id === t.id || selectedTournament?.rank === t.rank ? 'active' : ''}`}
+                      onClick={() => handleTournamentClick(t)}
+                    >
+                      <div 
+                        className="mini-game-card-thumb"
+                        style={{ backgroundImage: `url(${t.thumbnail || t.image || "https://via.placeholder.com/600x400?text=No+Image"})` }}
+                      />
+                      <div className="mini-game-card-overlay" />
+                      
+                      <div className="mini-game-card-top">
+                        <span className={`game-tag mini-tag status-${t.status}`}>
+                          {t.status}
+                        </span>
+                      </div>
+                      
+                      <div className="mini-game-card-body">
+                        <div className="mini-game-genre">{t.region || "GLOBAL"}</div>
+                        <div className="mini-game-name">{t.name}</div>
+                        <div className="mini-game-desc">{t.date} • {t.teams} Teams</div>
+                      </div>
                     </div>
                   ))}
                 </div>
