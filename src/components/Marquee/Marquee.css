@@ -1,31 +1,10 @@
 .marquee-wrap {
   overflow: hidden;
-  background: linear-gradient(90deg, #ff4757, #ff6b6b);
+  background: #ff2a2a; /* Bright solid red from image */
   padding: 0.75rem 0;
   position: relative;
-  box-shadow: 0 5px 15px rgba(255, 71, 87, 0.2);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Fading text edges effect */
-.marquee-wrap::before,
-.marquee-wrap::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 100px;
-  z-index: 10;
-  pointer-events: none;
-}
-.marquee-wrap::before {
-  left: 0;
-  background: linear-gradient(90deg, rgba(255, 71, 87, 1) 0%, transparent 100%);
-}
-.marquee-wrap::after {
-  right: 0;
-  background: linear-gradient(270deg, rgba(255, 107, 107, 1) 0%, transparent 100%);
+  border-top: 3px solid #000;
+  border-bottom: 3px solid #000;
 }
 
 .marquee-track {
@@ -37,18 +16,18 @@
 
 .marquee-item {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   letter-spacing: 0.2em;
-  color: #fff;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  color: #8c0d0d; /* Dark crimson text */
+  text-shadow: none; /* Removed shadow */
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  font-weight: normal;
+  font-weight: bold;
 }
 
 .dot {
-  color: rgba(255, 255, 255, 0.4);
+  color: #8c0d0d; /* Same dark crimson as text */
   font-size: 0.75rem;
   margin: 0 2rem;
 }

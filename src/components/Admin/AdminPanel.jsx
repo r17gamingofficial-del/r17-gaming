@@ -51,6 +51,8 @@ export default function AdminPanel() {
   const [tournamentForm, setTournamentForm] = useState({
     name: "",
     date: "",
+    startDate: "",
+    endDate: "",
     region: "",
     teams: "",
     prize: "",
@@ -173,6 +175,16 @@ export default function AdminPanel() {
     return null;
   };
 
+  const formatTournamentDates = (start, end) => {
+    if (!start && !end) return "";
+    const opts = { month: "short", day: "numeric", year: "numeric" };
+    if (start && end) {
+      return `${new Date(start).toLocaleDateString("en-US", opts)} - ${new Date(end).toLocaleDateString("en-US", opts)}`;
+    }
+    const d = new Date(start || end);
+    return d.toLocaleDateString("en-US", opts);
+  };
+
   const normalizeTournamentPayload = (form) => {
     const gallery =
       typeof form.gallery === "string"
@@ -193,6 +205,7 @@ export default function AdminPanel() {
       ...form,
       gallery,
       videoUrl,
+      date: (form.startDate || form.endDate) ? formatTournamentDates(form.startDate, form.endDate) : (form.date || "").trim(),
       thumbnail: (form.thumbnail || "").trim(),
       registerUrl: (form.registerUrl || "").trim(),
     };
@@ -212,6 +225,8 @@ export default function AdminPanel() {
       setTournamentForm({
         name: "",
         date: "",
+        startDate: "",
+        endDate: "",
         region: "",
         teams: "",
         prize: "",
@@ -238,6 +253,8 @@ export default function AdminPanel() {
       setTournamentForm({
         name: "",
         date: "",
+        startDate: "",
+        endDate: "",
         region: "",
         teams: "",
         prize: "",
@@ -465,6 +482,8 @@ export default function AdminPanel() {
       setTournamentForm({
         name: item.name,
         date: item.date,
+        startDate: item.startDate || "",
+        endDate: item.endDate || "",
         region: item.region,
         teams: item.teams,
         prize: item.prize,
@@ -1059,18 +1078,36 @@ export default function AdminPanel() {
                         }
                         required
                       />
-                      <input
-                        type="text"
-                        placeholder="Date (e.g., Dec 15–20, 2025)"
-                        value={tournamentForm.date}
-                        onChange={(e) =>
-                          setTournamentForm({
-                            ...tournamentForm,
-                            date: e.target.value,
-                          })
-                        }
-                        required
-                      />
+                      <div style={{ display: "flex", gap: "10px", marginBottom: "1rem" }}>
+                        <div style={{ flex: 1 }}>
+                          <label style={{ display: "block", fontSize: "0.8rem", color: "#8b8d93", marginBottom: "0.25rem", textAlign: "left" }}>Start Date</label>
+                          <input
+                            type="date"
+                            value={tournamentForm.startDate || ""}
+                            onChange={(e) =>
+                              setTournamentForm({
+                                ...tournamentForm,
+                                startDate: e.target.value,
+                              })
+                            }
+                            required
+                          />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <label style={{ display: "block", fontSize: "0.8rem", color: "#8b8d93", marginBottom: "0.25rem", textAlign: "left" }}>End Date</label>
+                          <input
+                            type="date"
+                            value={tournamentForm.endDate || ""}
+                            onChange={(e) =>
+                              setTournamentForm({
+                                ...tournamentForm,
+                                endDate: e.target.value,
+                              })
+                            }
+                            required
+                          />
+                        </div>
+                      </div>
                       <input
                         type="text"
                         placeholder="Region (e.g., 🌍 Global)"
@@ -1191,9 +1228,9 @@ export default function AdminPanel() {
                         e.preventDefault();
                         // Use the players array directly
                         const payload = {
-                          name: teamForm.name,
-                          logo: teamForm.logo,
-                          country: teamForm.country,
+                          name: teamForm.name || "",
+                          logo: teamForm.logo?.trim() ? teamForm.logo.trim() : null,
+                          country: teamForm.country || "",
                           players: (teamForm.players || [])
                             .map((p) => ({
                               name: (p.name || "").trim(),
@@ -1646,7 +1683,9 @@ export default function AdminPanel() {
                         }
                         required
                       />
-                      <select
+                      <input
+                        list="games-list"
+                        placeholder="Game (e.g. Valorant)"
                         value={leaderboardForm.game}
                         onChange={(e) =>
                           setLeaderboardForm({
@@ -1655,14 +1694,13 @@ export default function AdminPanel() {
                           })
                         }
                         required
-                      >
-                        <option value="">Select Game</option>
+                        style={{ marginBottom: "1rem" }}
+                      />
+                      <datalist id="games-list">
                         {games.map((game) => (
-                          <option key={game.id} value={game.name}>
-                            {game.name}
-                          </option>
+                          <option key={game.id} value={game.name} />
                         ))}
-                      </select>
+                      </datalist>
                       <div className="form-actions">
                         <button type="submit" className="btn-save">
                           Save
