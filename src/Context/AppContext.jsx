@@ -30,6 +30,8 @@ import {
   addAdminComment as addAdminCommentInDb,
   updateAdminComment as updateAdminCommentInDb,
   deleteAdminComment as deleteAdminCommentInDb,
+  getMarquee,
+  setMarquee as setMarqueeInDb,
 } from "../Firebase/fireStoreService.js";
 
 const AppContext = createContext();
@@ -76,12 +78,28 @@ function mergeHero(loaded) {
   };
 }
 
+const defaultMarquee = {
+  items: [
+    "SEASON 6 NOW LIVE",
+    "$2.8M PRIZE POOL",
+    "WORLD CHAMPIONSHIP · DEC 2025",
+    "NEW MAPS DROP TODAY",
+    "REGISTER NOW",
+  ]
+};
+
+function mergeMarquee(loaded) {
+  if (!loaded || !Array.isArray(loaded.items)) return { ...defaultMarquee };
+  return { items: loaded.items };
+}
+
 export const AppProvider = ({ children }) => {
   const [tournaments, setTournaments] = useState([]);
   const [teams, setTeams] = useState([]);
   const [games, setGames] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
   const [hero, setHero] = useState(() => ({ ...defaultHero }));
+  const [marquee, setMarquee] = useState(() => ({ ...defaultMarquee }));
   const [communityPosts, setCommunityPosts] = useState([]);
   const [adminComments, setAdminComments] = useState([]);
   const [users, setUsers] = useState([]);
@@ -318,6 +336,7 @@ export const AppProvider = ({ children }) => {
         finalGames,
         finalLeaderboard,
         heroSnap,
+        marqueeSnap,
         rawCommunity,
         rawUsers,
         rawAdminComments,
@@ -326,6 +345,7 @@ export const AppProvider = ({ children }) => {
         getGames(),
         getLeaderboard(),
         getHero(),
+        getMarquee(),
         getCommunityPosts(),
         getUsers(),
         getAdminComments(),
@@ -349,6 +369,14 @@ export const AppProvider = ({ children }) => {
         heroMerged = mergeHero(again);
       }
       setHero(heroMerged);
+
+      let marqueeMerged = mergeMarquee(marqueeSnap);
+      if (!marqueeSnap) {
+        await setMarqueeInDb(marqueeMerged);
+        const again = await getMarquee();
+        marqueeMerged = mergeMarquee(again);
+      }
+      setMarquee(marqueeMerged);
 
       setTournaments(finalTournaments);
       setGames(finalGames);
@@ -531,6 +559,21 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const updateMarquee = async (partial) => {
+    try {
+      const snap = await getMarquee();
+      const current = mergeMarquee(snap);
+      const next = mergeMarquee({ ...current, ...partial });
+      await setMarqueeInDb(next);
+      const fresh = await getMarquee();
+      setMarquee(mergeMarquee(fresh));
+      return true;
+    } catch (error) {
+      console.error("Error updating marquee:", error);
+      return false;
+    }
+  };
+
   const addCommunityPost = async (post) => {
     try {
       const created = await addCommunityPostInDb(post);
@@ -666,6 +709,8 @@ export const AppProvider = ({ children }) => {
     updateLeaderboardEntry,
     deleteLeaderboardEntry,
     updateHero,
+    marquee,
+    updateMarquee,
     addCommunityPost,
     updateCommunityPost,
     deleteCommunityPost,

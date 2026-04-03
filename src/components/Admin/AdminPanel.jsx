@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAppContext } from "../../Context/AppContext";
+import Marquee from "../Marquee/Marquee";
 import "./AdminPanel.css";
 
 export default function AdminPanel() {
@@ -23,6 +24,8 @@ export default function AdminPanel() {
     updateLeaderboardEntry,
     deleteLeaderboardEntry,
     updateHero,
+    marquee,
+    updateMarquee,
     communityPosts,
     addCommunityPost,
     updateCommunityPost,
@@ -113,6 +116,7 @@ export default function AdminPanel() {
   });
 
   const [heroForm, setHeroForm] = useState(null);
+  const [marqueeForm, setMarqueeForm] = useState(null);
 
   useEffect(() => {
     if (!hero) return;
@@ -695,6 +699,41 @@ export default function AdminPanel() {
     });
   };
 
+  const [marqueeTextForm, setMarqueeTextForm] = useState("");
+
+  const handleAddMarqueeText = async () => {
+    if (!marqueeTextForm.trim()) return;
+    const items = [...(marquee?.items || []), marqueeTextForm.trim()];
+    const ok = await updateMarquee({ items });
+    if (ok) {
+      showMessage("Marquee saved!");
+      setMarqueeTextForm("");
+      setShowForm(false);
+    } else showMessage("Error saving marquee", "error");
+  };
+
+  const handleUpdateMarqueeText = async () => {
+    if (!marqueeTextForm.trim() || !editingItem) return;
+    const items = [...(marquee?.items || [])];
+    items[editingItem.id] = marqueeTextForm.trim();
+    const ok = await updateMarquee({ items });
+    if (ok) {
+      showMessage("Marquee updated!");
+      setMarqueeTextForm("");
+      setEditingItem(null);
+      setShowForm(false);
+    } else showMessage("Error updating marquee", "error");
+  };
+
+  const handleDeleteMarqueeText = async (idx) => {
+    if (window.confirm("Delete this marquee item?")) {
+      const items = (marquee?.items || []).filter((_, i) => i !== idx);
+      const ok = await updateMarquee({ items });
+      if (ok) showMessage("Marquee item deleted!");
+      else showMessage("Error deleting marquee item", "error");
+    }
+  };
+
   return (
     <div className="admin-panel">
       <div className="admin-header">
@@ -788,9 +827,21 @@ export default function AdminPanel() {
         >
           🎯 Hero
         </button>
+        <button
+          className={`tab-btn ${activeTab === "marquee" ? "active" : ""}`}
+          onClick={() => {
+            setActiveTab("marquee");
+            setShowForm(false);
+            setSearchTerm("");
+          }}
+        >
+          ✨ Marquee
+        </button>
       </div>
 
       <div className="admin-content">
+        {/* Marquee inline block removed in favor of standard data-table below */}
+
         {activeTab === "hero" && heroForm && (
           <div className="hero-admin-card">
             <h3 className="hero-admin-title">Hero section (homepage)</h3>
@@ -947,6 +998,43 @@ export default function AdminPanel() {
                   <h3>
                     {editingItem ? "Edit" : "Add New"} {activeTab.slice(0, -1)}
                   </h3>
+
+                  {activeTab === "marquee" && (
+                    <form
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        if (editingItem) {
+                          await handleUpdateMarqueeText();
+                        } else {
+                          await handleAddMarqueeText();
+                        }
+                      }}
+                    >
+                      <input
+                        type="text"
+                        placeholder="e.g. SEASON 6 NOW LIVE"
+                        value={marqueeTextForm}
+                        onChange={(e) => setMarqueeTextForm(e.target.value)}
+                        required
+                      />
+                      <div className="form-actions">
+                        <button type="submit" className="btn-save">
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-cancel"
+                          onClick={() => {
+                            setShowForm(false);
+                            setEditingItem(null);
+                            setMarqueeTextForm("");
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
 
                   {activeTab === "tournaments" && (
                     <form
@@ -1777,6 +1865,57 @@ export default function AdminPanel() {
                       <tr>
                         <td colSpan="8" className="no-data">
                           No tournaments found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {activeTab === "marquee" && (
+              <div className="data-table">
+                <div style={{ marginBottom: '1.5rem', borderRadius: '0.5rem', overflow: 'hidden' }}>
+                  <Marquee overrideItems={marquee?.items?.length ? marquee.items : ["PREVIEW TEXT"]} />
+                </div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Marquee Text</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(marquee?.items || []).length > 0 ? (
+                      (marquee?.items || []).map((item, idx) => (
+                        <tr key={idx}>
+                          <td style={{ width: "5%" }}>{idx + 1}</td>
+                          <td>{item}</td>
+                          <td style={{ width: "15%" }}>
+                            <button
+                              className="btn-edit"
+                              onClick={() => {
+                                setEditingItem({ id: idx, text: item });
+                                setMarqueeTextForm(item);
+                                setShowForm(true);
+                              }}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="btn-delete"
+                              onClick={() => handleDeleteMarqueeText(idx)}
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="3" className="no-data">
+                          No marquee items found
                         </td>
                       </tr>
                     )}

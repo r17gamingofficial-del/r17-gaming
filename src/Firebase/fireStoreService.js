@@ -456,6 +456,36 @@ export const setHero = async (data) => {
   }
 };
 
+// ============ MARQUEE (single doc: siteSettings/marquee) ============
+
+const marqueeDocRef = doc(db, "siteSettings", "marquee");
+
+export const getMarquee = async () => {
+  try {
+    const snap = await getDoc(marqueeDocRef);
+    if (!snap.exists()) return null;
+    return snap.data();
+  } catch (error) {
+    console.error("Error getting marquee:", error);
+    throw error;
+  }
+};
+
+export const setMarquee = async (data) => {
+  try {
+    await setDoc(
+      marqueeDocRef,
+      { ...data, updatedAt: Timestamp.now() },
+      { merge: true },
+    );
+    const snap = await getDoc(marqueeDocRef);
+    return snap.exists() ? snap.data() : data;
+  } catch (error) {
+    console.error("Error saving marquee:", error);
+    throw error;
+  }
+};
+
 // ============ COMMUNITY POSTS (reviews / testimonials) ============
 
 export const getCommunityPosts = async () => {
