@@ -965,132 +965,133 @@ export default function AdminPanel() {
 
         <div className="admin-content-area">
           {activeTab === "dashboard" ? (
-            <div className="dashboard-overview">
-              <div className="kpi-grid">
-                <div className="kpi-card">
-                  <div className="kpi-header">
-                    <div className="kpi-icon users-icon">👥</div>
-                    <div className="kpi-trend positive">↑ 5.12%</div>
-                  </div>
-                  <div className="kpi-content">
-                    <h3>{(users?.length * 1000 || 48200).toLocaleString()}+</h3>
-                    <p>Total Reach</p>
-                  </div>
-                </div>
-                <div className="kpi-card">
-                  <div className="kpi-header">
-                    <div className="kpi-icon games-icon">🎮</div>
-                    <div className="kpi-trend negative">↓ 3.45%</div>
-                  </div>
-                  <div className="kpi-content">
-                    <h3>{teams?.length || 1280}</h3>
-                    <p>Active Teams</p>
-                  </div>
-                </div>
-                <div className="kpi-card">
-                  <div className="kpi-header">
-                    <div className="kpi-icon tourneys-icon">🏆</div>
-                    <div className="kpi-trend positive">↑ 2.94%</div>
-                  </div>
-                  <div className="kpi-content">
-                    <h3>{tournaments?.length || 975}</h3>
-                    <p>Live Tournaments</p>
-                  </div>
-                </div>
-                <div className="kpi-card">
-                  <div className="kpi-header">
-                    <div className="kpi-icon cash-icon">💰</div>
-                    <div className="kpi-trend positive">↑ 4.21%</div>
-                  </div>
-                  <div className="kpi-content">
-                    <h3>$5.63M</h3>
-                    <p>Prize Distributed</p>
-                  </div>
-                </div>
-              </div>
+            <div className="dashboard-overview animate-fade-up">
+            
 
               <div className="dashboard-charts">
+                {/* Main Overview Card */}
                 <div className="chart-card overview-chart">
                   <div className="chart-header">
                     <h4>
-                      Overview{" "}
-                      <span className="text-muted">(Current Year)</span>
+                      Overview <span className="text-muted">(Current Year)</span>
                     </h4>
-                    <div className="chart-filters">
-                      <button>All</button>
-                      <button>1M</button>
-                      <button className="active">6M</button>
-                      <button>1Y</button>
-                    </div>
+                
                   </div>
-                  <div className="overview-stats-row">
-                    <div className="stat-box">
-                      <p>Revenue</p>
-                      <h4>$56.63k</h4>
-                      <span className="trend negative">↓ 3.91%</span>
-                    </div>
-                    <div className="stat-box">
-                      <p>Orders</p>
-                      <h4>9,842</h4>
-                      <span className="trend positive">↑ 8.72%</span>
-                    </div>
-                  </div>
-                  <div className="mock-bar-chart">
-                    <div className="bar-group">
-                      <div className="bar tall primary"></div>
-                      <div className="bar mid secondary"></div>
-                      <span className="bar-label">Jan</span>
-                    </div>
-                    <div className="bar-group">
-                      <div className="bar taller primary"></div>
-                      <div className="bar mid secondary"></div>
-                      <span className="bar-label">Feb</span>
-                    </div>
-                    <div className="bar-group">
-                      <div className="bar tallest primary"></div>
-                      <div className="bar short secondary"></div>
-                      <span className="bar-label">Mar</span>
+
+                  <div className="overview-main">
+                    {/* Left metrics column */}
+                    <div className="metrics-grid">
+                      <div className="metric-item">
+                        <span className="metric-label">Revenue (Prize Pool)</span>
+                        <div className="metric-value-row">
+                          <span className="value">${hero?.stats?.[1]?.inner || "2.8M"}</span>
+                        </div>
+                      </div>
+                    
+                      <div className="metric-item">
+                        <span className="metric-label">Total Users</span>
+                        <div className="metric-value-row">
+                          <span className="value">{(users?.length || 452).toLocaleString()}</span>
+                        </div>
+                      </div>
+                      <div className="metric-item">
+                        <span className="metric-label">Active Teams</span>
+                        <div className="metric-value-row">
+                          <span className="value">{teams?.length || 128}</span>
+                        </div>
+                      </div>
+                </div>
+
+                    {/* Right dual-bar + line chart - Now based on Sections */}
+                    <div className="chart-container-multi">
+                      {[
+                        { label: "Users", count: (users?.length || 0), color: "#2ed573" },
+                        { label: "Tournaments", count: tournaments.length, color: "#ff2a2a" },
+                        { label: "Teams", count: (teams?.length || 0), color: "#ff9f43" },
+                        { label: "Games", count: games.length, color: "#00d2ff" },
+                        { label: "Community", count: (communityPosts?.length || 0), color: "#8e44ad" },
+                        { label: "Leaderboard", count: (leaderboard?.length || 0), color: "#ff0080" }
+                      ].map((item, i, arr) => {
+                        const maxVal = Math.max(...arr.map(a => a.count), 1);
+                        const h1 = Math.max((item.count / maxVal) * 100, 5);
+                        // Secondary bar can represent "Active" items or a subset
+                        const h2 = h1 * 0.6; 
+                        return (
+                          <div className="chart-bar-group" key={item.label}>
+                            <div className="bar-dual primary animate-bar-up" style={{ height: `${h1}%`, background: item.color, animationDelay: `${i * 0.1}s` }}></div>
+                            <div className="bar-dual secondary animate-bar-up" style={{ height: `${h2}%`, background: item.color, opacity: 0.3, animationDelay: `${0.2 + i * 0.1}s` }}></div>
+                            <span className="month-label">{item.label}</span>
+                          </div>
+                        );
+                      })}
+                      
+                      {/* SVG Trend Line Overlay (Dynamic) */}
+                      <svg className="chart-overlay-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <path 
+                          className="trend-path"
+                          d="M 5 80 Q 25 40 50 20 T 95 10" 
+                          fill="none" 
+                          stroke="rgba(255,255,255,0.2)" 
+                          strokeWidth="1"
+                          strokeDasharray="2 2"
+                        />
+                      </svg>
                     </div>
                   </div>
                 </div>
 
+                {/* Lead Source Card -> Content Distribution */}
                 <div className="chart-card source-chart">
                   <div className="chart-header">
-                    <h4>Lead Source</h4>
+                    <h4>Content Distribution</h4>
                   </div>
-                  <div className="mock-donut-chart">
-                    <div className="donut-circle">
-                      <div className="donut-hole">
-                        <span className="donut-total">Total</span>
-                        <span className="donut-number">578</span>
+
+                  <div className="mock-donut-chart animate-donut" style={{ margin: "10px 0" }}>
+                    <div className="donut-circle" style={{ 
+                      width: "140px", 
+                      height: "140px",
+                      background: `conic-gradient(
+                        #ff2a2a 0% ${(tournaments.length / Math.max(tournaments.length + (teams?.length || 0) + games.length, 1)) * 100}%, 
+                        #ff9f43 ${(tournaments.length / Math.max(tournaments.length + (teams?.length || 0) + games.length, 1)) * 100}% ${((tournaments.length + (teams?.length || 0)) / Math.max(tournaments.length + (teams?.length || 0) + games.length, 1)) * 100}%,
+                        #00d2ff ${((tournaments.length + (teams?.length || 0)) / Math.max(tournaments.length + (teams?.length || 0) + games.length, 1)) * 100}% 100%
+                      )`
+                    }}>
+                      <div className="donut-hole" style={{ background: "#0a0a0a" }}>
+                        <span className="donut-total">Entries</span>
+                        <span className="donut-number">{(tournaments.length + (teams?.length || 0) + games.length).toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
-                  <div className="donut-legend">
-                    <div className="legend-item">
-                      <span className="dot red"></span> Newsletter{" "}
-                      <span className="perc">6.37%</span>
-                    </div>
-                    <div className="legend-item">
-                      <span className="dot green"></span> WhatsApp{" "}
-                      <span className="perc">8.9%</span>
-                    </div>
-                    <div className="legend-item">
-                      <span className="dot purple"></span> Instagram{" "}
-                      <span className="perc">34.8%</span>
-                    </div>
-                    <div className="legend-item">
-                      <span className="dot orange"></span> Website{" "}
-                      <span className="perc">44.3%</span>
-                    </div>
+
+                  <div className="source-legend-grid">
+                    {[
+                      { name: "Tournaments", count: tournaments.length, color: "#ff2a2a" },
+                      { name: "Teams", count: (teams?.length || 0), color: "#ff9f43" },
+                      { name: "Games", count: games.length, color: "#00d2ff" }
+                    ].map((item) => {
+                      const total = tournaments.length + (teams?.length || 0) + games.length;
+                      const perc = total > 0 ? ((item.count / total) * 100).toFixed(1) : "0";
+                      return (
+                        <div className="legend-card" key={item.name}>
+                          <div className="legend-header">
+                            <span className="dot-indicator" style={{ backgroundColor: item.color }}></span>
+                            {item.name}
+                          </div>
+                          <div className="legend-info">
+                            <span className="percentage">{perc}%</span>
+                            <span className="trend-badge positive" style={{ padding: "1px 4px", fontSize: "0.6rem" }}>
+                                {item.count} items
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
             </div>
           ) : (
             <div className="admin-content">
-              {/* Marquee inline block removed in favor of standard data-table below */}
-
               {activeTab === "hero" && heroForm && (
                 <div className="hero-admin-card">
                   <h3 className="hero-admin-title">Hero section (homepage)</h3>
