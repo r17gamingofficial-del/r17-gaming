@@ -33,7 +33,7 @@ const socialLinks = [
     platform: "WhatsApp",
     url: "https://chat.whatsapp.com/CCkV0XuX0ZH9PV5CZIMPxw",
     icon: FaWhatsapp,
-    color: "#17aa3cff",
+    color: "#06dc3bff",
   },
   // {
   //   platform: "Twitch",
