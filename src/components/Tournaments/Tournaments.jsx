@@ -288,7 +288,7 @@ export default function Tournaments() {
                   key={t.id || t.rank}
                   onClick={() => handleTournamentClick(t)}
                 >
-                  <div className="t-rank">{t.rank}</div>
+                  {/* <div className="t-rank">{t.rank}</div> */}
                   <div className="t-info">
                     <div className="t-name">{t.name}</div>
                     <div className="t-meta">

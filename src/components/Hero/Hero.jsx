@@ -68,10 +68,10 @@ export default function Hero() {
   }, []);
 
   const defaultStats = [
-    { main: "4.2", inner: "M", label: "Active Players" },
-    { main: "$", inner: "2.8M", label: "Prize Pool" },
-    { main: "340", inner: "+", label: "Tournaments" },
-    { main: "18", inner: "+", label: "Game Titles" },
+    { main: "0", inner: "", label: "Active Players" },
+    { main: "$", inner: "0", label: "Prize Pool" },
+    { main: "0", inner: "", label: "Tournaments" },
+    { main: "0", inner: "", label: "Game Titles" },
   ];
   const stats =
     Array.isArray(h.stats) && h.stats.length ? h.stats : defaultStats;

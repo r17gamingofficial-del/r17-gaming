@@ -104,8 +104,7 @@ export const AppProvider = ({ children }) => {
   const [adminComments, setAdminComments] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // Load initial data
+  // Load initial data
   useEffect(() => {
     loadData();
   }, []);
@@ -113,195 +112,6 @@ export const AppProvider = ({ children }) => {
   const loadData = async () => {
     try {
       setLoading(true);
-
-      // Default tournaments data with gallery arrays
-      const defaultTournaments = [
-        {
-          rank: "01",
-          name: "World Championship Series — Shadow Realm",
-          date: "🗓 Dec 15–20, 2025",
-          region: "🌍 Global",
-          teams: "128 Teams",
-          status: "live",
-          statusLabel: "● Live Now",
-          prize: "$500,000",
-          thumbnail:
-            "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&h=400&fit=crop",
-          videoUrl:
-            "https://www.youtube.com/embed/Pte7C8wjp1w?autoplay=1&mute=1&loop=1&playlist=Pte7C8wjp1w&controls=0&modestbranding=1&rel=0",
-          gallery: [
-            "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&h=400&fit=crop",
-            "https://images.unsplash.com/photo-1547394765-185e1e68f34e?w=600&h=400&fit=crop",
-            "https://images.unsplash.com/photo-1542751110-97427bbecf20?w=600&h=400&fit=crop",
-          ],
-        },
-        {
-          rank: "02",
-          name: "Neon Strike Pro League — Season 6 Playoffs",
-          date: "🗓 Jan 5–12, 2026",
-          region: "🌍 Asia–Pacific",
-          teams: "64 Teams",
-          status: "soon",
-          statusLabel: "Soon",
-          prize: "$250,000",
-          thumbnail:
-            "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&h=400&fit=crop",
-          videoUrl:
-            "https://www.youtube.com/embed/Pte7C8wjp1w?autoplay=1&mute=1&loop=1&playlist=Pte7C8wjp1w&controls=0&modestbranding=1&rel=0",
-          gallery: [
-            "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&h=400&fit=crop",
-            "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&h=400&fit=crop",
-            "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=600&h=400&fit=crop",
-          ],
-        },
-        {
-          rank: "03",
-          name: "Cyber Siege Invitational Cup — EU Finals",
-          date: "🗓 Jan 18–19, 2026",
-          region: "🌍 Europe",
-          teams: "32 Teams",
-          status: "open",
-          statusLabel: "Open",
-          prize: "$120,000",
-          thumbnail:
-            "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=600&h=400&fit=crop",
-          videoUrl:
-            "https://www.youtube.com/embed/Pte7C8wjp1w?autoplay=1&mute=1&loop=1&playlist=Pte7C8wjp1w&controls=0&modestbranding=1&rel=0",
-          gallery: [
-            "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=600&h=400&fit=crop",
-            "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&h=400&fit=crop",
-            "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&h=400&fit=crop",
-          ],
-        },
-      ];
-
-      const defaultGames = [
-        {
-          name: "Shadow Realm",
-          category: "FPS",
-          genre: "FPS",
-          players: "4.2M",
-          description:
-            "Intense tactical shooter with realistic graphics and competitive multiplayer",
-          thumbnail:
-            "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1200&h=600&fit=crop",
-          videoUrl: "https://www.youtube.com/watch?v=Hj8WL4DQb18", // This will be converted to embed
-          platforms: ["PC", "PS5", "XSX"],
-          tag: "HOT",
-          tagClass: "gold-tag",
-          stars: "★★★★★",
-          rating: "4.8 / 5 · 15K reviews",
-        },
-        {
-          name: "Cyber Siege",
-          category: "MOBA",
-          genre: "MOBA",
-          players: "2.8M",
-          thumbnail:
-            "https://images.unsplash.com/photo-1547394765-185e1e68f34e?w=1200&h=600&fit=crop",
-          videoUrl: "https://www.youtube.com/watch?v=Hj8WL4DQb18",
-          description:
-            "Strategy-based combat with unique heroes and intense team battles",
-          platforms: ["PC", "Switch", "Mobile"],
-          tag: "NEW",
-          tagClass: "green-tag",
-          stars: "★★★★☆",
-          rating: "4.5 / 5 · 8.2K reviews",
-        },
-        {
-          name: "Neon Strike",
-          category: "Battle Royale",
-          genre: "Battle Royale",
-          players: "3.1M",
-          thumbnail:
-            "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1200&h=600&fit=crop",
-          videoUrl: "https://www.youtube.com/watch?v=example3",
-          description: "Fast-paced action in a futuristic neon-drenched arena",
-          platforms: ["PC", "PS5", "XSX", "Mobile"],
-          tag: "TRENDING",
-          tagClass: "blue-tag",
-          stars: "★★★★☆",
-          rating: "4.3 / 5 · 12K reviews",
-        },
-      ];
-
-      const defaultLeaderboard = [
-        {
-          rank: "01",
-          playerName: "ZephyrX",
-          country: "🇰🇷 South Korea",
-          score: "98,420",
-          kd: "4.8",
-          game: "Shadow Realm",
-        },
-        {
-          rank: "02",
-          playerName: "NovaBurst",
-          country: "🇸🇪 Sweden",
-          score: "94,105",
-          kd: "4.3",
-          game: "Cyber Siege",
-        },
-        {
-          rank: "03",
-          playerName: "R17_Ghost",
-          country: "🇧🇷 Brazil",
-          score: "91,882",
-          kd: "4.1",
-          game: "Neon Strike",
-        },
-      ];
-
-      const defaultCommunityPosts = [
-        {
-          stars: "★★★★★",
-          av: "ra1",
-          letter: "Z",
-          name: "ZephyrX",
-          handle: "@zephyrx_pro · Shadow Realm",
-          text: "R17 completely changed how I approach competitive gaming. The tournament system is flawless and prize payouts are always on time. Addicted since day one.",
-        },
-        {
-          stars: "★★★★★",
-          av: "ra2",
-          letter: "N",
-          name: "NovaBurst",
-          handle: "@novaburst_eu · Cyber Siege",
-          text: "Nothing comes close to the competition here. I've been in esports for 8 years and R17 has the best infrastructure I've ever played on. Period.",
-        },
-        {
-          stars: "★★★★★",
-          av: "ra3",
-          letter: "K",
-          name: "KryptonPeak",
-          handle: "@kryptonpeak · Iron Legion",
-          text: "I went from casual to winning my first $10K tournament in three months. The ranked system genuinely pushes you to improve every single match.",
-        },
-        {
-          stars: "★★★★☆",
-          av: "ra4",
-          letter: "S",
-          name: "SolarWarden",
-          handle: "@solarwarden · Neon Strike",
-          text: "The matchmaking is incredibly fair. Never felt thrown into impossible games. Steady climb up the leaderboard since joining six months ago.",
-        },
-        {
-          stars: "★★★★★",
-          av: "ra5",
-          letter: "V",
-          name: "VoidHunter",
-          handle: "@voidhunter_de · Void Protocol",
-          text: "Community events, weekly tournaments, daily challenges — there's always something happening. This platform has everything a competitive player needs.",
-        },
-        {
-          stars: "★★★★★",
-          av: "ra6",
-          letter: "P",
-          name: "PhantomAce",
-          handle: "@phantomace_jp · Phantom Arena",
-          text: "As a streamer, the spectator mode is unreal. My viewers see live stats in real-time. Completely game-changing feature I haven't seen built this well anywhere else.",
-        },
-      ];
 
       const [dbTournaments, dbGames, dbLeaderboard, dbTeams] =
         await Promise.all([
@@ -325,31 +135,13 @@ export const AppProvider = ({ children }) => {
         getAdminComments(),
       ]);
 
-      // Client-side filtering to hide default seed data while preserving user-uploaded "whole data"
-      const seedTournamentNames = defaultTournaments.map((t) => t.name);
-      const seedGameNames = defaultGames.map((g) => g.name);
-      const seedLeaderboardNames = defaultLeaderboard.map((l) => l.playerName);
-      const seedCommunityNames = defaultCommunityPosts.map((p) => p.name);
-
-      const filteredTournaments = (dbTournaments || []).filter(
-        (t) => !seedTournamentNames.includes(t.name),
-      );
-      const filteredGames = (dbGames || []).filter(
-        (g) => !seedGameNames.includes(g.name),
-      );
-      const filteredLeaderboard = (dbLeaderboard || []).filter(
-        (l) => !seedLeaderboardNames.includes(l.playerName),
-      );
-      const filteredCommunity = (dbCommunity || []).filter(
-        (p) => !seedCommunityNames.includes(p.name),
-      );
-
-      setTournaments(filteredTournaments);
-      setGames(filteredGames);
-      setLeaderboard(filteredLeaderboard);
-      setCommunityPosts(filteredCommunity);
+      setTournaments(dbTournaments || []);
+      setGames(dbGames || []);
+      setLeaderboard(dbLeaderboard || []);
+      setCommunityPosts(dbCommunity || []);
       setAdminComments(rawAdminComments || []);
       setUsers(rawUsers || []);
+      setTeams(dbTeams || []);
 
       let heroMerged = mergeHero(heroSnap);
       if (!heroSnap) {
@@ -367,9 +159,6 @@ export const AppProvider = ({ children }) => {
       }
       setMarquee(marqueeMerged);
 
-      setTeams(dbTeams || []);
-
-      setLoading(false);
     } catch (error) {
       console.error("Error loading data:", error);
       setLoading(false);

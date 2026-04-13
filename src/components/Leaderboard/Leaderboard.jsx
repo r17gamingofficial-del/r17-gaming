@@ -2,14 +2,6 @@ import { useState } from "react";
 import "./Leaderboard.css";
 import { useAppContext } from "../../Context/AppContext.jsx";
 
-const bars = [
-  { label: "Shadow Realm", width: "92%", delay: "0.1s", val: "1.4M" },
-  { label: "Cyber Siege", width: "78%", delay: "0.25s", val: "980K" },
-  { label: "Neon Strike", width: "63%", delay: "0.4s", val: "820K" },
-  { label: "Iron Legion", width: "50%", delay: "0.55s", val: "640K" },
-  { label: "Void Protocol", width: "38%", delay: "0.7s", val: "460K" },
-  { label: "Phantom Arena", width: "25%", delay: "0.85s", val: "280K" },
-];
 
 export default function Leaderboard() {
   const { leaderboard: players, loading } = useAppContext();
@@ -139,30 +131,6 @@ export default function Leaderboard() {
           </div>
         </div>
 
-        <div className="lb-chart-panel">
-          <div className="lb-chart-title">// Top Games by Active Players</div>
-          {bars.map((b) => (
-            <div className="bar-row" key={b.label}>
-              <div className="bar-label">{b.label}</div>
-              <div className="bar-track">
-                <div
-                  className="bar-fill"
-                  style={{ width: b.width, animationDelay: b.delay }}
-                />
-              </div>
-              <div className="bar-val">{b.val}</div>
-            </div>
-          ))}
-
-          <div className="lb-live-stats">
-            <div className="lb-chart-title">// Live Right Now</div>
-            <div className="lb-live-badges">
-              <div className="lb-live-badge live">● 8,420 LIVE</div>
-              <div className="lb-live-badge neutral">342 TOURNAMENTS</div>
-              <div className="lb-live-badge neutral">14 FINALS TODAY</div>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   );
