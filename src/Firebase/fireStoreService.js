@@ -72,6 +72,7 @@ export const addTournament = async (tournamentData) => {
           : tournamentData.status === "soon"
             ? "Soon"
             : "Open",
+      isByAdmin: true,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
@@ -169,6 +170,7 @@ export const addTeam = async (teamData) => {
   try {
     const team = {
       ...teamData,
+      isByAdmin: true,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
@@ -220,6 +222,7 @@ export const addGame = async (gameData) => {
   try {
     const game = {
       ...gameData,
+      isByAdmin: true,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
@@ -286,6 +289,7 @@ export const addLeaderboardEntry = async (entryData) => {
     const entry = {
       ...entryData,
       rank: newRank,
+      isByAdmin: true,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
@@ -521,6 +525,7 @@ export const addCommunityPost = async (postData) => {
       handle: postData.handle || "",
       text: postData.text || "",
       sortOrder,
+      isByAdmin: true,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
@@ -579,6 +584,7 @@ export const addAdminComment = async (commentData) => {
     const comment = {
       author: commentData.author || "Admin",
       text: commentData.text || "",
+      isByAdmin: true,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };

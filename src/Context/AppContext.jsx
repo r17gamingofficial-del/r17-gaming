@@ -66,10 +66,10 @@ function mergeHero(loaded) {
   const stats =
     Array.isArray(loaded.stats) && loaded.stats.length
       ? loaded.stats.map((s, i) => ({
-          main: s?.main ?? defaultHero.stats[i]?.main ?? "",
-          inner: s?.inner ?? defaultHero.stats[i]?.inner ?? "",
-          label: s?.label ?? defaultHero.stats[i]?.label ?? "",
-        }))
+        main: s?.main ?? defaultHero.stats[i]?.main ?? "",
+        inner: s?.inner ?? defaultHero.stats[i]?.inner ?? "",
+        label: s?.label ?? defaultHero.stats[i]?.label ?? "",
+      }))
       : defaultHero.stats;
   return {
     ...defaultHero,
@@ -311,39 +311,13 @@ export const AppProvider = ({ children }) => {
           getTeams(),
         ]);
 
-      if (!dbTournaments?.length) {
-        for (const t of defaultTournaments) {
-          // Firestore service will compute rank/statusLabel/createdAt
-          // Keep gallery as array
-          await addTournamentInDb(t);
-        }
-      }
-
-      if (!dbGames?.length) {
-        for (const g of defaultGames) {
-          await addGameInDb(g);
-        }
-      }
-
-      if (!dbLeaderboard?.length) {
-        for (const l of defaultLeaderboard) {
-          await addLeaderboardEntryInDb(l);
-        }
-      }
-
       const [
-        finalTournaments,
-        finalGames,
-        finalLeaderboard,
         heroSnap,
         marqueeSnap,
-        rawCommunity,
+        dbCommunity,
         rawUsers,
         rawAdminComments,
       ] = await Promise.all([
-        getTournaments(),
-        getGames(),
-        getLeaderboard(),
         getHero(),
         getMarquee(),
         getCommunityPosts(),
@@ -351,14 +325,29 @@ export const AppProvider = ({ children }) => {
         getAdminComments(),
       ]);
 
-      let communityFinal = rawCommunity;
-      if (!communityFinal?.length) {
-        for (const p of defaultCommunityPosts) {
-          await addCommunityPostInDb(p);
-        }
-        communityFinal = await getCommunityPosts();
-      }
-      setCommunityPosts(communityFinal);
+      // Client-side filtering to hide default seed data while preserving user-uploaded "whole data"
+      const seedTournamentNames = defaultTournaments.map((t) => t.name);
+      const seedGameNames = defaultGames.map((g) => g.name);
+      const seedLeaderboardNames = defaultLeaderboard.map((l) => l.playerName);
+      const seedCommunityNames = defaultCommunityPosts.map((p) => p.name);
+
+      const filteredTournaments = (dbTournaments || []).filter(
+        (t) => !seedTournamentNames.includes(t.name),
+      );
+      const filteredGames = (dbGames || []).filter(
+        (g) => !seedGameNames.includes(g.name),
+      );
+      const filteredLeaderboard = (dbLeaderboard || []).filter(
+        (l) => !seedLeaderboardNames.includes(l.playerName),
+      );
+      const filteredCommunity = (dbCommunity || []).filter(
+        (p) => !seedCommunityNames.includes(p.name),
+      );
+
+      setTournaments(filteredTournaments);
+      setGames(filteredGames);
+      setLeaderboard(filteredLeaderboard);
+      setCommunityPosts(filteredCommunity);
       setAdminComments(rawAdminComments || []);
       setUsers(rawUsers || []);
 
@@ -378,9 +367,6 @@ export const AppProvider = ({ children }) => {
       }
       setMarquee(marqueeMerged);
 
-      setTournaments(finalTournaments);
-      setGames(finalGames);
-      setLeaderboard(finalLeaderboard);
       setTeams(dbTeams || []);
 
       setLoading(false);
