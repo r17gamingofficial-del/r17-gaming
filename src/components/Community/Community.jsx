@@ -4,6 +4,7 @@ import {
   FaDiscord,
   FaTwitter,
   FaInstagram,
+  FaWhatsapp,
   FaTwitch,
   FaYoutube,
 } from "react-icons/fa";
@@ -27,6 +28,12 @@ const socialLinks = [
     url: "https://www.instagram.com/r17_esport?igsh=bXNxY2pmcDlnZDVm",
     icon: FaInstagram,
     color: "#E4405F",
+  },
+  {
+    platform: "WhatsApp",
+    url: "https://chat.whatsapp.com/CCkV0XuX0ZH9PV5CZIMPxw",
+    icon: FaWhatsapp,
+    color: "#17aa3cff",
   },
   // {
   //   platform: "Twitch",
