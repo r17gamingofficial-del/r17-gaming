@@ -44,12 +44,30 @@
   white-space: nowrap;
 }
 
-.community-center-logo .logo-r {
-  color: white;
+.community-center-logo img {
+  height: 1.75em;
+  width: auto;
+  opacity: 0.8;
+  transform-origin: center;
+  animation: communityLogoAnim 10s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
-.community-center-logo .logo-17 {
-  color: #ff2233;
+@keyframes communityLogoAnim {
+  0%, 100% {
+    transform: translateY(0) scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 10px rgba(255, 34, 51, 0));
+  }
+  25% {
+    transform: translateY(-20px) scale(1.02) rotate(2deg);
+  }
+  50% {
+    transform: translateY(0) scale(1.08) rotate(0deg);
+    filter: drop-shadow(0 0 60px rgba(255, 34, 51, 0.9));
+    opacity: 1;
+  }
+  75% {
+    transform: translateY(20px) scale(1.02) rotate(-2deg);
+  }
 }
 
 .community-left, .community-right {

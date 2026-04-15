@@ -35,29 +35,30 @@
 }
 
 .nav-logo {
-  font-family: "Bebas Neue", sans-serif;
-  font-size: 2rem;
-  letter-spacing: 0.12em;
-  color: #fff;
+  display: flex;
+  align-items: center;
   text-decoration: none;
-  animation: logoGlow 3s ease-in-out infinite;
-  line-height: 1;
   z-index: 1001;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.nav-logo span {
-  color: var(--red);
+.nav-logo:hover {
+  transform: scale(1.08) rotate(-2deg);
+}
+
+.nav-logo img {
+  height: 4.3rem;
+  width: auto;
+  animation: logoGlow 3s ease-in-out infinite;
 }
 
 @keyframes logoGlow {
   0%,
   100% {
-    text-shadow: 0 0 10px rgba(255, 34, 51, 0);
+    filter: drop-shadow(0 0 2px rgba(255, 34, 51, 0));
   }
   50% {
-    text-shadow:
-      0 0 28px rgba(255, 34, 51, 0.8),
-      0 0 60px rgba(255, 34, 51, 0.25);
+    filter: drop-shadow(0 0 12px rgba(255, 34, 51, 0.8));
   }
 }
 
@@ -374,8 +375,8 @@
     height: 64px;
   }
 
-  .nav-logo {
-    font-size: 1.8rem;
+  .nav-logo img {
+    height: 42px;
   }
 
   .nav-links,
@@ -399,8 +400,8 @@
     height: 60px;
   }
 
-  .nav-logo {
-    font-size: 1.6rem;
+  .nav-logo img {
+    height: 36px;
   }
 
   .hamburger span {

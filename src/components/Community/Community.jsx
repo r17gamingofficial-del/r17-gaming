@@ -1,4 +1,3 @@
-import React from "react";
 import "./Community.css";
 import {
   FaDiscord,
@@ -9,6 +8,7 @@ import {
   FaYoutube,
 } from "react-icons/fa";
 import { useAppContext } from "../../Context/AppContext.jsx";
+import LogoR17 from "../../../public/assets/LogoR17.png";
 
 const socialLinks = [
   {
@@ -116,7 +116,7 @@ export default function Community() {
 
         {/* Center Logo Divider */}
         <div className="community-center-logo">
-          <span className="logo-r">R</span><span className="logo-17">17</span>
+          <img src={LogoR17} alt="R17 Logo" />
         </div>
 
         {/* Right Side: Admin Announcements */}

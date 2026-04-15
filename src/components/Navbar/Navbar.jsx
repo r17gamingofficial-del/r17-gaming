@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "./Navbar.css";
 import { useAuth } from "../../hooks/useAuth";
-import AuthModal from "./Authmodal/AuthModal";
+import AuthModal from "../Authmodal/AuthModal";
+import LogoR17 from "../../../public/assets/LogoR17.png"
 
 function userInitial(user) {
   if (!user) return "?";
@@ -58,7 +59,7 @@ export default function Navbar() {
     <>
       <nav className={`navbar${scrolled ? " scrolled" : ""}`}>
         <Link to="/" className="nav-logo">
-          R<span>17</span>
+          <img src={LogoR17} />
         </Link>
         <ul className="nav-links">
           <li>
@@ -66,7 +67,7 @@ export default function Navbar() {
               Games
             </a>
           </li>
-           <li>
+          <li>
             <a href="#teams" onClick={(e) => handleScrollToSection(e, "teams")}>
               Teams
             </a>

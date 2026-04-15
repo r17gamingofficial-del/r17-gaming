@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAppContext } from "../../Context/AppContext";
 import Marquee from "../Marquee/Marquee";
 import "./AdminPanel.css";
+import LogoR17 from "../../../public/assets/LogoR17.png";
 
 export default function AdminPanel() {
   const {
@@ -772,7 +773,8 @@ export default function AdminPanel() {
       {/* Left Sidebar */}
       <aside className="admin-sidebar">
         <div className="sidebar-logo">
-          <h2>R17 Admin</h2>
+          <img src={LogoR17} alt="R17 Logo" />
+          <h2>Admin</h2>
         </div>
         <nav className="sidebar-nav">
           <div className="nav-section-title">MAIN</div>
