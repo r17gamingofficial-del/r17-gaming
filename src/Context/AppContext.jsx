@@ -32,6 +32,10 @@ import {
   deleteAdminComment as deleteAdminCommentInDb,
   getMarquee,
   setMarquee as setMarqueeInDb,
+  getCarouselAnnouncements,
+  addCarouselAnnouncement as addCarouselAnnouncementInDb,
+  updateCarouselAnnouncement as updateCarouselAnnouncementInDb,
+  deleteCarouselAnnouncement as deleteCarouselAnnouncementInDb,
 } from "../Firebase/fireStoreService.js";
 
 const AppContext = createContext();
@@ -102,6 +106,7 @@ export const AppProvider = ({ children }) => {
   const [marquee, setMarquee] = useState(() => ({ ...defaultMarquee }));
   const [communityPosts, setCommunityPosts] = useState([]);
   const [adminComments, setAdminComments] = useState([]);
+  const [announcementSlides, setAnnouncementSlides] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   // Load initial data
@@ -127,19 +132,23 @@ export const AppProvider = ({ children }) => {
         dbCommunity,
         rawUsers,
         rawAdminComments,
+        dbAnnouncements,
       ] = await Promise.all([
         getHero(),
         getMarquee(),
         getCommunityPosts(),
         getUsers(),
         getAdminComments(),
+        getCarouselAnnouncements(),
       ]);
+
 
       setTournaments(dbTournaments || []);
       setGames(dbGames || []);
       setLeaderboard(dbLeaderboard || []);
       setCommunityPosts(dbCommunity || []);
       setAdminComments(rawAdminComments || []);
+      setAnnouncementSlides(dbAnnouncements || []);
       setUsers(rawUsers || []);
       setTeams(dbTeams || []);
 
@@ -427,6 +436,43 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // Carousel Announcement Slide Operations
+  const addAnnouncementSlide = async (slide) => {
+    try {
+      const created = await addCarouselAnnouncementInDb(slide);
+      setAnnouncementSlides((prev) => [created, ...prev]);
+      return created;
+    } catch (error) {
+      console.error("Error adding announcement slide:", error);
+      return null;
+    }
+  };
+
+  const updateAnnouncementSlide = async (id, data) => {
+    try {
+      await updateCarouselAnnouncementInDb(id, data);
+      setAnnouncementSlides((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, ...data } : s)),
+      );
+      return true;
+    } catch (error) {
+      console.error("Error updating announcement slide:", error);
+      return false;
+    }
+  };
+
+  const deleteAnnouncementSlide = async (id) => {
+    try {
+      await deleteCarouselAnnouncementInDb(id);
+      setAnnouncementSlides((prev) => prev.filter((s) => s.id !== id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting announcement slide:", error);
+      return false;
+    }
+  };
+
+
   // User Management Operations
   const blockUser = async (id) => {
     try {
@@ -499,7 +545,12 @@ export const AppProvider = ({ children }) => {
     addTeam,
     updateTeam,
     deleteTeam,
+    announcementSlides,
+    addAnnouncementSlide,
+    updateAnnouncementSlide,
+    deleteAnnouncementSlide,
   };
+
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };

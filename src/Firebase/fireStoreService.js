@@ -22,6 +22,8 @@ const teamsCollection = collection(db, "teams");
 const usersCollection = collection(db, "users");
 const communityPostsCollection = collection(db, "communityPosts");
 const adminCommentsCollection = collection(db, "adminComments");
+const carouselAnnouncementsCollection = collection(db, "carouselAnnouncements");
+
 
 // ============ TOURNAMENTS ============
 
@@ -620,3 +622,61 @@ export const deleteAdminComment = async (id) => {
     throw error;
   }
 };
+
+// ============ CAROUSEL ANNOUNCEMENTS ============
+
+export const getCarouselAnnouncements = async () => {
+  try {
+    const q = query(carouselAnnouncementsCollection, orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
+    const announcements = [];
+    querySnapshot.forEach((d) => {
+      announcements.push({ id: d.id, ...d.data() });
+    });
+    return announcements;
+  } catch (error) {
+    console.error("Error getting carousel announcements:", error);
+    throw error;
+  }
+};
+
+export const addCarouselAnnouncement = async (data) => {
+  try {
+    const announcement = {
+      ...data,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    };
+    const docRef = await addDoc(carouselAnnouncementsCollection, announcement);
+    return { id: docRef.id, ...announcement };
+  } catch (error) {
+    console.error("Error adding carousel announcement:", error);
+    throw error;
+  }
+};
+
+export const updateCarouselAnnouncement = async (id, data) => {
+  try {
+    const docRef = doc(db, "carouselAnnouncements", id);
+    await updateDoc(docRef, {
+      ...data,
+      updatedAt: Timestamp.now(),
+    });
+    return { id, ...data };
+  } catch (error) {
+    console.error("Error updating carousel announcement:", error);
+    throw error;
+  }
+};
+
+export const deleteCarouselAnnouncement = async (id) => {
+  try {
+    const docRef = doc(db, "carouselAnnouncements", id);
+    await deleteDoc(docRef);
+    return true;
+  } catch (error) {
+    console.error("Error deleting carousel announcement:", error);
+    throw error;
+  }
+};
+

@@ -16,11 +16,12 @@ import Footer from "./components/Footer/Footer.jsx";
 import AdminPanel from "./components/Admin/AdminPanel.jsx";
 import Profile from "./components/Profile/Profile.jsx";
 import Teams from "./components/Teams/Teams.jsx";
+import AnnouncementsCarousel from "./components/Announcements/AnnouncementsCarousel.jsx";
 
 // Create a separate component that uses the context
 function HomePage() {
   const [selectedGame, setSelectedGame] = useState(null);
-  const { games } = useAppContext();
+  const { games, announcementSlides } = useAppContext();
 
   useEffect(() => {
     if (games && games.length > 0 && !selectedGame) {
@@ -43,7 +44,7 @@ function HomePage() {
     );
     document.querySelectorAll(".reveal").forEach((r) => obs.observe(r));
     return () => obs.disconnect();
-  }, []);
+  }, [announcementSlides]);
 
   return (
     <>
@@ -53,6 +54,7 @@ function HomePage() {
       <Marquee />
       <Games onGameSelect={handleGameSelect} selectedGame={selectedGame} />
       <Featured selectedGame={selectedGame} />
+      <AnnouncementsCarousel />
       <Teams />
       <HowItWorks />
       <Tournaments />

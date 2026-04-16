@@ -98,10 +98,10 @@ export default function Navbar() {
           </li>
           <li>
             <a
-              href="#newsletter"
-              onClick={(e) => handleScrollToSection(e, "newsletter")}
+              href="#announcements-carousel"
+              onClick={(e) => handleScrollToSection(e, "announcements-carousel")}
             >
-              Newsletter
+              Announcements
             </a>
           </li>
         </ul>
@@ -174,10 +174,10 @@ export default function Navbar() {
           Community
         </a>
         <a
-          href="#newsletter"
-          onClick={(e) => handleScrollToSection(e, "newsletter")}
+          href="#announcements-carousel"
+          onClick={(e) => handleScrollToSection(e, "announcements-carousel")}
         >
-          Newsletter
+          Announcements
         </a>
         {user ? (
           <Link

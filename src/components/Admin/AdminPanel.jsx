@@ -3,6 +3,8 @@ import { useAppContext } from "../../Context/AppContext";
 import Marquee from "../Marquee/Marquee";
 import "./AdminPanel.css";
 import LogoR17 from "../../../public/assets/LogoR17.png";
+import { uploadImage } from "../../Firebase/storageService";
+
 
 export default function AdminPanel() {
   const {
@@ -38,7 +40,12 @@ export default function AdminPanel() {
     blockUser,
     unblockUser,
     deleteUser,
+    announcementSlides,
+    addAnnouncementSlide,
+    updateAnnouncementSlide,
+    deleteAnnouncementSlide,
   } = useAppContext();
+
 
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showForm, setShowForm] = useState(false);
@@ -112,6 +119,16 @@ export default function AdminPanel() {
     author: "Admin",
     text: "",
   });
+
+  const [carouselForm, setCarouselForm] = useState({
+    imageUrl: "",
+    redirectUrl: "",
+    title: "",
+    description: "",
+  });
+
+  const [isUploading, setIsUploading] = useState(false);
+
 
   const [teamForm, setTeamForm] = useState({
     name: "",
@@ -573,6 +590,13 @@ export default function AdminPanel() {
         author: item.author || "Admin",
         text: item.text || "",
       });
+    } else if (type === "carousel") {
+      setCarouselForm({
+        imageUrl: item.imageUrl || "",
+        redirectUrl: item.redirectUrl || "",
+        title: item.title || "",
+        description: item.description || "",
+      });
     }
   };
 
@@ -603,6 +627,11 @@ export default function AdminPanel() {
       (u.displayName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
       (u.email || "").toLowerCase().includes(searchTerm.toLowerCase()),
   );
+
+  const filteredAnnouncementsCarousel = (announcementSlides || []).filter((a) =>
+    (a.redirectUrl || "").toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
 
   const handleAddCommunityPost = async () => {
     if (!communityForm.name?.trim()) {
@@ -696,6 +725,50 @@ export default function AdminPanel() {
       showMessage("Error updating announcement", "error");
     }
   };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const url = await uploadImage(file);
+      setCarouselForm((prev) => ({ ...prev, imageUrl: url }));
+      showMessage("Image uploaded successfully!");
+    } catch (error) {
+      showMessage("Error uploading image", "error");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleAddCarouselSlide = async () => {
+    if (!carouselForm.imageUrl) {
+      showMessage("Please provide an image URL", "error");
+      return;
+    }
+    const created = await addAnnouncementSlide(carouselForm);
+    if (created) {
+      showMessage("Carousel slide added!");
+      setCarouselForm({ imageUrl: "", redirectUrl: "" });
+      setShowForm(false);
+    } else {
+      showMessage("Error adding slide", "error");
+    }
+  };
+
+  const handleUpdateCarouselSlide = async () => {
+    const success = await updateAnnouncementSlide(editingItem.id, carouselForm);
+    if (success) {
+      showMessage("Carousel slide updated!");
+      setEditingItem(null);
+      setCarouselForm({ imageUrl: "", redirectUrl: "" });
+      setShowForm(false);
+    } else {
+      showMessage("Error updating slide", "error");
+    }
+  };
+
 
   const handleSaveHero = async () => {
     if (!heroForm) return;
@@ -856,6 +929,18 @@ export default function AdminPanel() {
             <span className="nav-icon">📢</span> Comments
             <span className="nav-badge">{adminComments?.length ?? 0}</span>
           </button>
+          <button
+            className={`nav-link ${activeTab === "carousel" ? "active" : ""}`}
+            onClick={() => {
+              setActiveTab("carousel");
+              setShowForm(false);
+              setSearchTerm("");
+            }}
+          >
+            <span className="nav-icon">🎠</span> Carousel
+            <span className="nav-badge">{announcementSlides?.length ?? 0}</span>
+          </button>
+
           <button
             className={`nav-link ${activeTab === "users" ? "active" : ""}`}
             onClick={() => {
@@ -1244,9 +1329,10 @@ export default function AdminPanel() {
                 <p className="no-data">Loading hero settings…</p>
               ) : null}
 
-              {activeTab !== "hero" &&
+               {activeTab !== "hero" &&
               activeTab !== "users" &&
               activeTab !== "announcements" ? (
+
                 <>
                   <div className="admin-actions">
                     <div className="search-bar">
@@ -1313,6 +1399,128 @@ export default function AdminPanel() {
                             </div>
                           </form>
                         )}
+
+                        {activeTab === "carousel" && (
+                          <form
+                            onSubmit={async (e) => {
+                              e.preventDefault();
+                              if (editingItem) {
+                                await handleUpdateCarouselSlide();
+                              } else {
+                                await handleAddCarouselSlide();
+                              }
+                            }}
+                          >
+                            <div className="form-group">
+                              <label>Image Source</label>
+                              <div
+                                className="upload-input-group"
+                                style={{
+                                  display: "flex",
+                                  gap: "10px",
+                                  marginBottom: "10px",
+                                }}
+                              >
+                                <input
+                                  type="text"
+                                  placeholder="Image URL"
+                                  value={carouselForm.imageUrl}
+                                  onChange={(e) =>
+                                    setCarouselForm({
+                                      ...carouselForm,
+                                      imageUrl: e.target.value,
+                                    })
+                                  }
+                                  required
+                                  style={{ flex: 1 }}
+                                />
+                                <div className="file-upload-wrapper">
+                                  <label className="btn-upload">
+                                    {isUploading ? "Uploading..." : "Upload File"}
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      onChange={handleFileUpload}
+                                      disabled={isUploading}
+                                      style={{ display: "none" }}
+                                    />
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="form-group">
+                              <label>Slide Title</label>
+                              <input
+                                type="text"
+                                placeholder="eg: R17 CHAMPIONSHIP 2026"
+                                value={carouselForm.title}
+                                onChange={(e) =>
+                                  setCarouselForm({
+                                    ...carouselForm,
+                                    title: e.target.value,
+                                  })
+                                }
+                                required
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label>Slide Description</label>
+                              <textarea
+                                placeholder="Short description for the slide..."
+                                value={carouselForm.description}
+                                onChange={(e) =>
+                                  setCarouselForm({
+                                    ...carouselForm,
+                                    description: e.target.value,
+                                  })
+                                }
+                                rows={3}
+                                required
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label>Redirect URL</label>
+                              <input
+                                type="text"
+                                placeholder="eg: https://r17gaming.com/tournaments"
+                                value={carouselForm.redirectUrl}
+                                onChange={(e) =>
+                                  setCarouselForm({
+                                    ...carouselForm,
+                                    redirectUrl: e.target.value,
+                                  })
+                                }
+                                required
+                              />
+                            </div>
+                            <div className="form-actions">
+                              <button
+                                type="submit"
+                                className="btn-save"
+                                disabled={isUploading}
+                              >
+                                {editingItem ? "Update" : "Add Slide"}
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-cancel"
+                                onClick={() => {
+                                  setShowForm(false);
+                                  setEditingItem(null);
+                                  setCarouselForm({
+                                    imageUrl: "",
+                                    redirectUrl: "",
+                                    title: "",
+                                    description: "",
+                                  });
+                                }}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </form>
+                        )}
+
 
                         {activeTab === "tournaments" && (
                           <form
@@ -2373,42 +2581,37 @@ export default function AdminPanel() {
                           </tr>
                         </thead>
                         <tbody>
-                          {teams && teams.length > 0 ? (
-                            teams.map((team) => (
+                          {filteredTeams.length > 0 ? (
+                            filteredTeams.map((team) => (
                               <tr key={team.id}>
-                                <td>{team.name}</td>
-                                <td>{team.country || "-"}</td>
                                 <td>
-                                  {(team.players || [])
-                                    .map((p) => p.name)
-                                    .join(", ")}
+                                  <div className="team-cell">
+                                    <img
+                                      src={team.logo || LogoR17}
+                                      alt={team.name}
+                                      className="admin-list-logo"
+                                      onError={(e) => (e.target.src = LogoR17)}
+                                    />
+                                    <span>{team.name}</span>
+                                  </div>
                                 </td>
+                                <td>{team.country}</td>
+                                <td>{team.players?.length || 0} players</td>
                                 <td>
                                   <button
                                     className="btn-edit"
-                                    onClick={() => {
-                                      setEditingItem(team);
-                                      setShowForm(true);
-                                      setTeamForm({
-                                        name: team.name || "",
-                                        country: team.country || "",
-                                        players: Array.isArray(team.players)
-                                          ? team.players.map((p) => ({
-                                              name: p.name || "",
-                                              avatar: p.avatar || "",
-                                              role: p.role || "",
-                                              bio: p.bio || "",
-                                            }))
-                                          : [],
-                                      });
-                                    }}
+                                    onClick={() => handleEdit(team, "teams")}
                                   >
                                     Edit
                                   </button>
                                   <button
                                     className="btn-delete"
                                     onClick={() =>
-                                      handleDelete(team.id, "team", deleteTeam)
+                                      handleDelete(
+                                        team.id,
+                                        "team",
+                                        deleteTeam,
+                                      )
                                     }
                                   >
                                     Delete
@@ -2420,6 +2623,82 @@ export default function AdminPanel() {
                             <tr>
                               <td colSpan="4" className="no-data">
                                 No teams found
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {activeTab === "carousel" && (
+                    <div className="data-table">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Image Preview</th>
+                            <th>Title</th>
+                            <th>Redirect URL</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredAnnouncementsCarousel.length > 0 ? (
+                            filteredAnnouncementsCarousel.map((slide) => (
+                              <tr key={slide.id}>
+                                <td>
+                                  <img
+                                    src={slide.imageUrl}
+                                    alt="Carousel Slide"
+                                    style={{
+                                      width: "120px",
+                                      height: "60px",
+                                      objectFit: "cover",
+                                      borderRadius: "4px",
+                                    }}
+                                  />
+                                </td>
+                                <td>
+                                  <div style={{ fontWeight: "600", color: "#fff" }}>
+                                    {slide.title || "No Title"}
+                                  </div>
+                                </td>
+                                <td>
+                                  <a
+                                    href={slide.redirectUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    style={{ color: "#2ed573" }}
+                                  >
+                                    {slide.redirectUrl}
+                                  </a>
+                                </td>
+                                <td>
+                                  <button
+                                    className="btn-edit"
+                                    onClick={() => handleEdit(slide, "carousel")}
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    className="btn-delete"
+                                    onClick={() =>
+                                      handleDelete(
+                                        slide.id,
+                                        "slide",
+                                        deleteAnnouncementSlide,
+                                      )
+                                    }
+                                  >
+                                    Delete
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan="3" className="no-data">
+                                No carousel slides found
                               </td>
                             </tr>
                           )}
