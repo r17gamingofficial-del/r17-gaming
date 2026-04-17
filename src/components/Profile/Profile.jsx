@@ -7,6 +7,7 @@ import {
   query,
   where,
   getDocs,
+  updateDoc,
 } from "firebase/firestore";
 import { useAuth } from "../../hooks/useAuth";
 import { db } from "../../Firebase/config";
@@ -35,6 +36,10 @@ export default function Profile() {
   const [wonTournaments, setWonTournaments] = useState([]);
   const [tournamentsLoading, setTournamentsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("registered");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editPhotoURL, setEditPhotoURL] = useState("");
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     if (!user?.uid) {
@@ -134,6 +139,37 @@ export default function Profile() {
     navigate("/", { replace: true });
   };
 
+  const handleEditToggle = () => {
+    setEditName(displayName);
+    setEditPhotoURL(firestoreProfile?.photoURL ?? user.photoURL ?? "");
+    setIsEditing(!isEditing);
+  };
+
+  const handleUpdateProfile = async (e) => {
+    if (e) e.preventDefault();
+    if (!user?.uid || !editName.trim()) return;
+
+    setUpdating(true);
+    try {
+      const userDocRef = doc(db, "users", user.uid);
+      await updateDoc(userDocRef, {
+        name: editName.trim(),
+        photoURL: editPhotoURL.trim(),
+      });
+
+      setFirestoreProfile((prev) => ({
+        ...prev,
+        name: editName.trim(),
+        photoURL: editPhotoURL.trim(),
+      }));
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="profile-page profile-page--loading">
@@ -149,27 +185,79 @@ export default function Profile() {
   const displayName =
     firestoreProfile?.name?.trim() || user.displayName?.trim() || "Player";
   const initial = (displayName[0] || user.email?.[0] || "?").toUpperCase();
+  const avatarURL = firestoreProfile?.photoURL ?? user.photoURL;
 
   return (
     <div className="profile-page">
       <div className="profile-card reveal visible">
         <div className="profile-card-header">
           <div className="profile-avatar-large">
-            {user.photoURL ? (
-              <img src={user.photoURL} alt="" />
+            {avatarURL ? (
+              <img src={avatarURL} alt="" />
             ) : (
               <span>{initial}</span>
             )}
           </div>
-          <h1 className="profile-title">Your profile</h1>
-          <p className="profile-sub">Account details and session</p>
+          <h1 className="profile-title">
+            Your profile
+            {!isEditing && (
+              <button
+                className="profile-edit-toggle"
+                onClick={handleEditToggle}
+                title="Edit profile"
+              >
+                ✏️
+              </button>
+            )}
+          </h1>
         </div>
 
         <dl className="profile-details">
           <div className="profile-row">
             <dt>Name</dt>
-            <dd>{profileLoading ? "…" : displayName}</dd>
+            <dd>
+              {isEditing ? (
+                <input
+                  type="text"
+                  className="profile-edit-input"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleUpdateProfile()}
+                  placeholder="Enter your name"
+                  autoFocus
+                />
+              ) : profileLoading ? (
+                "…"
+              ) : (
+                displayName
+              )}
+            </dd>
           </div>
+
+          {isEditing && (
+            <div className="profile-row">
+              <dt>Photo URL</dt>
+              <dd className="profile-photo-edit-row">
+                <input
+                  type="text"
+                  className="profile-edit-input"
+                  value={editPhotoURL}
+                  onChange={(e) => setEditPhotoURL(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleUpdateProfile()}
+                  placeholder="Link to your profile photo"
+                />
+                <button
+                  type="button"
+                  className="profile-remove-photo-btn"
+                  onClick={() => setEditPhotoURL("")}
+                  title="Remove photo"
+                  disabled={!editPhotoURL}
+                >
+                  Remove
+                </button>
+              </dd>
+            </div>
+          )}
           <div className="profile-row">
             <dt>Email</dt>
             <dd>{user.email || "—"}</dd>
@@ -189,6 +277,25 @@ export default function Profile() {
             <dd className="profile-wins-count">{wonTournaments.length}</dd>
           </div>
         </dl>
+
+        {isEditing && (
+          <div className="profile-edit-actions">
+            <button
+              className="save-changes-btn"
+              onClick={handleUpdateProfile}
+              disabled={updating || !editName.trim()}
+            >
+              {updating ? "Saving..." : "Save Changes"}
+            </button>
+            <button
+              className="cancel-edit-btn"
+              onClick={() => setIsEditing(false)}
+              disabled={updating}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
 
         {/* Tournaments Section */}
         <div className="profile-tournaments-section">

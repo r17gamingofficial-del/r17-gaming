@@ -73,6 +73,10 @@
   letter-spacing: 0.08em;
   color: #fff;
   margin: 0 0 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
 }
 
 .profile-sub {
@@ -490,6 +494,141 @@
 .profile-back-btn:hover {
   color: #fff;
   border-color: rgba(255, 34, 51, 0.35);
+}
+
+/* Profile Edit Styles */
+.profile-edit-toggle {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+  padding: 0;
+  filter: grayscale(1);
+  opacity: 0.7;
+}
+
+.profile-edit-toggle:hover {
+  background: rgba(255, 34, 51, 0.1);
+  border-color: rgba(255, 34, 51, 0.4);
+  transform: scale(1.1);
+  filter: grayscale(0);
+  opacity: 1;
+}
+
+.profile-edit-form {
+  width: 100%;
+}
+
+.profile-edit-input {
+  width: 100%;
+  background: rgba(255, 22, 34, 0.05);
+  border: 1px solid rgba(255, 34, 51, 0.2);
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  color: #fff;
+  font-family: "Questrial", sans-serif;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.profile-edit-input:focus {
+  outline: none;
+  border-color: rgba(255, 34, 51, 0.6);
+  background: rgba(255, 34, 51, 0.08);
+  box-shadow: 0 0 15px rgba(255, 34, 51, 0.15);
+}
+
+.profile-edit-actions {
+  display: flex;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  justify-content: center;
+}
+
+.save-changes-btn {
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 0.75rem 1.8rem;
+  background: linear-gradient(135deg, #00ff88, #00b894);
+  border: none;
+  border-radius: 2rem;
+  color: #000;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.save-changes-btn:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 10px 20px rgba(0, 255, 136, 0.3);
+}
+
+.save-changes-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancel-edit-btn {
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 0.75rem 1.8rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 2rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-edit-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.profile-photo-edit-row {
+  display: flex !important;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.profile-remove-photo-btn {
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.55rem 1rem;
+  background: rgba(255, 34, 51, 0.1);
+  border: 1px solid rgba(255, 34, 51, 0.2);
+  border-radius: 0.4rem;
+  color: #ff2233;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.profile-remove-photo-btn:hover:not(:disabled) {
+  background: rgba(255, 34, 51, 0.2);
+  border-color: rgba(255, 34, 51, 0.4);
+  transform: translateY(-1px);
+}
+
+.profile-remove-photo-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  filter: grayscale(1);
 }
 
 /* Responsive */

@@ -23,11 +23,15 @@ import { auth, db } from "../Firebase/config";
 
 export function useAuth() {
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u);
+      if (!u) {
+        setProfile(null);
+      }
       setLoading(false);
     });
     return () => unsub();
@@ -40,10 +44,17 @@ export function useAuth() {
     const unsubDoc = onSnapshot(
       userDocRef,
       (snap) => {
-        // If profile marked blocked, sign the user out immediately
-        if (snap.exists() && snap.data()?.isBlocked) {
-          console.warn("User profile is blocked — signing out");
-          signOut(auth).catch((e) => console.error("Sign-out error:", e));
+        if (snap.exists()) {
+          const data = snap.data();
+          setProfile(data);
+
+          // If profile marked blocked, sign the user out immediately
+          if (data.isBlocked) {
+            console.warn("User profile is blocked — signing out");
+            signOut(auth).catch((e) => console.error("Sign-out error:", e));
+          }
+        } else {
+          setProfile(null);
         }
       },
       (err) => {
@@ -155,6 +166,7 @@ export function useAuth() {
   return useMemo(
     () => ({
       user,
+      profile,
       loading,
       login,
       register,
@@ -165,6 +177,7 @@ export function useAuth() {
     }),
     [
       user,
+      profile,
       loading,
       login,
       register,

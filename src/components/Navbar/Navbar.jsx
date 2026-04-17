@@ -5,9 +5,9 @@ import { useAuth } from "../../hooks/useAuth";
 import AuthModal from "../Authmodal/AuthModal";
 import LogoR17 from "../../../public/assets/LogoR17.png"
 
-function userInitial(user) {
+function userInitial(user, profile) {
   if (!user) return "?";
-  const n = user.displayName?.trim()?.[0];
+  const n = (profile?.name || user.displayName)?.trim()?.[0];
   if (n) return n.toUpperCase();
   return (user.email?.[0] || "?").toUpperCase();
 }
@@ -17,7 +17,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
@@ -68,6 +68,14 @@ export default function Navbar() {
             </a>
           </li>
           <li>
+            <a
+              href="#announcements-carousel"
+              onClick={(e) => handleScrollToSection(e, "announcements-carousel")}
+            >
+              Announcements
+            </a>
+          </li>
+          <li>
             <a href="#teams" onClick={(e) => handleScrollToSection(e, "teams")}>
               Teams
             </a>
@@ -96,14 +104,7 @@ export default function Navbar() {
               Community
             </a>
           </li>
-          <li>
-            <a
-              href="#announcements-carousel"
-              onClick={(e) => handleScrollToSection(e, "announcements-carousel")}
-            >
-              Announcements
-            </a>
-          </li>
+
         </ul>
         {user ? (
           <Link
@@ -112,15 +113,17 @@ export default function Navbar() {
             aria-label="Open profile"
             title="Profile"
           >
-            {user.photoURL ? (
+            {(profile?.photoURL ?? user.photoURL) ? (
               <img
-                src={user.photoURL}
+                src={profile?.photoURL ?? user.photoURL}
                 alt=""
                 className="nav-avatar-img"
                 referrerPolicy="no-referrer"
               />
             ) : (
-              <span className="nav-avatar-fallback">{userInitial(user)}</span>
+              <span className="nav-avatar-fallback">
+                {userInitial(user, profile)}
+              </span>
             )}
           </Link>
         ) : (
@@ -186,10 +189,14 @@ export default function Navbar() {
             onClick={closeMenu}
           >
             <span className="mobile-profile-avatar">
-              {user.photoURL ? (
-                <img src={user.photoURL} alt="" referrerPolicy="no-referrer" />
+              {(profile?.photoURL ?? user.photoURL) ? (
+                <img
+                  src={profile?.photoURL ?? user.photoURL}
+                  alt=""
+                  referrerPolicy="no-referrer"
+                />
               ) : (
-                userInitial(user)
+                userInitial(user, profile)
               )}
             </span>
             Profile
