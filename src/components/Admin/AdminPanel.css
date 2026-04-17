@@ -329,32 +329,42 @@
 .player-edit-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.02);
-  padding: 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  gap: 1rem;
+  align-items: flex-start;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.player-edit-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 107, 107, 0.2);
 }
 
 .player-edit-row input,
 .player-edit-row textarea {
-  padding: 0.6rem;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 0.5rem;
+  padding: 0.8rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
   color: white;
   font-size: 0.9rem;
+  transition: all 0.2s ease;
 }
 
-.player-edit-row input::placeholder,
-.player-edit-row textarea::placeholder {
-  color: rgba(255, 255, 255, 0.45);
+.player-edit-row input:focus,
+.player-edit-row textarea:focus {
+  border-color: #ff6b6b;
+  background: rgba(0, 0, 0, 0.3);
+  outline: none;
 }
 
 .player-edit-row input[type="text"] {
-  flex: 1 1 calc(50% - 0.75rem);
-  min-width: 140px;
+  flex: 1 1 calc(50% - 1rem);
+  min-width: 150px;
 }
 
 .player-edit-row textarea {
@@ -364,31 +374,42 @@
 }
 
 .btn-add-player {
-  align-self: start;
-  padding: 0.5rem 0.75rem;
-  background: linear-gradient(135deg, #6bd3a8, #2ed573);
-  color: #042; /* subtle text contrast */
+  align-self: flex-start;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, #2ed573, #26c281);
+  color: white;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 8px;
   cursor: pointer;
   font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
 }
 
 .btn-add-player:hover {
   transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(46, 213, 115, 0.3);
 }
 
 .btn-remove {
-  padding: 0.45rem 0.6rem;
-  background: rgba(255, 71, 87, 0.12);
-  color: #ff6b6b;
-  border: 1px solid rgba(255, 71, 87, 0.18);
-  border-radius: 0.45rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 71, 87, 0.1);
+  color: #ff4757;
+  border: 1px solid rgba(255, 71, 87, 0.2);
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+  margin-left: auto;
+  transition: all 0.2s ease;
 }
 
 .btn-remove:hover {
-  background: rgba(255, 71, 87, 0.18);
+  background: #ff4757;
+  color: white;
   transform: translateY(-1px);
 }
 
@@ -452,9 +473,12 @@
 /* Data Table */
 .data-table {
   overflow-x: auto;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(18, 18, 24, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 1rem;
   padding: 1rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px);
 }
 
 table {
@@ -470,11 +494,12 @@ td {
 }
 
 th {
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 600;
-  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 700;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 tr:hover {
@@ -512,6 +537,35 @@ tr:hover {
 .btn-delete:hover {
   background: rgba(255, 71, 87, 0.3);
   transform: translateY(-2px);
+}
+
+/* Teams Specific Styles */
+.team-cell {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.admin-list-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 4px;
+  transition: all 0.3s ease;
+}
+
+.team-cell span {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #fff;
+}
+
+.team-cell:hover .admin-list-logo {
+  transform: scale(1.1) rotate(-5deg);
+  border-color: #ff2a2a;
 }
 
 /* Tabular Data View Wrapper for standard Admin content */

@@ -23,7 +23,7 @@ export default function Marquee({ overrideItems }) {
       <div className="marquee-track">
         {allItems.map((item, i) => (
           <span className="marquee-item" key={i}>
-            {item} <span className="dot">◆</span>
+            {item} 
           </span>
         ))}
       </div>

@@ -632,6 +632,10 @@ export default function AdminPanel() {
     (a.redirectUrl || "").toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
+  const filteredTeams = (teams || []).filter((t) =>
+    (t.name || "").toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
 
   const handleAddCommunityPost = async () => {
     if (!communityForm.name?.trim()) {
