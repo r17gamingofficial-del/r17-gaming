@@ -1,3 +1,7 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
+  "rewrites": [
+    { "source": "/create-order", "destination": "/api/create-order" },
+    { "source": "/verify-payment", "destination": "/api/verify-payment" },
+    { "source": "/(.*)", "destination": "/" }
+  ]
 }

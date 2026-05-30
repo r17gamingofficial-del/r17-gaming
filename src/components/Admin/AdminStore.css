@@ -1,0 +1,491 @@
+.admin-store {
+  padding: 2rem;
+  position: relative;
+}
+
+.admin-store-toast {
+  position: fixed;
+  top: 1.5rem;
+  right: 2rem;
+  z-index: 9999;
+  background: rgba(14, 14, 16, 0.98);
+  border: 1px solid rgba(255, 34, 51, 0.5);
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  box-shadow: 0 0 25px rgba(255, 34, 51, 0.3);
+  animation: toastIn 0.3s ease;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Stats Bar */
+.astore-stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.astore-stat-card {
+  background: rgba(14, 14, 16, 0.8);
+  border: 1px solid rgba(255, 34, 51, 0.15);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  transition: border-color 0.3s ease;
+}
+
+.astore-stat-card:hover { border-color: rgba(255, 34, 51, 0.4); }
+
+.astore-stat-val {
+  font-family: "Orbitron", sans-serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #ff2233;
+}
+
+.astore-stat-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: rgba(160, 160, 176, 0.6);
+  text-transform: uppercase;
+}
+
+/* Toolbar */
+.astore-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.astore-search {
+  flex: 1;
+  background: rgba(14, 14, 16, 0.8);
+  border: 1px solid rgba(255, 34, 51, 0.2);
+  color: #fff;
+  padding: 0.7rem 1rem;
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.astore-search:focus { border-color: rgba(255, 34, 51, 0.5); }
+
+.astore-add-btn {
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  padding: 0.7rem 1.5rem;
+  background: linear-gradient(135deg, #cc0011, #ff2233, #aa0011);
+  color: #fff;
+  border: none;
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.astore-add-btn:hover {
+  box-shadow: 0 0 25px rgba(255, 34, 51, 0.5);
+  transform: translateY(-1px);
+}
+
+.astore-secondary-btn {
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  padding: 0.7rem 1.1rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.astore-section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 2rem 0 1rem;
+}
+
+.astore-section-head h3 {
+  font-family: "Orbitron", sans-serif;
+  color: #fff;
+  font-size: 0.95rem;
+  letter-spacing: 0.18em;
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+}
+
+.astore-section-head p {
+  margin: 0;
+  color: rgba(160, 160, 176, 0.62);
+  font-size: 0.82rem;
+}
+
+.astore-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.astore-orders-head {
+  border-top: 1px solid rgba(255, 34, 51, 0.14);
+  padding-top: 2rem;
+}
+
+/* Form Overlay */
+.astore-form-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.astore-form {
+  background: rgba(10, 10, 12, 0.98);
+  border: 1px solid rgba(255, 34, 51, 0.3);
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 34, 51, 0.1);
+  padding: 2rem;
+  width: 100%;
+  max-width: 640px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.astore-form-title {
+  font-family: "Orbitron", sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.2em;
+  color: #fff;
+  margin: 0 0 1.5rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(255, 34, 51, 0.2);
+  padding-bottom: 1rem;
+}
+
+.astore-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.astore-form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: rgba(160, 160, 176, 0.7);
+  text-transform: uppercase;
+}
+
+.astore-form-full { grid-column: 1 / -1; }
+
+.astore-form-grid input,
+.astore-form-grid select,
+.astore-form-grid textarea {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 34, 51, 0.2);
+  color: #fff;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.3s ease;
+  font-family: inherit;
+}
+
+.astore-form-grid input:focus,
+.astore-form-grid select:focus,
+.astore-form-grid textarea:focus { border-color: rgba(255, 34, 51, 0.5); }
+
+.astore-form-grid option { background: #111; }
+
+.astore-checkbox-label {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 0.6rem !important;
+  cursor: pointer;
+}
+
+.astore-checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #ff2233;
+  cursor: pointer;
+}
+
+.astore-form-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.astore-save-btn {
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  padding: 0.65rem 1.5rem;
+  background: linear-gradient(135deg, #cc0011, #ff2233);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+
+.astore-save-btn:hover { box-shadow: 0 0 20px rgba(255, 34, 51, 0.5); }
+
+.astore-save-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.astore-cancel-btn {
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  padding: 0.65rem 1.25rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+
+.astore-cancel-btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+
+/* Table */
+.astore-table-wrap {
+  overflow-x: auto;
+  border: 1px solid rgba(255, 34, 51, 0.12);
+}
+
+.astore-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.astore-table th {
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  color: rgba(160, 160, 176, 0.6);
+  text-transform: uppercase;
+  background: rgba(14, 14, 16, 0.9);
+  padding: 0.9rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 34, 51, 0.15);
+  white-space: nowrap;
+}
+
+.astore-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: rgba(230, 230, 240, 0.85);
+  vertical-align: middle;
+}
+
+.astore-table tr:hover td { background: rgba(255, 34, 51, 0.03); }
+
+.astore-product-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.astore-thumb {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 34, 51, 0.2);
+  flex-shrink: 0;
+}
+
+.astore-category-tag {
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  color: rgba(160, 160, 176, 0.7);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.2rem 0.5rem;
+  text-transform: uppercase;
+}
+
+.astore-price {
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.astore-stock { font-weight: 600; }
+.astore-stock.low { color: #ff2233; }
+
+.astore-badge {
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  padding: 0.2rem 0.5rem;
+  background: rgba(255, 34, 51, 0.15);
+  color: #ff4455;
+  border: 1px solid rgba(255, 34, 51, 0.3);
+  text-transform: uppercase;
+}
+
+.astore-none { color: rgba(160, 160, 176, 0.3); }
+
+.astore-featured-yes {
+  font-size: 0.78rem;
+  color: #4ade80;
+}
+
+.astore-live {
+  color: #4ade80;
+  font-weight: 700;
+}
+
+.astore-no-data {
+  text-align: center;
+  padding: 3rem !important;
+  color: rgba(160, 160, 176, 0.4);
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+}
+
+.astore-orders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.astore-order-card {
+  background: rgba(14, 14, 16, 0.86);
+  border: 1px solid rgba(255, 34, 51, 0.14);
+  padding: 1rem;
+}
+
+.astore-order-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.astore-order-top strong,
+.astore-order-top b {
+  display: block;
+  color: #fff;
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+}
+
+.astore-order-top span {
+  display: block;
+  margin-top: 0.35rem;
+  color: rgba(160, 160, 176, 0.55);
+  font-size: 0.72rem;
+}
+
+.astore-order-customer {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.9rem 0;
+  color: rgba(230, 230, 240, 0.78);
+  font-size: 0.82rem;
+}
+
+.astore-order-customer p {
+  margin: 0.2rem 0 0;
+  color: rgba(160, 160, 176, 0.65);
+  line-height: 1.5;
+}
+
+.astore-order-items {
+  display: grid;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+}
+
+.astore-order-items div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.78rem;
+}
+
+.astore-order-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.astore-order-controls label {
+  display: grid;
+  gap: 0.4rem;
+  color: rgba(160, 160, 176, 0.65);
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.astore-order-controls select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 34, 51, 0.18);
+  color: #fff;
+  padding: 0.55rem;
+}
+
+.astore-order-controls option {
+  background: #111;
+}
+
+@media (max-width: 900px) {
+  .astore-stats-bar { grid-template-columns: repeat(2, 1fr); }
+  .astore-section-head,
+  .astore-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .astore-actions {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 560px) {
+  .admin-store {
+    padding: 1rem;
+  }
+  .astore-stats-bar,
+  .astore-form-grid,
+  .astore-order-controls {
+    grid-template-columns: 1fr;
+  }
+}

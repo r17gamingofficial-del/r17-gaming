@@ -4,6 +4,7 @@ import Marquee from "../Marquee/Marquee";
 import "./AdminPanel.css";
 import LogoR17 from "../../../public/assets/LogoR17.png";
 import { uploadImage } from "../../Firebase/storageService";
+import AdminStore from "./AdminStore";
 
 
 export default function AdminPanel() {
@@ -912,6 +913,16 @@ export default function AdminPanel() {
 
           <div className="nav-section-title">APPS & CONTENT</div>
           <button
+            className={`nav-link ${activeTab === "store" ? "active" : ""}`}
+            onClick={() => {
+              setActiveTab("store");
+              setShowForm(false);
+              setSearchTerm("");
+            }}
+          >
+            <span className="nav-icon">🛒</span> Store
+          </button>
+          <button
             className={`nav-link ${activeTab === "community" ? "active" : ""}`}
             onClick={() => {
               setActiveTab("community");
@@ -1055,6 +1066,7 @@ export default function AdminPanel() {
         </header>
 
         <div className="admin-content-area">
+          {activeTab === "store" && <AdminStore />}
           {activeTab === "dashboard" ? (
             <div className="dashboard-overview animate-fade-up">
             

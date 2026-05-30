@@ -599,3 +599,10 @@ p {
     color: black;
   }
 }
+
+@font-face {
+  font-family: 'Siegra';
+  src: url('./assets/fonts/Siegra.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+}

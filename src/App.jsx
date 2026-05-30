@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
 import { AppProvider, useAppContext } from "./Context/AppContext.jsx";
+import CinematicLoader from "./components/Loader/CinematicLoader.jsx";
 import Cursor from "./components/Cursor/Cursor.jsx";
 import Navbar from "./components/Navbar/Navbar.jsx";
 import Hero from "./components/Hero/Hero.jsx";
@@ -17,9 +19,11 @@ import AdminPanel from "./components/Admin/AdminPanel.jsx";
 import Profile from "./components/Profile/Profile.jsx";
 import Teams from "./components/Teams/Teams.jsx";
 import AnnouncementsCarousel from "./components/Announcements/AnnouncementsCarousel.jsx";
+import Store from "./components/Store/Store.jsx";
+import Checkout from "./components/Checkout/Checkout.jsx";
 
 // Create a separate component that uses the context
-function HomePage() {
+function HomePage({ bootState }) {
   const [selectedGame, setSelectedGame] = useState(null);
   const { games, announcementSlides } = useAppContext();
 
@@ -50,7 +54,7 @@ function HomePage() {
     <>
       <Cursor />
       <Navbar />
-      <Hero />
+      <Hero bootState={bootState} />
       <Marquee />
       <Games onGameSelect={handleGameSelect} selectedGame={selectedGame} />
       <Featured selectedGame={selectedGame} />
@@ -71,13 +75,19 @@ function AdminLogin({ onLogin }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (onLogin(password)) {
+  const attemptLogin = (value) => {
+    if (onLogin(String(value || "").trim())) {
       setError("");
     } else {
       setError("Invalid password");
     }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const submittedPassword =
+      e.currentTarget.elements.adminPassword?.value || password;
+    attemptLogin(submittedPassword);
   };
 
   return (
@@ -105,6 +115,7 @@ function AdminLogin({ onLogin }) {
             <div className="password-input-wrapper">
               <input
                 type="password"
+                name="adminPassword"
                 placeholder="Enter your admin password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -122,7 +133,13 @@ function AdminLogin({ onLogin }) {
             </div>
           )}
 
-          <button type="submit" className="login-button">
+          <button
+            type="submit"
+            className="login-button"
+            onClick={(e) =>
+              attemptLogin(e.currentTarget.form?.elements.adminPassword?.value || password)
+            }
+          >
             <span className="button-text">Access Dashboard</span>
             <span className="button-icon">→</span>
           </button>
@@ -151,7 +168,7 @@ function AdminRoute() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   const handleAdminLogin = (password) => {
-    if (password === "admin123") {
+    if (String(password || "").trim() === "admin123") {
       setIsAdmin(true);
       return true;
     }
@@ -177,12 +194,70 @@ function ProfileRoute() {
   );
 }
 
+function StoreRoute() {
+  return (
+    <>
+      <Cursor />
+      <Store />
+    </>
+  );
+}
+
+function CheckoutRoute() {
+  return (
+    <>
+      <Cursor />
+      <Checkout />
+    </>
+  );
+}
+
 function App() {
+  const [bootState, setBootState] = useState("booting");
+
+  const handleTransitionStart = () => {
+    setBootState("transitioning");
+  };
+
+  const handleBootComplete = () => {
+    setBootState("complete");
+  };
+
+  useEffect(() => {
+    // Force absolute scroll reset on mount
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
+    if (bootState !== "complete") {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [bootState]);
+
   return (
     <AppProvider>
+      <AnimatePresence>
+        {bootState !== "complete" && (
+          <CinematicLoader 
+            key="loader" 
+            onTransitionStart={handleTransitionStart}
+            onComplete={handleBootComplete} 
+          />
+        )}
+      </AnimatePresence>
       <Router>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<HomePage bootState={bootState} />} />
+          <Route path="/store" element={<StoreRoute />} />
+          <Route path="/checkout" element={<CheckoutRoute />} />
           <Route path="/profile" element={<ProfileRoute />} />
           <Route path="/admin" element={<AdminRoute />} />
         </Routes>

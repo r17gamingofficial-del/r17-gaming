@@ -104,6 +104,10 @@ export default function Navbar() {
               Community
             </a>
           </li>
+          <li>
+            <a><Link to="/store" className="panel-store-link" onClick={closeMenu}>
+                  Store
+                </Link></a></li>
 
         </ul>
         {user ? (

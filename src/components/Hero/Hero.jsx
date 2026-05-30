@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
 import { useAppContext } from "../../Context/AppContext.jsx";
+import gsap from "gsap";
 import "./Hero.css";
 
-export default function Hero() {
+export default function Hero({ bootState }) {
   const { hero } = useAppContext();
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
@@ -66,6 +67,34 @@ export default function Hero() {
       cancelAnimationFrame(raf);
     };
   }, []);
+
+  // Synchronized Cinematic Entrance Animation
+  useEffect(() => {
+    if (bootState === "booting") {
+      // Hide elements initially while loader is playing
+      gsap.set(['.hero-content', '.hero-stats', '.hero-video-bg', '.hero-particles'], { opacity: 0 });
+    }
+    
+    if (bootState === "transitioning") {
+      // Reveal the Hero seamlessly *through* the loader glitch
+      gsap.fromTo('.hero-video-bg', 
+        { opacity: 0, scale: 1.05 },
+        { opacity: 1, scale: 1, duration: 2.5, ease: 'power2.out' }
+      );
+      gsap.fromTo('.hero-particles', 
+        { opacity: 0 },
+        { opacity: 1, duration: 2, ease: 'power2.out' }
+      );
+      gsap.fromTo('.hero-content', 
+        { opacity: 0, scale: 0.95, y: 40 },
+        { opacity: 1, scale: 1, y: 0, duration: 1.8, ease: 'power3.out', delay: 0.2 }
+      );
+      gsap.fromTo('.hero-stats', 
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 1.2, ease: 'power3.out', delay: 0.6 }
+      );
+    }
+  }, [bootState]);
 
   const defaultStats = [
     { main: "0", inner: "", label: "Active Players" },

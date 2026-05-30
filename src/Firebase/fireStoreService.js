@@ -12,6 +12,7 @@ import {
   orderBy,
   setDoc,
   Timestamp,
+  runTransaction,
 } from "firebase/firestore";
 
 // Collection references
@@ -23,6 +24,125 @@ const usersCollection = collection(db, "users");
 const communityPostsCollection = collection(db, "communityPosts");
 const adminCommentsCollection = collection(db, "adminComments");
 const carouselAnnouncementsCollection = collection(db, "carouselAnnouncements");
+const storeProductsCollection = collection(db, "storeProducts");
+const storeOrdersCollection = collection(db, "storeOrders");
+
+const defaultStoreProducts = [
+  {
+    name: "R17 Pro Combat Jersey",
+    category: "Jerseys",
+    price: 2999,
+    stock: 48,
+    badge: "BESTSELLER",
+    featured: true,
+    isActive: true,
+    image: "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800&q=80",
+    desc: "Official team jersey. Moisture-wicking tactical mesh.",
+  },
+  {
+    name: "R17 Elite Hoodie",
+    category: "Hoodies",
+    price: 3499,
+    stock: 22,
+    badge: "NEW",
+    featured: true,
+    isActive: true,
+    image: "https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=800&q=80",
+    desc: "Heavyweight premium hoodie with embroidered R17 crest.",
+  },
+  {
+    name: "R17 Tactical Cap",
+    category: "Caps",
+    price: 1199,
+    stock: 75,
+    badge: "",
+    featured: false,
+    isActive: true,
+    image: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=800&q=80",
+    desc: "Structured 6-panel cap with tactical flat brim.",
+  },
+  {
+    name: "R17 Gaming Sleeve - Crimson",
+    category: "Sleeves",
+    price: 799,
+    stock: 130,
+    badge: "LIMITED",
+    featured: false,
+    isActive: true,
+    image: "https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=800&q=80",
+    desc: "Anti-sweat compression arm sleeve for peak performance.",
+  },
+  {
+    name: "R17 XL Control Mousepad",
+    category: "Mousepads",
+    price: 1599,
+    stock: 60,
+    badge: "FEATURED",
+    featured: true,
+    isActive: true,
+    image: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=800&q=80",
+    desc: "Desk-size precision cloth surface. 900x400mm tactical edition.",
+  },
+  {
+    name: "R17 Dog Tag Set",
+    category: "Accessories",
+    price: 699,
+    stock: 200,
+    badge: "LIMITED",
+    featured: false,
+    isActive: true,
+    image: "https://images.unsplash.com/photo-1620912189875-e3543dc34fde?w=800&q=80",
+    desc: "Stainless steel tags with R17 unit designation engraving.",
+  },
+];
+
+function sanitizeStoreProduct(data = {}) {
+  return {
+    name: String(data.name || "").trim(),
+    category: String(data.category || "Accessories").trim(),
+    price: Number(data.price) || 0,
+    stock: Number(data.stock) || 0,
+    badge: String(data.badge || "").trim(),
+    featured: Boolean(data.featured),
+    isActive: data.isActive !== false,
+    image: String(data.image || "").trim(),
+    desc: String(data.desc || "").trim(),
+    sortOrder: Number.isFinite(Number(data.sortOrder)) ? Number(data.sortOrder) : 0,
+  };
+}
+
+function getStoreProductKey(product = {}) {
+  return [
+    String(product.name || "").trim().toLowerCase(),
+    String(product.category || "").trim().toLowerCase(),
+    Number(product.price) || 0,
+  ].join("|");
+}
+
+function getDefaultStoreProductId(product = {}) {
+  return String(product.name || "product")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function dedupeStoreProducts(products = []) {
+  const byKey = new Map();
+  products
+    .slice()
+    .sort((a, b) => {
+      const order = (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
+      if (order !== 0) return order;
+      return String(a.id || "").localeCompare(String(b.id || ""));
+    })
+    .forEach((product) => {
+      const key = getStoreProductKey(product);
+      if (!byKey.has(key)) byKey.set(key, product);
+    });
+
+  return Array.from(byKey.values());
+}
 
 
 // ============ TOURNAMENTS ============
@@ -676,6 +796,212 @@ export const deleteCarouselAnnouncement = async (id) => {
     return true;
   } catch (error) {
     console.error("Error deleting carousel announcement:", error);
+    throw error;
+  }
+};
+
+// ============ STORE PRODUCTS ============
+
+export const getStoreProducts = async () => {
+  try {
+    const q = query(storeProductsCollection, orderBy("sortOrder", "asc"));
+    const querySnapshot = await getDocs(q);
+    const products = [];
+    querySnapshot.forEach((d) => {
+      products.push({ id: d.id, ...d.data() });
+    });
+    return dedupeStoreProducts(products);
+  } catch (error) {
+    console.error("Error getting store products:", error);
+    throw error;
+  }
+};
+
+export const seedStoreProductsIfEmpty = async () => {
+  try {
+    const existing = await getStoreProducts();
+    if (existing.length) return existing;
+
+    const created = await Promise.all(
+      defaultStoreProducts.map(async (product, index) => {
+        const payload = {
+          ...sanitizeStoreProduct({ ...product, sortOrder: index }),
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now(),
+        };
+        const id = getDefaultStoreProductId(product);
+        const docRef = doc(db, "storeProducts", id);
+        await setDoc(docRef, payload, { merge: true });
+        return { id, ...payload };
+      }),
+    );
+
+    return created;
+  } catch (error) {
+    console.error("Error seeding store products:", error);
+    throw error;
+  }
+};
+
+export const addStoreProduct = async (productData) => {
+  try {
+    const existing = await getStoreProducts();
+    const product = {
+      ...sanitizeStoreProduct({
+        ...productData,
+        sortOrder: productData.sortOrder ?? existing.length,
+      }),
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    };
+    const docRef = await addDoc(storeProductsCollection, product);
+    return { id: docRef.id, ...product };
+  } catch (error) {
+    console.error("Error adding store product:", error);
+    throw error;
+  }
+};
+
+export const updateStoreProduct = async (id, productData) => {
+  try {
+    const docRef = doc(db, "storeProducts", id);
+    const product = {
+      ...sanitizeStoreProduct(productData),
+      updatedAt: Timestamp.now(),
+    };
+    await updateDoc(docRef, product);
+    return { id, ...product };
+  } catch (error) {
+    console.error("Error updating store product:", error);
+    throw error;
+  }
+};
+
+export const deleteStoreProduct = async (id) => {
+  try {
+    const docRef = doc(db, "storeProducts", id);
+    await deleteDoc(docRef);
+    return true;
+  } catch (error) {
+    console.error("Error deleting store product:", error);
+    throw error;
+  }
+};
+
+// ============ STORE ORDERS ============
+
+export const getStoreOrders = async () => {
+  try {
+    const q = query(storeOrdersCollection, orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
+    const orders = [];
+    querySnapshot.forEach((d) => {
+      orders.push({ id: d.id, ...d.data() });
+    });
+    return orders;
+  } catch (error) {
+    console.error("Error getting store orders:", error);
+    throw error;
+  }
+};
+
+export const createStoreOrder = async (orderData) => {
+  try {
+    const itemRequests = Array.isArray(orderData.items) ? orderData.items : [];
+    if (!itemRequests.length) throw new Error("Cart is empty");
+
+    const orderRef = doc(storeOrdersCollection);
+    const orderNumber = `R17-${Date.now().toString(36).toUpperCase()}`;
+
+    return await runTransaction(db, async (transaction) => {
+      const orderItems = [];
+      let subtotal = 0;
+
+      for (const item of itemRequests) {
+        const productId = item.productId || item.id;
+        const quantity = Math.max(1, Number(item.quantity) || 1);
+        const productRef = doc(db, "storeProducts", productId);
+        const productSnap = await transaction.get(productRef);
+
+        if (!productSnap.exists()) {
+          throw new Error("A product in your cart is no longer available");
+        }
+
+        const product = productSnap.data();
+        if (product.isActive === false) {
+          throw new Error(`${product.name} is currently unavailable`);
+        }
+
+        const currentStock = Number(product.stock) || 0;
+        if (currentStock < quantity) {
+          throw new Error(`${product.name} has only ${currentStock} left in stock`);
+        }
+
+        const unitPrice = Number(product.price) || 0;
+        subtotal += unitPrice * quantity;
+        orderItems.push({
+          productId,
+          name: product.name || "",
+          category: product.category || "",
+          image: product.image || "",
+          selectedSize: item.selectedSize || "",
+          quantity,
+          unitPrice,
+          lineTotal: unitPrice * quantity,
+        });
+
+        transaction.update(productRef, {
+          stock: currentStock - quantity,
+          updatedAt: Timestamp.now(),
+        });
+      }
+
+      const shippingFee = Number(orderData.shippingFee) || 0;
+      const total = subtotal + shippingFee;
+      const paymentMethod = orderData.paymentMethod || "cod";
+      const payment = orderData.payment || {};
+
+      const order = {
+        orderNumber,
+        items: orderItems,
+        customer: orderData.customer || {},
+        userId: orderData.userId || null,
+        userEmail: orderData.userEmail || orderData.customer?.email || "",
+        subtotal,
+        shippingFee,
+        total,
+        currency: "INR",
+        paymentMethod,
+        paymentGateway: paymentMethod === "online" ? "razorpay" : "manual",
+        paymentStatus: paymentMethod === "online" ? "paid" : "cod_pending",
+        razorpayPaymentId: payment.razorpayPaymentId || "",
+        razorpayOrderId: payment.razorpayOrderId || "",
+        razorpaySignature: payment.razorpaySignature || "",
+        fulfillmentStatus: "processing",
+        status: "placed",
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      };
+
+      transaction.set(orderRef, order);
+      return { id: orderRef.id, ...order };
+    });
+  } catch (error) {
+    console.error("Error creating store order:", error);
+    throw error;
+  }
+};
+
+export const updateStoreOrder = async (id, orderData) => {
+  try {
+    const docRef = doc(db, "storeOrders", id);
+    await updateDoc(docRef, {
+      ...orderData,
+      updatedAt: Timestamp.now(),
+    });
+    return { id, ...orderData };
+  } catch (error) {
+    console.error("Error updating store order:", error);
     throw error;
   }
 };
