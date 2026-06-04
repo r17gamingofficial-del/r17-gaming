@@ -177,7 +177,7 @@ export default function Store() {
 
   return (
     <div className="store-page">
-      <Navbar />
+      <Navbar hideOnScroll />
 
       {cartNotice && (
         <div className="store-add-toast">
@@ -249,6 +249,15 @@ export default function Store() {
         {showFilters && (
           <div className="store-filter-panel">
             <label>
+              Category
+              <select value={activeCategory} onChange={(event) => setActiveCategory(event.target.value)}>
+                {CATEGORIES.map((category) => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+            </label>
+
+            <label>
               Price Range
               <select value={priceRange} onChange={(event) => setPriceRange(event.target.value)}>
                 <option value="all">All Prices</option>
@@ -296,18 +305,6 @@ export default function Store() {
             </label>
           </div>
         )}
-
-        <div className="store-categories-inner">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              className={`store-cat-btn${activeCategory === cat ? " active" : ""}`}
-              onClick={() => setActiveCategory(cat)}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
       </section>
 
       <section className="store-grid-section">

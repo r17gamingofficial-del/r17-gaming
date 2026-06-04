@@ -30,24 +30,10 @@ function getDateLabel(value) {
 }
 
 export default function AdminStore() {
-  const {
-    storeProducts,
-    storeOrders,
-    addStoreProduct,
-    updateStoreProduct,
-    deleteStoreProduct,
-    updateStoreOrder,
-    refreshStoreProducts,
-    refreshStoreOrders,
-  } = useAppContext();
-
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [editingId, setEditingId] = useState(null);
-  const [search, setSearch] = useState("");
-  const [orderSearch, setOrderSearch] = useState("");
+                  <button className="btn-delete-order" onClick={() => setConfirmDelete({ type: 'order', id: order.id, name: order.orderNumber || order.id })}>Delete</button>
   const [toast, setToast] = useState("");
   const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null); // { type: 'product'|'order', id, name }
 
   const showToast = (msg) => {
     setToast(msg);
@@ -98,11 +84,7 @@ export default function AdminStore() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Delete this product from the store database?")) return;
-    setBusy(true);
-    const ok = await deleteStoreProduct(id);
-    setBusy(false);
-    showToast(ok ? "Product deleted." : "Product delete failed.");
+    setConfirmDelete({ type: 'product', id, name: 'product' });
   };
 
   const handleSubmit = async (e) => {
@@ -136,9 +118,40 @@ export default function AdminStore() {
     showToast(ok ? "Order updated." : "Order update failed.");
   };
 
+  const performConfirmedDelete = async () => {
+    if (!confirmDelete) return;
+    setBusy(true);
+    try {
+      if (confirmDelete.type === 'product') {
+        const ok = await deleteStoreProduct(confirmDelete.id);
+        showToast(ok ? 'Product deleted.' : 'Product delete failed.');
+      } else if (confirmDelete.type === 'order') {
+        const ok = await deleteStoreOrder(confirmDelete.id);
+        showToast(ok ? 'Order deleted.' : 'Order delete failed.');
+        if (ok) await refreshStoreOrders();
+      }
+    } catch (err) {
+      showToast('Delete failed.');
+    } finally {
+      setBusy(false);
+      setConfirmDelete(null);
+    }
+  };
+
+  const cancelConfirmedDelete = () => setConfirmDelete(null);
+
   return (
     <div className="admin-store">
       {toast && <div className="admin-store-toast">{toast}</div>}
+      {confirmDelete && (
+        <div className="admin-confirm-toast">
+          <div className="admin-confirm-msg">Confirm delete {confirmDelete.name}?</div>
+          <div className="admin-confirm-actions">
+            <button className="admin-confirm-yes" onClick={performConfirmedDelete} disabled={busy}>Yes</button>
+            <button className="admin-confirm-no" onClick={cancelConfirmedDelete} disabled={busy}>Cancel</button>
+          </div>
+        </div>
+      )}
 
       <div className="astore-stats-bar">
         <div className="astore-stat-card">
@@ -348,6 +361,25 @@ export default function AdminStore() {
                     {PAYMENT_STATUSES.map((status) => <option key={status}>{status}</option>)}
                   </select>
                 </label>
+                <div className="astore-order-actions-right">
+                  <button
+                    className="btn-set-tracking"
+                    onClick={async () => {
+                      const tracking = window.prompt('Enter tracking number (leave blank to clear):', order.trackingNumber || '') || '';
+                      const carrier = window.prompt('Enter carrier (e.g. delhivery, fedex, dhl) or leave blank:', order.carrier || '') || '';
+                      try {
+                        const ok = await updateStoreOrder(order.id, { trackingNumber: tracking.trim(), carrier: carrier.trim(), updatedAt: new Date() });
+                        showToast(ok ? 'Tracking updated.' : 'Failed to update tracking.');
+                      } catch (err) {
+                        showToast('Failed to update tracking.');
+                      }
+                    }}
+                  >
+                    Set Tracking
+                  </button>
+
+                  <button className="btn-delete-order" onClick={() => setConfirmDelete({ type: 'order', id: order.id, name: order.orderNumber || order.id })}>Delete</button>
+                </div>
               </div>
             </article>
           );

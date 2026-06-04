@@ -467,6 +467,58 @@
   background: #111;
 }
 
+.astore-order-actions-right {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.btn-set-tracking {
+  background: rgba(14,14,16,0.9);
+  color: #fff;
+  border: 1px solid rgba(255,34,51,0.18);
+  padding: 0.45rem 0.7rem;
+  cursor: pointer;
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.7rem;
+}
+
+.btn-set-tracking:hover { box-shadow: 0 6px 18px rgba(255,34,51,0.12); }
+
+.btn-delete-order {
+  background: rgba(255,34,51,0.12);
+  color: #ffdddd;
+  border: 1px solid rgba(255,34,51,0.2);
+  padding: 0.45rem 0.6rem;
+  cursor: pointer;
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.7rem;
+}
+
+.btn-delete-order:hover { background: rgba(255,34,51,0.18); }
+
+/* Inline confirm toast */
+.admin-confirm-toast {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  background: rgba(18,18,20,0.96);
+  border: 1px solid rgba(255,34,51,0.18);
+  color: #fff;
+  padding: 0.6rem 0.8rem;
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  z-index: 10001;
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+}
+.admin-confirm-msg { font-family: "Orbitron", sans-serif; font-size: 0.85rem; margin-right: 0.6rem; }
+.admin-confirm-actions { display:flex; gap:0.4rem; }
+.admin-confirm-yes { background: #ff2233; color:#fff; border: none; padding:0.4rem 0.7rem; cursor:pointer; }
+.admin-confirm-no { background: rgba(255,255,255,0.06); color:#fff; border:1px solid rgba(255,255,255,0.06); padding:0.35rem 0.6rem; cursor:pointer; }
+
 @media (max-width: 900px) {
   .astore-stats-bar { grid-template-columns: repeat(2, 1fr); }
   .astore-section-head,

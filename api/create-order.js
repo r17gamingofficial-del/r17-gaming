@@ -1,3 +1,19 @@
+import { savePaymentAttempt } from "./_paymentAttempts.js";
+import { calculateStorePricing, publicPricing } from "./_storePricing.js";
+
+const RAZORPAY_TIMEOUT_MS = 15000;
+
+function isRazorpayNetworkError(error) {
+  const message = String(error?.message || "").toLowerCase();
+  return (
+    error?.name === "AbortError" ||
+    message.includes("fetch failed") ||
+    message.includes("network") ||
+    message.includes("certificate") ||
+    message.includes("tls")
+  );
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -12,27 +28,45 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { amount, currency = "INR", receipt } = req.body || {};
-    const amountInPaise = Number(amount);
+    const pricing = await calculateStorePricing(req.body || {});
+    const receipt = `r17_${Date.now().toString(36)}`;
 
-    if (!Number.isInteger(amountInPaise) || amountInPaise <= 0) {
-      return res.status(400).json({ error: "A valid amount in paise is required" });
+    if (!Number.isInteger(pricing.amountInPaise) || pricing.amountInPaise <= 0) {
+      return res.status(400).json({ error: "A valid payable amount is required" });
     }
 
     const auth = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
-    const razorpayResponse = await fetch("https://api.razorpay.com/v1/orders", {
-      method: "POST",
-      headers: {
-        Authorization: `Basic ${auth}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        amount: amountInPaise,
-        currency,
-        receipt: receipt || `r17_${Date.now()}`,
-        payment_capture: 1,
-      }),
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), RAZORPAY_TIMEOUT_MS);
+    let razorpayResponse;
+    try {
+      razorpayResponse = await fetch("https://api.razorpay.com/v1/orders", {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${auth}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: pricing.amountInPaise,
+          currency: pricing.currency,
+          receipt,
+          notes: {
+            source: "r17-store",
+            cart_fingerprint: pricing.fingerprint,
+          },
+        }),
+        signal: controller.signal,
+      });
+    } catch (error) {
+      if (isRazorpayNetworkError(error)) {
+        return res.status(502).json({
+          error: "Unable to reach Razorpay right now. Please check your connection and try again.",
+        });
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+    }
 
     const data = await razorpayResponse.json();
 
@@ -42,12 +76,15 @@ export default async function handler(req, res) {
       });
     }
 
+    await savePaymentAttempt(data, pricing);
+
     return res.status(200).json({
       keyId,
       order: data,
+      pricing: publicPricing(pricing),
     });
   } catch (error) {
-    return res.status(500).json({
+    return res.status(error?.statusCode || 500).json({
       error: error?.message || "Unable to create Razorpay order",
     });
   }

@@ -1,0 +1,142 @@
+{
+  "storeProducts": [
+    {
+      "id": "r17-pro-combat-jersey",
+      "name": "R17 Pro Combat Jersey",
+      "category": "Jerseys",
+      "price": 2999,
+      "stock": 48,
+      "badge": "BESTSELLER",
+      "featured": true,
+      "isActive": true,
+      "image": "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800&q=80",
+      "desc": "Official team jersey. Moisture-wicking tactical mesh.",
+      "sortOrder": 0,
+      "createdAt": "2026-06-04T05:44:17.392Z",
+      "updatedAt": "2026-06-04T05:44:17.392Z"
+    },
+    {
+      "id": "r17-elite-hoodie",
+      "name": "R17 Elite Hoodie",
+      "category": "Hoodies",
+      "price": 3499,
+      "stock": 22,
+      "badge": "NEW",
+      "featured": true,
+      "isActive": true,
+      "image": "https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=800&q=80",
+      "desc": "Heavyweight premium hoodie with embroidered R17 crest.",
+      "sortOrder": 1,
+      "createdAt": "2026-06-04T05:44:17.392Z",
+      "updatedAt": "2026-06-04T05:44:17.392Z"
+    },
+    {
+      "id": "r17-tactical-cap",
+      "name": "R17 Tactical Cap",
+      "category": "Caps",
+      "price": 1199,
+      "stock": 75,
+      "badge": "",
+      "featured": false,
+      "isActive": true,
+      "image": "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=800&q=80",
+      "desc": "Structured 6-panel cap with tactical flat brim.",
+      "sortOrder": 2,
+      "createdAt": "2026-06-04T05:44:17.392Z",
+      "updatedAt": "2026-06-04T05:44:17.392Z"
+    },
+    {
+      "id": "r17-gaming-sleeve-crimson",
+      "name": "R17 Gaming Sleeve - Crimson",
+      "category": "Sleeves",
+      "price": 799,
+      "stock": 130,
+      "badge": "LIMITED",
+      "featured": false,
+      "isActive": true,
+      "image": "https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=800&q=80",
+      "desc": "Anti-sweat compression arm sleeve for peak performance.",
+      "sortOrder": 3,
+      "createdAt": "2026-06-04T05:44:17.392Z",
+      "updatedAt": "2026-06-04T05:44:17.392Z"
+    },
+    {
+      "id": "r17-xl-control-mousepad",
+      "name": "R17 XL Control Mousepad",
+      "category": "Mousepads",
+      "price": 1599,
+      "stock": 60,
+      "badge": "FEATURED",
+      "featured": true,
+      "isActive": true,
+      "image": "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=800&q=80",
+      "desc": "Desk-size precision cloth surface. 900x400mm tactical edition.",
+      "sortOrder": 4,
+      "createdAt": "2026-06-04T05:44:17.392Z",
+      "updatedAt": "2026-06-04T05:44:17.392Z"
+    },
+    {
+      "id": "r17-dog-tag-set",
+      "name": "R17 Dog Tag Set",
+      "category": "Accessories",
+      "price": 699,
+      "stock": 200,
+      "badge": "LIMITED",
+      "featured": false,
+      "isActive": true,
+      "image": "https://images.unsplash.com/photo-1620912189875-e3543dc34fde?w=800&q=80",
+      "desc": "Stainless steel tags with R17 unit designation engraving.",
+      "sortOrder": 5,
+      "createdAt": "2026-06-04T05:44:17.392Z",
+      "updatedAt": "2026-06-04T05:44:17.392Z"
+    }
+  ],
+  "paymentAttempts": {
+    "order_SxRWxFUT9FaIyw": {
+      "razorpayOrderId": "order_SxRWxFUT9FaIyw",
+      "amount": 309800,
+      "currency": "INR",
+      "cartFingerprint": "a00e4fb29e928407a2fca2ccba73645707eebb6b13fd97aa0dd50119916775a4",
+      "status": "created",
+      "createdAt": "2026-06-04T05:44:17.392Z",
+      "updatedAt": "2026-06-04T05:44:17.392Z"
+    },
+    "order_SxRVA2wblI948W": {
+      "razorpayOrderId": "order_SxRVA2wblI948W",
+      "amount": 309800,
+      "currency": "INR",
+      "cartFingerprint": "a00e4fb29e928407a2fca2ccba73645707eebb6b13fd97aa0dd50119916775a4",
+      "status": "created",
+      "createdAt": "2026-06-04T05:53:01.600Z",
+      "updatedAt": "2026-06-04T05:53:01.600Z"
+    },
+    "order_SxRVzFi1OQMpRQ": {
+      "razorpayOrderId": "order_SxRVzFi1OQMpRQ",
+      "amount": 309800,
+      "currency": "INR",
+      "cartFingerprint": "a00e4fb29e928407a2fca2ccba73645707eebb6b13fd97aa0dd50119916775a4",
+      "status": "created",
+      "createdAt": "2026-06-04T05:53:28.694Z",
+      "updatedAt": "2026-06-04T05:53:28.694Z"
+    },
+    "order_SxSjBxq5KQQqvq": {
+      "razorpayOrderId": "order_SxSjBxq5KQQqvq",
+      "amount": 309800,
+      "currency": "INR",
+      "cartFingerprint": "a00e4fb29e928407a2fca2ccba73645707eebb6b13fd97aa0dd50119916775a4",
+      "status": "created",
+      "createdAt": "2026-06-04T06:54:34.069Z",
+      "updatedAt": "2026-06-04T06:54:34.069Z"
+    },
+    "order_SxSkMXQtcDhiwp": {
+      "razorpayOrderId": "order_SxSkMXQtcDhiwp",
+      "amount": 309800,
+      "currency": "INR",
+      "cartFingerprint": "a00e4fb29e928407a2fca2ccba73645707eebb6b13fd97aa0dd50119916775a4",
+      "status": "created",
+      "createdAt": "2026-06-04T06:55:40.538Z",
+      "updatedAt": "2026-06-04T06:55:40.538Z"
+    }
+  },
+  "storeOrders": {}
+}

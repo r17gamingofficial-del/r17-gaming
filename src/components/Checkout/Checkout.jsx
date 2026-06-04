@@ -112,35 +112,32 @@ export default function Checkout() {
     }
 
     const orderPayload = {
-        items: storeCart.map((item) => ({
-          productId: item.productId || item.id,
-          quantity: item.quantity,
-          selectedSize: item.selectedSize || "",
-        })),
-        customer: {
-          name: checkout.name.trim(),
-          email: checkout.email.trim(),
-          phone: checkout.phone.trim(),
-          address: checkout.address.trim(),
-          city: checkout.city.trim(),
-          state: checkout.state.trim(),
-          pincode: checkout.pincode.trim(),
-        },
-        paymentMethod: checkout.paymentMethod,
-        shippingFee,
-        userId: user?.uid || null,
-        userEmail: user?.email || checkout.email.trim(),
+      items: storeCart.map((item) => ({
+        productId: item.productId || item.id,
+        quantity: item.quantity,
+        selectedSize: item.selectedSize || "",
+      })),
+      customer: {
+        name: checkout.name.trim(),
+        email: checkout.email.trim(),
+        phone: checkout.phone.trim(),
+        address: checkout.address.trim(),
+        city: checkout.city.trim(),
+        state: checkout.state.trim(),
+        pincode: checkout.pincode.trim(),
+      },
+      paymentMethod: checkout.paymentMethod,
+      shippingFee,
+      userId: user?.uid || null,
+      userEmail: user?.email || checkout.email.trim(),
     };
 
     try {
       setSubmitting(true);
+      let created;
 
       if (checkout.paymentMethod === "online") {
-        const razorpayOrder = await postJson("/create-order", {
-          amount: Math.round(total * 100),
-          currency: "INR",
-          receipt: `r17_${Date.now()}`,
-        });
+        const razorpayOrder = await postJson("/create-order", orderPayload);
 
         await loadRazorpayCheckout();
 
@@ -188,23 +185,48 @@ export default function Checkout() {
           checkoutInstance.open();
         });
 
-        const verification = await postJson("/verify-payment", paymentResponse);
-        if (!verification.verified) {
+        const verification = await postJson("/verify-payment", {
+          payment: paymentResponse,
+          orderData: orderPayload,
+        });
+        if (!verification.verified || !verification.order) {
           throw new Error("Payment verification failed.");
         }
 
-        orderPayload.payment = {
-          verified: true,
-          razorpayPaymentId: paymentResponse.razorpay_payment_id,
-          razorpayOrderId: paymentResponse.razorpay_order_id,
-          razorpaySignature: paymentResponse.razorpay_signature,
+        created = verification.order;
+      } else {
+        // Optimistic UI for COD: show immediate receipt while backend completes
+        const placeholder = {
+          orderNumber: `R17-PENDING-${Date.now().toString(36).toUpperCase()}`,
+          items: orderPayload.items,
+          customer: orderPayload.customer,
+          subtotal,
+          shippingFee,
+          total,
+          currency: 'INR',
+          paymentMethod: 'cod',
+          paymentStatus: 'cod_pending',
+          fulfillmentStatus: 'processing',
         };
+
+        // show placeholder immediately and clear cart for UX
+        setOrderReceipt(placeholder);
+        clearStoreCart();
+
+        try {
+          const real = await createStoreOrder(orderPayload);
+          // replace placeholder with real server-created order
+          setOrderReceipt(real);
+        } catch (err) {
+          // restore error state and inform user
+          setPageError(err?.message || 'Unable to create order (COD).');
+          // Do not auto-restore cart to avoid duplicate ordering; admin can reconcile.
+          setOrderReceipt(null);
+          throw err;
+        }
       }
 
-      const created = await createStoreOrder(orderPayload);
-
-      clearStoreCart();
-      setOrderReceipt(created);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
       setPageError(error?.message || "Unable to place order right now.");
@@ -326,15 +348,6 @@ export default function Checkout() {
                     onChange={() => setCheckout({ ...checkout, paymentMethod: "cod" })}
                   />
                   Cash on delivery
-                </label>
-                <label className={checkout.paymentMethod === "online" ? "active" : ""}>
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    checked={checkout.paymentMethod === "online"}
-                    onChange={() => setCheckout({ ...checkout, paymentMethod: "online" })}
-                  />
-                  Online payment ready
                 </label>
               </div>
 

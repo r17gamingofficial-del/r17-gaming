@@ -11,6 +11,7 @@ import {
 } from "firebase/firestore";
 import { useAuth } from "../../hooks/useAuth";
 import { db } from "../../Firebase/config";
+import { useAppContext } from "../../Context/AppContext";
 import "./Profile.css";
 
 function formatJoined(ts) {
@@ -169,6 +170,33 @@ export default function Profile() {
       setUpdating(false);
     }
   };
+
+  const { storeOrders, refreshStoreOrders } = useAppContext();
+  const userOrders = (storeOrders || []).filter(
+    (o) => (o.userId && o.userId === user?.uid) || (o.userEmail && o.userEmail === user?.email),
+  );
+
+  function getTrackingUrl(carrier, trackingNumber) {
+    if (!trackingNumber) return null;
+    const tn = encodeURIComponent(trackingNumber.trim());
+    const c = (carrier || '').toLowerCase().trim();
+    switch (c) {
+      case 'fedex':
+        return `https://www.fedex.com/apps/fedextrack/?tracknumbers=${tn}`;
+      case 'dhl':
+        return `https://www.dhl.com/en/express/tracking.html?AWB=${tn}`;
+      case 'ups':
+        return `https://www.ups.com/track?loc=en_US&tracknum=${tn}`;
+      case 'delhivery':
+        return `https://www.delhivery.com/track/package?token=${tn}`;
+      case 'indiapost':
+      case 'india_post':
+      case 'india post':
+        return `https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx?Barcode=${tn}`;
+      default:
+        return `https://www.google.com/search?q=${tn}+tracking`;
+    }
+  }
 
   if (loading) {
     return (
@@ -409,6 +437,43 @@ export default function Profile() {
               >
                 Compete Now →
               </button>
+            </div>
+          )}
+        </div>
+
+        {/* Orders Section */}
+        <div className="profile-orders-section">
+          <h3>Your Orders</h3>
+          {userOrders.length === 0 ? (
+            <div className="no-orders">
+              <p>You have no orders yet.</p>
+            </div>
+          ) : (
+            <div className="orders-list">
+              {userOrders.map((order) => (
+                <div key={order.id} className="order-card">
+                  <div className="order-head">
+                    <strong>{order.orderNumber || order.id}</strong>
+                    <span>{formatJoined(order.createdAt)}</span>
+                    <b>INR {Number(order.total || 0).toLocaleString("en-IN")}</b>
+                  </div>
+                  <div className="order-items">
+                    {(order.items || []).map((it) => (
+                      <div key={`${order.id}-${it.productId}`} className="order-item-row">
+                        <span>{it.quantity}× {it.name}</span>
+                        <b>INR {Number(it.lineTotal || 0).toLocaleString("en-IN")}</b>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="order-meta">
+                        <span>Status: {order.fulfillmentStatus || order.status || 'processing'}</span>
+                        <span>Payment: {order.paymentStatus || 'pending'}</span>
+                        {order.trackingNumber ? (
+                          <span>Tracking: {order.carrier ? `${order.carrier} ` : ''}{order.trackingNumber} <a className="track-link" href={getTrackingUrl(order.carrier, order.trackingNumber)} target="_blank" rel="noreferrer">Track package</a></span>
+                        ) : null}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

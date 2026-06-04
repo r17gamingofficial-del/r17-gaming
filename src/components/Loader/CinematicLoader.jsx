@@ -3,6 +3,9 @@ import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import './CinematicLoader.css';
 
+const LOADER_TIME_SCALE = 1.35;
+const FINAL_HOLD_SECONDS = 0.75;
+
 export default function CinematicLoader({
   onComplete,
   onTransitionStart,
@@ -20,6 +23,7 @@ export default function CinematicLoader({
   useLayoutEffect(() => {
     let ctx = gsap.context(() => {
       const tl = gsap.timeline();
+      tl.timeScale(LOADER_TIME_SCALE);
 
       gsap.set(
         `
@@ -260,7 +264,7 @@ export default function CinematicLoader({
         'glitch+=0.45'
       );
 
-      tl.to({}, { duration: 1.5 });
+      tl.to({}, { duration: FINAL_HOLD_SECONDS });
 
       tl.addLabel('exit');
 

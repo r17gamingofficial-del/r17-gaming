@@ -19,8 +19,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 520px;
-  height: 520px;
+  width: min(60vmin, 520px);
+  height: min(60vmin, 520px);
   pointer-events: none;
 
   background:
@@ -183,8 +183,8 @@
 
   transform: translate(-50%, -50%) scale(0);
 
-  width: 5px;
-  height: 5px;
+  width: min(1vmin, 8px);
+  height: min(1vmin, 8px);
 
   border-radius: 50%;
 
@@ -199,8 +199,8 @@
 }
 
 .loader-svg-layer {
-  width: 720px;
-  height: 720px;
+  width: min(85vmin, 720px);
+  height: min(85vmin, 720px);
 }
 
 .loader-svg {
@@ -278,8 +278,8 @@
 
 .loader-identity-container {
   position: relative;
-  width: 260px;
-  height: 260px;
+  width: min(35vmin, 260px);
+  height: min(35vmin, 260px);
 
   display: flex;
   justify-content: center;
@@ -299,8 +299,8 @@
 
 .loader-logo-img {
   position: absolute;
-  width: 280px;
-  height: 280px;
+  width: min(40vmin, 280px);
+  height: min(40vmin, 280px);
 
   object-fit: contain;
 
@@ -314,7 +314,7 @@
   position: absolute;
   font-family: "Siegra";
   font-weight: 400;
-  font-size: 6.6rem;
+  font-size: clamp(2.2rem, 8vmin, 6.6rem);
 
   letter-spacing: 0.58em;
 

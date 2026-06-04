@@ -140,6 +140,38 @@
   padding-top: 1.5rem;
 }
 
+/* Orders Section */
+.profile-orders-section {
+  margin: 2rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 1.25rem;
+}
+
+.orders-list {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 0.75rem;
+}
+
+.order-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.9rem;
+  border-radius: 0.6rem;
+}
+
+.order-head {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.order-items { margin-top: 0.6rem; }
+.order-item-row { display: flex; justify-content: space-between; gap: 1rem; color: rgba(255,255,255,0.85); }
+.order-meta { margin-top: 0.6rem; display:flex; gap:1rem; flex-wrap:wrap; color: rgba(160,160,176,0.85); }
+.track-link { margin-left: 0.5rem; color: #ffd700; text-decoration: underline; }
+
 .profile-tournaments-header {
   display: flex;
   justify-content: space-between;

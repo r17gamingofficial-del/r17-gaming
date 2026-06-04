@@ -44,6 +44,7 @@ import {
   getStoreOrders,
   createStoreOrder as createStoreOrderInDb,
   updateStoreOrder as updateStoreOrderInDb,
+  deleteStoreOrder as deleteStoreOrderInDb,
 } from "../Firebase/fireStoreService.js";
 
 const AppContext = createContext();
@@ -109,6 +110,7 @@ const CART_STORAGE_KEY = "r17-store-cart";
 
 function loadStoredCart() {
   try {
+    if (typeof window === "undefined") return [];
     const raw = window.localStorage.getItem(CART_STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed) ? parsed : [];
@@ -144,7 +146,23 @@ export const AppProvider = ({ children }) => {
       console.error("Error saving cart:", error);
     }
   }, [storeCart]);
-  // Load initial data
+
+  useEffect(() => {
+    const syncCartFromStorage = () => {
+      const storedCart = loadStoredCart();
+      setStoreCart((current) => {
+        if (current.length || !storedCart.length) return current;
+        return storedCart;
+      });
+    };
+
+    syncCartFromStorage();
+
+    window.addEventListener("storage", syncCartFromStorage);
+    return () => window.removeEventListener("storage", syncCartFromStorage);
+  }, []);
+
+  // Load initial data
   useEffect(() => {
     loadData();
   }, []);
@@ -578,6 +596,19 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const deleteStoreOrder = async (id) => {
+    try {
+      const ok = await deleteStoreOrderInDb(id);
+      if (ok) {
+        setStoreOrders((prev) => prev.filter((o) => o.id !== id));
+      }
+      return ok;
+    } catch (error) {
+      console.error("Error deleting store order:", error);
+      throw error;
+    }
+  };
+
   const updateStoreOrder = async (id, data) => {
     try {
       await updateStoreOrderInDb(id, data);
@@ -751,6 +782,7 @@ export const AppProvider = ({ children }) => {
     deleteStoreProduct,
     createStoreOrder,
     updateStoreOrder,
+    deleteStoreOrder,
     addStoreCartItem,
     updateStoreCartQuantity,
     removeStoreCartItem,

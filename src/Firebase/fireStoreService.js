@@ -910,16 +910,30 @@ export const createStoreOrder = async (orderData) => {
     const itemRequests = Array.isArray(orderData.items) ? orderData.items : [];
     if (!itemRequests.length) throw new Error("Cart is empty");
 
+    const normalizedItems = itemRequests.map((item) => {
+      const productId = String(item.productId || item.id || "").trim();
+      if (!productId) throw new Error("A product in your cart is missing its ID");
+
+      return {
+        productId,
+        quantity: Math.max(1, Number(item.quantity) || 1),
+        selectedSize: item.selectedSize || "",
+      };
+    });
+    const productQuantities = normalizedItems.reduce((totals, item) => {
+      totals.set(item.productId, (totals.get(item.productId) || 0) + item.quantity);
+      return totals;
+    }, new Map());
+
     const orderRef = doc(storeOrdersCollection);
     const orderNumber = `R17-${Date.now().toString(36).toUpperCase()}`;
 
     return await runTransaction(db, async (transaction) => {
       const orderItems = [];
       let subtotal = 0;
+      const productsById = new Map();
 
-      for (const item of itemRequests) {
-        const productId = item.productId || item.id;
-        const quantity = Math.max(1, Number(item.quantity) || 1);
+      for (const productId of productQuantities.keys()) {
         const productRef = doc(db, "storeProducts", productId);
         const productSnap = await transaction.get(productRef);
 
@@ -933,26 +947,32 @@ export const createStoreOrder = async (orderData) => {
         }
 
         const currentStock = Number(product.stock) || 0;
-        if (currentStock < quantity) {
+        const requestedQuantity = productQuantities.get(productId);
+        if (currentStock < requestedQuantity) {
           throw new Error(`${product.name} has only ${currentStock} left in stock`);
         }
 
+        productsById.set(productId, {
+          product,
+          productRef,
+          currentStock,
+          requestedQuantity,
+        });
+      }
+
+      for (const item of normalizedItems) {
+        const { product } = productsById.get(item.productId);
         const unitPrice = Number(product.price) || 0;
-        subtotal += unitPrice * quantity;
+        subtotal += unitPrice * item.quantity;
         orderItems.push({
-          productId,
+          productId: item.productId,
           name: product.name || "",
           category: product.category || "",
           image: product.image || "",
-          selectedSize: item.selectedSize || "",
-          quantity,
+          selectedSize: item.selectedSize,
+          quantity: item.quantity,
           unitPrice,
-          lineTotal: unitPrice * quantity,
-        });
-
-        transaction.update(productRef, {
-          stock: currentStock - quantity,
-          updatedAt: Timestamp.now(),
+          lineTotal: unitPrice * item.quantity,
         });
       }
 
@@ -960,6 +980,11 @@ export const createStoreOrder = async (orderData) => {
       const total = subtotal + shippingFee;
       const paymentMethod = orderData.paymentMethod || "cod";
       const payment = orderData.payment || {};
+      const isOnlinePayment = paymentMethod === "online";
+
+      if (isOnlinePayment && payment.verified !== true) {
+        throw new Error("Online payment must be verified before creating the order");
+      }
 
       const order = {
         orderNumber,
@@ -972,8 +997,8 @@ export const createStoreOrder = async (orderData) => {
         total,
         currency: "INR",
         paymentMethod,
-        paymentGateway: paymentMethod === "online" ? "razorpay" : "manual",
-        paymentStatus: paymentMethod === "online" ? "paid" : "cod_pending",
+        paymentGateway: isOnlinePayment ? "razorpay" : "manual",
+        paymentStatus: isOnlinePayment ? "paid" : "cod_pending",
         razorpayPaymentId: payment.razorpayPaymentId || "",
         razorpayOrderId: payment.razorpayOrderId || "",
         razorpaySignature: payment.razorpaySignature || "",
@@ -983,6 +1008,12 @@ export const createStoreOrder = async (orderData) => {
         updatedAt: Timestamp.now(),
       };
 
+      for (const { productRef, currentStock, requestedQuantity } of productsById.values()) {
+        transaction.update(productRef, {
+          stock: currentStock - requestedQuantity,
+          updatedAt: Timestamp.now(),
+        });
+      }
       transaction.set(orderRef, order);
       return { id: orderRef.id, ...order };
     });
@@ -1002,6 +1033,17 @@ export const updateStoreOrder = async (id, orderData) => {
     return { id, ...orderData };
   } catch (error) {
     console.error("Error updating store order:", error);
+    throw error;
+  }
+};
+
+export const deleteStoreOrder = async (id) => {
+  try {
+    const docRef = doc(db, "storeOrders", id);
+    await deleteDoc(docRef);
+    return true;
+  } catch (error) {
+    console.error("Error deleting store order:", error);
     throw error;
   }
 };

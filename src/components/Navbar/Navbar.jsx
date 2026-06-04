@@ -12,8 +12,9 @@ function userInitial(user, profile) {
   return (user.email?.[0] || "?").toUpperCase();
 }
 
-export default function Navbar() {
+export default function Navbar({ hideOnScroll = false }) {
   const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
@@ -21,10 +22,27 @@ export default function Navbar() {
   const location = useLocation();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60);
+    let lastScrollY = window.scrollY;
+
+    const onScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      setScrolled(currentScrollY > 60);
+      setHidden(
+        hideOnScroll &&
+          !menuOpen &&
+          !authModalOpen &&
+          currentScrollY > 120 &&
+          currentScrollY > lastScrollY,
+      );
+
+      lastScrollY = currentScrollY;
+    };
+
+    onScroll();
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [authModalOpen, hideOnScroll, menuOpen]);
 
   // Handle smooth scrolling to sections
   const handleScrollToSection = (e, sectionId) => {
@@ -57,7 +75,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className={`navbar${scrolled ? " scrolled" : ""}`}>
+      <nav className={`navbar${scrolled ? " scrolled" : ""}${hidden ? " hidden" : ""}`}>
         <Link to="/" className="nav-logo">
           <img src={LogoR17} />
         </Link>
