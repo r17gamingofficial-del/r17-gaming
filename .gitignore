@@ -1,1 +1,5 @@
 node_modules/
+.codex-edge-profile/
+FIREBASE_SERVICE_ACCOUNT.json
+.tmp-order.json
+dist/

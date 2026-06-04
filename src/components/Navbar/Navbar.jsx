@@ -68,6 +68,11 @@ export default function Navbar() {
             </a>
           </li>
           <li>
+            <Link to="/store" onClick={closeMenu}>
+              Store
+            </Link>
+          </li>
+          <li>
             <a
               href="#announcements-carousel"
               onClick={(e) => handleScrollToSection(e, "announcements-carousel")}
@@ -155,6 +160,9 @@ export default function Navbar() {
         <a href="#games" onClick={(e) => handleScrollToSection(e, "games")}>
           Games
         </a>
+        <Link to="/store" onClick={closeMenu}>
+          Store
+        </Link>
         <a href="#teams" onClick={(e) => handleScrollToSection(e, "teams")}>
           Teams
         </a>

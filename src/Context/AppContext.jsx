@@ -109,7 +109,8 @@ const loadStoreCart = () => {
   if (typeof window === "undefined") return [];
   try {
     const stored = window.localStorage.getItem("r17StoreCart");
-    return stored ? JSON.parse(stored) : [];
+    const parsed = stored ? JSON.parse(stored) : [];
+    return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
     console.error("Error loading store cart:", error);
     return [];
@@ -122,6 +123,15 @@ const sortStoreProducts = (products) =>
       Number(a.sortOrder ?? 0) - Number(b.sortOrder ?? 0) ||
       (a.name || "").localeCompare(b.name || ""),
   );
+
+const loadOptionalStoreData = async (loader, label) => {
+  try {
+    return (await loader()) || [];
+  } catch (error) {
+    console.error(`Error loading ${label}:`, error);
+    return [];
+  }
+};
 
 export const AppProvider = ({ children }) => {
   const [tournaments, setTournaments] = useState([]);
@@ -177,8 +187,8 @@ export const AppProvider = ({ children }) => {
         getUsers(),
         getAdminComments(),
         getCarouselAnnouncements(),
-        getStoreProducts(),
-        getStoreOrders(),
+        loadOptionalStoreData(getStoreProducts, "store products"),
+        loadOptionalStoreData(getStoreOrders, "store orders"),
       ]);
 
 

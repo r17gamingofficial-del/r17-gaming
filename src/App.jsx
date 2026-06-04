@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AppProvider, useAppContext } from "./Context/AppContext.jsx";
+import { AnimatePresence } from "framer-motion";
+import CinematicLoader from "./components/Loader/CinematicLoader.jsx";
 import Cursor from "./components/Cursor/Cursor.jsx";
 import Navbar from "./components/Navbar/Navbar.jsx";
 import Hero from "./components/Hero/Hero.jsx";
@@ -17,9 +19,11 @@ import AdminPanel from "./components/Admin/AdminPanel.jsx";
 import Profile from "./components/Profile/Profile.jsx";
 import Teams from "./components/Teams/Teams.jsx";
 import AnnouncementsCarousel from "./components/Announcements/AnnouncementsCarousel.jsx";
+import Store from "./components/Store/Store.jsx";
+import Checkout from "./components/Checkout/Checkout.jsx";
 
 // Create a separate component that uses the context
-function HomePage() {
+function HomePage({bootState}) {
   const [selectedGame, setSelectedGame] = useState(null);
   const { games, announcementSlides } = useAppContext();
 
@@ -50,7 +54,7 @@ function HomePage() {
     <>
       <Cursor />
       <Navbar />
-      <Hero />
+      <Hero bootState={bootState} />
       <Marquee />
       <Games onGameSelect={handleGameSelect} selectedGame={selectedGame} />
       <Featured selectedGame={selectedGame} />
@@ -178,11 +182,50 @@ function ProfileRoute() {
 }
 
 function App() {
+  const [bootState, setBootState] = useState("booting");
+
+  const handleTransitionStart = () => {
+    setBootState("transitioning");
+  };
+
+  const handleBootComplete = () => {
+    setBootState("complete");
+  };
+
+  useEffect(() => {
+    // Force absolute scroll reset on mount
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
+    if (bootState !== "complete") {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [bootState]);
   return (
     <AppProvider>
+      <AnimatePresence>
+        {bootState !== "complete" && (
+          <CinematicLoader
+            key="loader"
+            onTransitionStart={handleTransitionStart}
+            onComplete={handleBootComplete}
+          />
+        )}
+      </AnimatePresence>
       <Router>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/store" element={<Store />} />
+          <Route path="/checkout" element={<Checkout />} />
           <Route path="/profile" element={<ProfileRoute />} />
           <Route path="/admin" element={<AdminRoute />} />
         </Routes>
