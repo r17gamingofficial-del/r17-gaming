@@ -4,6 +4,7 @@ import Marquee from "../Marquee/Marquee";
 import "./AdminPanel.css";
 import LogoR17 from "../../../public/assets/LogoR17.png";
 import { uploadImage } from "../../Firebase/storageService";
+import AdminStore from "./AdminStore";
 
 
 export default function AdminPanel() {
@@ -44,6 +45,8 @@ export default function AdminPanel() {
     addAnnouncementSlide,
     updateAnnouncementSlide,
     deleteAnnouncementSlide,
+    storeProducts,
+    storeOrders,
   } = useAppContext();
 
 
@@ -946,6 +949,20 @@ export default function AdminPanel() {
           </button>
 
           <button
+            className={`nav-link ${activeTab === "store" ? "active" : ""}`}
+            onClick={() => {
+              setActiveTab("store");
+              setShowForm(false);
+              setSearchTerm("");
+            }}
+          >
+            <span className="nav-icon">$</span> Store
+            <span className="nav-badge">
+              {(storeProducts?.length ?? 0) + (storeOrders?.length ?? 0)}
+            </span>
+          </button>
+
+          <button
             className={`nav-link ${activeTab === "users" ? "active" : ""}`}
             onClick={() => {
               setActiveTab("users");
@@ -1333,9 +1350,12 @@ export default function AdminPanel() {
                 <p className="no-data">Loading hero settings…</p>
               ) : null}
 
+              {activeTab === "store" && <AdminStore />}
+
                {activeTab !== "hero" &&
               activeTab !== "users" &&
-              activeTab !== "announcements" ? (
+              activeTab !== "announcements" &&
+              activeTab !== "store" ? (
 
                 <>
                   <div className="admin-actions">

@@ -12,6 +12,7 @@ import {
   orderBy,
   setDoc,
   Timestamp,
+  runTransaction,
 } from "firebase/firestore";
 
 // Collection references
@@ -23,6 +24,27 @@ const usersCollection = collection(db, "users");
 const communityPostsCollection = collection(db, "communityPosts");
 const adminCommentsCollection = collection(db, "adminComments");
 const carouselAnnouncementsCollection = collection(db, "carouselAnnouncements");
+const storeProductsCollection = collection(db, "storeProducts");
+const storeOrdersCollection = collection(db, "storeOrders");
+
+const toNumber = (value, fallback = 0) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+};
+
+const getTime = (value) => {
+  if (!value) return 0;
+  if (typeof value.toMillis === "function") return value.toMillis();
+  if (typeof value.toDate === "function") return value.toDate().getTime();
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+};
+
+const createOrderNumber = () =>
+  `R17-${Date.now().toString(36).toUpperCase()}-${Math.random()
+    .toString(36)
+    .slice(2, 6)
+    .toUpperCase()}`;
 
 
 // ============ TOURNAMENTS ============
@@ -560,6 +582,226 @@ export const deleteCommunityPost = async (id) => {
     return true;
   } catch (error) {
     console.error("Error deleting community post:", error);
+    throw error;
+  }
+};
+
+// ============ STORE ============
+
+export const getStoreProducts = async () => {
+  try {
+    const querySnapshot = await getDocs(storeProductsCollection);
+    const products = [];
+    querySnapshot.forEach((d) => {
+      products.push({ id: d.id, ...d.data() });
+    });
+    return products.sort(
+      (a, b) =>
+        toNumber(a.sortOrder) - toNumber(b.sortOrder) ||
+        (a.name || "").localeCompare(b.name || ""),
+    );
+  } catch (error) {
+    console.error("Error getting store products:", error);
+    throw error;
+  }
+};
+
+export const addStoreProduct = async (productData) => {
+  try {
+    const product = {
+      name: productData.name || "",
+      category: productData.category || "Jerseys",
+      price: toNumber(productData.price),
+      stock: toNumber(productData.stock),
+      badge: productData.badge || "",
+      featured: Boolean(productData.featured),
+      isActive: productData.isActive !== false,
+      image: productData.image || "",
+      desc: productData.desc || "",
+      sortOrder: toNumber(productData.sortOrder),
+      isByAdmin: true,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    };
+    const docRef = await addDoc(storeProductsCollection, product);
+    return { id: docRef.id, ...product };
+  } catch (error) {
+    console.error("Error adding store product:", error);
+    throw error;
+  }
+};
+
+export const updateStoreProduct = async (id, productData) => {
+  try {
+    const docRef = doc(db, "storeProducts", id);
+    const update = {
+      ...productData,
+      price: toNumber(productData.price),
+      stock: toNumber(productData.stock),
+      sortOrder: toNumber(productData.sortOrder),
+      updatedAt: Timestamp.now(),
+    };
+    await updateDoc(docRef, update);
+    return { id, ...update };
+  } catch (error) {
+    console.error("Error updating store product:", error);
+    throw error;
+  }
+};
+
+export const deleteStoreProduct = async (id) => {
+  try {
+    await deleteDoc(doc(db, "storeProducts", id));
+    return true;
+  } catch (error) {
+    console.error("Error deleting store product:", error);
+    throw error;
+  }
+};
+
+export const getStoreOrders = async () => {
+  try {
+    const querySnapshot = await getDocs(storeOrdersCollection);
+    const orders = [];
+    querySnapshot.forEach((d) => {
+      orders.push({ id: d.id, ...d.data() });
+    });
+    return orders.sort((a, b) => getTime(b.createdAt) - getTime(a.createdAt));
+  } catch (error) {
+    console.error("Error getting store orders:", error);
+    throw error;
+  }
+};
+
+export const createStoreOrder = async (orderData) => {
+  try {
+    const requestedItems = Array.isArray(orderData.items)
+      ? orderData.items.filter((item) => toNumber(item.quantity) > 0)
+      : [];
+
+    if (!requestedItems.length) {
+      throw new Error("Order must contain at least one product.");
+    }
+
+    const orderRef = doc(storeOrdersCollection);
+    const now = Timestamp.now();
+
+    return await runTransaction(db, async (transaction) => {
+      const enrichedItems = [];
+      const productIds = [
+        ...new Set(requestedItems.map((item) => item.productId || item.id)),
+      ].filter(Boolean);
+      const productRefs = new Map(
+        productIds.map((productId) => [productId, doc(db, "storeProducts", productId)]),
+      );
+      const productSnaps = new Map();
+      const quantityByProduct = new Map();
+      let subtotal = 0;
+
+      for (const [productId, productRef] of productRefs) {
+        productSnaps.set(productId, await transaction.get(productRef));
+      }
+
+      for (const item of requestedItems) {
+        const productId = item.productId || item.id;
+        if (!productId) {
+          throw new Error("Order item is missing a product id.");
+        }
+
+        const quantity = toNumber(item.quantity, 1);
+        const productSnap = productSnaps.get(productId);
+
+        if (!productSnap?.exists()) {
+          throw new Error("One of the products is no longer available.");
+        }
+
+        const product = productSnap.data();
+        if (product.isActive === false) {
+          throw new Error(`${product.name || "Product"} is not active.`);
+        }
+
+        const currentStock = toNumber(product.stock);
+        const nextQuantity = (quantityByProduct.get(productId) || 0) + quantity;
+        if (currentStock < nextQuantity) {
+          throw new Error(`${product.name || "Product"} does not have enough stock.`);
+        }
+        quantityByProduct.set(productId, nextQuantity);
+
+        const price = toNumber(product.price);
+        const lineTotal = price * quantity;
+        subtotal += lineTotal;
+
+        enrichedItems.push({
+          productId,
+          name: product.name || "Product",
+          category: product.category || "",
+          image: product.image || "",
+          price,
+          quantity,
+          selectedSize: item.selectedSize || "",
+          lineTotal,
+        });
+      }
+
+      for (const [productId, quantity] of quantityByProduct) {
+        const productSnap = productSnaps.get(productId);
+        transaction.update(productRefs.get(productId), {
+          stock: toNumber(productSnap.data().stock) - quantity,
+          updatedAt: now,
+        });
+      }
+
+      const shippingFee = toNumber(orderData.shippingFee);
+      const paymentMethod = orderData.paymentMethod || "cod";
+      const order = {
+        orderNumber: orderData.orderNumber || createOrderNumber(),
+        items: enrichedItems,
+        customer: orderData.customer || {},
+        subtotal,
+        shippingFee,
+        total: subtotal + shippingFee,
+        currency: orderData.currency || "INR",
+        paymentMethod,
+        paymentStatus:
+          orderData.paymentStatus || (paymentMethod === "online" ? "paid" : "cod_pending"),
+        fulfillmentStatus: orderData.fulfillmentStatus || "processing",
+        userId: orderData.userId || null,
+        userEmail: orderData.userEmail || "",
+        payment: orderData.payment || null,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      transaction.set(orderRef, order);
+      return { id: orderRef.id, ...order };
+    });
+  } catch (error) {
+    console.error("Error creating store order:", error);
+    throw error;
+  }
+};
+
+export const updateStoreOrder = async (id, orderData) => {
+  try {
+    const docRef = doc(db, "storeOrders", id);
+    const update = {
+      ...orderData,
+      updatedAt: Timestamp.now(),
+    };
+    await updateDoc(docRef, update);
+    return { id, ...update };
+  } catch (error) {
+    console.error("Error updating store order:", error);
+    throw error;
+  }
+};
+
+export const deleteStoreOrder = async (id) => {
+  try {
+    await deleteDoc(doc(db, "storeOrders", id));
+    return true;
+  } catch (error) {
+    console.error("Error deleting store order:", error);
     throw error;
   }
 };

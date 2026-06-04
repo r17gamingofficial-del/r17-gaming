@@ -36,6 +36,14 @@ import {
   addCarouselAnnouncement as addCarouselAnnouncementInDb,
   updateCarouselAnnouncement as updateCarouselAnnouncementInDb,
   deleteCarouselAnnouncement as deleteCarouselAnnouncementInDb,
+  getStoreProducts,
+  addStoreProduct as addStoreProductInDb,
+  updateStoreProduct as updateStoreProductInDb,
+  deleteStoreProduct as deleteStoreProductInDb,
+  getStoreOrders,
+  createStoreOrder as createStoreOrderInDb,
+  updateStoreOrder as updateStoreOrderInDb,
+  deleteStoreOrder as deleteStoreOrderInDb,
 } from "../Firebase/fireStoreService.js";
 
 const AppContext = createContext();
@@ -97,6 +105,24 @@ function mergeMarquee(loaded) {
   return { items: loaded.items };
 }
 
+const loadStoreCart = () => {
+  if (typeof window === "undefined") return [];
+  try {
+    const stored = window.localStorage.getItem("r17StoreCart");
+    return stored ? JSON.parse(stored) : [];
+  } catch (error) {
+    console.error("Error loading store cart:", error);
+    return [];
+  }
+};
+
+const sortStoreProducts = (products) =>
+  [...(products || [])].sort(
+    (a, b) =>
+      Number(a.sortOrder ?? 0) - Number(b.sortOrder ?? 0) ||
+      (a.name || "").localeCompare(b.name || ""),
+  );
+
 export const AppProvider = ({ children }) => {
   const [tournaments, setTournaments] = useState([]);
   const [teams, setTeams] = useState([]);
@@ -107,12 +133,21 @@ export const AppProvider = ({ children }) => {
   const [communityPosts, setCommunityPosts] = useState([]);
   const [adminComments, setAdminComments] = useState([]);
   const [announcementSlides, setAnnouncementSlides] = useState([]);
+  const [storeProducts, setStoreProducts] = useState([]);
+  const [storeOrders, setStoreOrders] = useState([]);
+  const [storeCart, setStoreCart] = useState(loadStoreCart);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  // Load initial data
+
+  // Load initial data
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("r17StoreCart", JSON.stringify(storeCart));
+  }, [storeCart]);
 
   const loadData = async () => {
     try {
@@ -133,6 +168,8 @@ export const AppProvider = ({ children }) => {
         rawUsers,
         rawAdminComments,
         dbAnnouncements,
+        dbStoreProducts,
+        dbStoreOrders,
       ] = await Promise.all([
         getHero(),
         getMarquee(),
@@ -140,6 +177,8 @@ export const AppProvider = ({ children }) => {
         getUsers(),
         getAdminComments(),
         getCarouselAnnouncements(),
+        getStoreProducts(),
+        getStoreOrders(),
       ]);
 
 
@@ -149,6 +188,8 @@ export const AppProvider = ({ children }) => {
       setCommunityPosts(dbCommunity || []);
       setAdminComments(rawAdminComments || []);
       setAnnouncementSlides(dbAnnouncements || []);
+      setStoreProducts(dbStoreProducts || []);
+      setStoreOrders(dbStoreOrders || []);
       setUsers(rawUsers || []);
       setTeams(dbTeams || []);
 
@@ -170,6 +211,7 @@ export const AppProvider = ({ children }) => {
 
     } catch (error) {
       console.error("Error loading data:", error);
+    } finally {
       setLoading(false);
     }
   };
@@ -472,6 +514,151 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // Store Operations
+  const refreshStoreProducts = async () => {
+    try {
+      const refreshed = await getStoreProducts();
+      setStoreProducts(refreshed || []);
+      return refreshed || [];
+    } catch (error) {
+      console.error("Error refreshing store products:", error);
+      return [];
+    }
+  };
+
+  const refreshStoreOrders = async () => {
+    try {
+      const refreshed = await getStoreOrders();
+      setStoreOrders(refreshed || []);
+      return refreshed || [];
+    } catch (error) {
+      console.error("Error refreshing store orders:", error);
+      return [];
+    }
+  };
+
+  const addStoreProduct = async (product) => {
+    try {
+      const created = await addStoreProductInDb(product);
+      setStoreProducts((prev) => sortStoreProducts([...prev, created]));
+      return true;
+    } catch (error) {
+      console.error("Error adding store product:", error);
+      return false;
+    }
+  };
+
+  const updateStoreProduct = async (id, data) => {
+    try {
+      await updateStoreProductInDb(id, data);
+      setStoreProducts((prev) =>
+        sortStoreProducts(prev.map((p) => (p.id === id ? { ...p, ...data } : p))),
+      );
+      return true;
+    } catch (error) {
+      console.error("Error updating store product:", error);
+      return false;
+    }
+  };
+
+  const deleteStoreProduct = async (id) => {
+    try {
+      await deleteStoreProductInDb(id);
+      setStoreProducts((prev) => prev.filter((p) => p.id !== id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting store product:", error);
+      return false;
+    }
+  };
+
+  const createStoreOrder = async (orderData) => {
+    try {
+      const created = await createStoreOrderInDb(orderData);
+      setStoreOrders((prev) => [created, ...prev]);
+      await refreshStoreProducts();
+      return created;
+    } catch (error) {
+      console.error("Error creating store order:", error);
+      throw error;
+    }
+  };
+
+  const updateStoreOrder = async (id, data) => {
+    try {
+      await updateStoreOrderInDb(id, data);
+      setStoreOrders((prev) =>
+        prev.map((order) => (order.id === id ? { ...order, ...data } : order)),
+      );
+      return true;
+    } catch (error) {
+      console.error("Error updating store order:", error);
+      return false;
+    }
+  };
+
+  const deleteStoreOrder = async (id) => {
+    try {
+      await deleteStoreOrderInDb(id);
+      setStoreOrders((prev) => prev.filter((order) => order.id !== id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting store order:", error);
+      return false;
+    }
+  };
+
+  const addStoreCartItem = (product, options = {}) => {
+    const quantity = Math.max(1, Number(options.quantity || 1));
+    const selectedSize = options.selectedSize || "";
+    const productId = product.id || product.productId;
+    const cartKey = `${productId}-${selectedSize || "default"}`;
+
+    setStoreCart((prev) => {
+      const existing = prev.find((item) => item.cartKey === cartKey);
+      if (existing) {
+        return prev.map((item) =>
+          item.cartKey === cartKey
+            ? { ...item, quantity: item.quantity + quantity }
+            : item,
+        );
+      }
+
+      return [
+        ...prev,
+        {
+          cartKey,
+          productId,
+          selectedSize,
+          quantity,
+          name: product.name || "",
+          price: Number(product.price || 0),
+          image: product.image || "",
+          category: product.category || "",
+        },
+      ];
+    });
+  };
+
+  const updateStoreCartQuantity = (cartKey, quantity) => {
+    const nextQuantity = Number(quantity);
+    setStoreCart((prev) =>
+      nextQuantity <= 0
+        ? prev.filter((item) => item.cartKey !== cartKey)
+        : prev.map((item) =>
+            item.cartKey === cartKey ? { ...item, quantity: nextQuantity } : item,
+          ),
+    );
+  };
+
+  const removeStoreCartItem = (cartKey) => {
+    setStoreCart((prev) => prev.filter((item) => item.cartKey !== cartKey));
+  };
+
+  const clearStoreCart = () => {
+    setStoreCart([]);
+  };
+
 
   // User Management Operations
   const blockUser = async (id) => {
@@ -520,6 +707,9 @@ export const AppProvider = ({ children }) => {
     communityPosts,
     users,
     loading,
+    storeProducts,
+    storeOrders,
+    storeCart,
     addTournament,
     updateTournament,
     deleteTournament,
@@ -549,6 +739,18 @@ export const AppProvider = ({ children }) => {
     addAnnouncementSlide,
     updateAnnouncementSlide,
     deleteAnnouncementSlide,
+    refreshStoreProducts,
+    refreshStoreOrders,
+    addStoreProduct,
+    updateStoreProduct,
+    deleteStoreProduct,
+    createStoreOrder,
+    updateStoreOrder,
+    deleteStoreOrder,
+    addStoreCartItem,
+    updateStoreCartQuantity,
+    removeStoreCartItem,
+    clearStoreCart,
   };
 
 
