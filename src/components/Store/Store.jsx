@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../Navbar/Navbar";
 import Footer from "../Footer/Footer";
+import Cursor from "../Cursor/Cursor";
 import { useAppContext } from "../../Context/AppContext";
 import "./Store.css";
 
@@ -46,6 +47,11 @@ const BADGE_COLORS = {
 
 const formatPrice = (value) => `INR ${Number(value || 0).toLocaleString("en-IN")}`;
 const needsSize = (product) => APPAREL_CATEGORIES.has(String(product?.category || "").toLowerCase());
+const getStockCount = (product) => {
+  const stock = Number(product?.stock || 0);
+  return Number.isFinite(stock) ? stock : 0;
+};
+const isInStock = (product) => getStockCount(product) > 0;
 
 const normalizeProductField = (value) =>
   String(value || "")
@@ -65,8 +71,8 @@ function getProductSignature(product) {
 }
 
 function mergeDuplicateProducts(existing, incoming) {
-  const existingStock = Number(existing.stock || 0);
-  const incomingStock = Number(incoming.stock || 0);
+  const existingStock = getStockCount(existing);
+  const incomingStock = getStockCount(incoming);
   const base = incomingStock > existingStock ? incoming : existing;
   const fallback = base === incoming ? existing : incoming;
 
@@ -151,7 +157,7 @@ export default function Store() {
       .filter((product) => {
         if (activeCategory !== "All" && product.category !== activeCategory) return false;
         if (!matchesPrice(product, priceRange)) return false;
-        if (availabilityFilter === "inStock" && Number(product.stock || 0) <= 0) return false;
+        if (availabilityFilter === "inStock" && !isInStock(product)) return false;
         if (featuredOnly && !product.featured) return false;
         if (sizeFilter !== "all" && !needsSize(product)) return false;
         if (search) {
@@ -231,6 +237,7 @@ export default function Store() {
 
   return (
     <div className="store-page">
+      <Cursor />
       <Navbar hideOnScroll />
 
       {cartNotice && (
@@ -257,7 +264,7 @@ export default function Store() {
             <div className="store-stat-divider" />
             <div className="store-stat"><span>{products.filter((p) => p.featured).length}</span><small>Featured</small></div>
             <div className="store-stat-divider" />
-            <div className="store-stat"><span>{products.reduce((sum, p) => sum + Number(p.stock || 0), 0)}</span><small>In Stock</small></div>
+            <div className="store-stat"><span>{products.reduce((sum, p) => sum + getStockCount(p), 0)}</span><small>In Stock</small></div>
           </div>
         </div>
         <div className="store-hero-hud-ring" />
@@ -400,7 +407,7 @@ export default function Store() {
                 <h3 className="store-card-name">{product.name}</h3>
                 <p className="store-card-desc">{product.desc}</p>
                 <div className="store-card-meta">
-                  <span>{Number(product.stock || 0)} in stock</span>
+                  <span>{getStockCount(product)} in stock</span>
                   {needsSize(product) && <span>Sizes XS-XXL</span>}
                   {product.featured && <span>Featured</span>}
                 </div>
@@ -412,9 +419,9 @@ export default function Store() {
                       event.stopPropagation();
                       openProductDetails(product);
                     }}
-                    disabled={!product.stock}
+                    disabled={!isInStock(product)}
                   >
-                    {product.stock ? "View" : "Sold Out"}
+                    {isInStock(product) ? "View" : "Sold Out"}
                   </button>
                 </div>
               </div>
@@ -514,8 +521,8 @@ export default function Store() {
               </div>
 
               <div className="store-product-stock">
-                <span>{Number(selectedProduct.stock || 0)} units available</span>
-                <b>{selectedProduct.stock ? "In stock" : "Currently sold out"}</b>
+                <span>{getStockCount(selectedProduct)} units available</span>
+                <b>{isInStock(selectedProduct) ? "In stock" : "Currently sold out"}</b>
               </div>
 
               <div className="store-product-purchase">
@@ -525,7 +532,7 @@ export default function Store() {
                   <button
                     onClick={() =>
                       setDetailQuantity((q) =>
-                        Math.min(Number(selectedProduct.stock || 1), q + 1),
+                        Math.min(getStockCount(selectedProduct) || 1, q + 1),
                       )
                     }
                   >
@@ -535,14 +542,14 @@ export default function Store() {
                 <button
                   className="store-add-large"
                   onClick={() => addToCart(selectedProduct, detailQuantity)}
-                  disabled={!selectedProduct.stock}
+                  disabled={!isInStock(selectedProduct)}
                 >
                   Add to Cart
                 </button>
                 <button
                   className="store-buy-large"
                   onClick={() => handleBuyNow(selectedProduct)}
-                  disabled={!selectedProduct.stock}
+                  disabled={!isInStock(selectedProduct)}
                 >
                   Buy Now
                 </button>

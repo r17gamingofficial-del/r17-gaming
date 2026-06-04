@@ -621,8 +621,16 @@ export const AppProvider = ({ children }) => {
   const addStoreCartItem = (product, options = {}) => {
     const quantity = Math.max(1, Number(options.quantity || 1));
     const selectedSize = options.selectedSize || "";
-    const productId = product.id || product.productId;
+    const productId = product?.id || product?.productId;
     const cartKey = `${productId}-${selectedSize || "default"}`;
+    const stockNumber = Number(product?.stock || 0);
+    const availableStock = Number.isFinite(stockNumber) ? stockNumber : 0;
+    const existingQuantity =
+      storeCart.find((item) => item.cartKey === cartKey)?.quantity || 0;
+
+    if (!productId || availableStock <= 0 || existingQuantity + quantity > availableStock) {
+      return false;
+    }
 
     setStoreCart((prev) => {
       const existing = prev.find((item) => item.cartKey === cartKey);
@@ -648,6 +656,8 @@ export const AppProvider = ({ children }) => {
         },
       ];
     });
+
+    return true;
   };
 
   const updateStoreCartQuantity = (cartKey, quantity) => {
